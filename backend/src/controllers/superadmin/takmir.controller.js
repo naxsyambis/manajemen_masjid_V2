@@ -3,20 +3,37 @@ const User = require("../../models/User");
 const MasjidTakmir = require("../../models/masjid_takmir");
 
 exports.create = async (req, res) => {
-    const password = await bcrypt.hash(req.body.password, 10);
+  try {
+    const { nama, email, password, masjid_id } = req.body;
+
+    if (!nama || !email || !password || !masjid_id) {
+      return res.status(400).json({ message: "Semua field wajib diisi" });
+    }
+
+    const existing = await User.findOne({ where: { email } });
+    if (existing) {
+      return res.status(409).json({ message: "Email sudah terdaftar" });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-        nama: req.body.nama,
-        email: req.body.email,
-        password,
-        role: "takmir"
+      nama,
+      email,
+      password: hash,
+      role: "takmir"
     });
 
     await MasjidTakmir.create({
-        user_id: user.user_id,
-        masjid_id: req.body.masjid_id,
-        pembuatakun: req.user.user_id
+      user_id: user.user_id,
+      masjid_id,
+      pembuatakun: req.user.user_id
     });
 
-    res.json({ message: "Takmir berhasil dibuat" });
+    res.status(201).json({ message: "Takmir berhasil dibuat" });
+
+  } catch (err) {
+    console.error("CREATE TAKMIR ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
 };
