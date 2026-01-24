@@ -34,5 +34,5 @@ router.get("/kategori-keuangan", auth, takmirOnly, kategori.getAll);
 router.get("/kategori-keuangan/:id", auth, takmirOnly, kategori.getById);
 router.put("/kategori-keuangan/:id", auth, takmirOnly, kategori.update);
 router.delete("/kategori-keuangan/:id", auth, takmirOnly, kategori.delete);
-
+router.get("/keuangan/report",auth,takmirOnly,keuangan.generateReport);
 module.exports = router;

@@ -50,34 +50,45 @@ const Settings = () => {
     fetchSemuaData();
   }, []);
 
+// friska habis ngerubah ini 
   const handleSaveTtd = async (base64Img) => {
     try {
-      await axios.put('http://localhost:3000/superadmin/takmir', {
-        foto_tanda_tangan: base64Img
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.put(
+        "http://localhost:3000/auth/profile/ttd",
+        {
+          foto_tanda_tangan: base64Img
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
       fetchSemuaData();
     } catch (err) {
       alert("Gagal menyimpan tanda tangan.");
     }
   };
 
+// friska habis ngerubah ini 
   const handleDeleteTtd = async () => {
     if (window.confirm("Hapus berkas tanda tangan?")) {
       try {
         setPreviewTtd(null);
-        await axios.put('http://localhost:3000/superadmin/takmir', {
-          foto_tanda_tangan: null
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        localStorage.removeItem('ttdImage');
+        await axios.put(
+          "http://localhost:3000/auth/profile/ttd",
+          {
+            foto_tanda_tangan: null
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        localStorage.removeItem("ttdImage");
       } catch (err) {
         alert("Gagal menghapus.");
       }
     }
   };
+
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn p-4 pb-20">

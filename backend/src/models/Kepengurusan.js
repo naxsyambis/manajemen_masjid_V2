@@ -6,7 +6,8 @@ const Kepengurusan = sequelize.define("kepengurusan", {
     nama_lengkap: DataTypes.STRING,
     jabatan: DataTypes.STRING,
     periode_mulai: DataTypes.DATE,
-    periode_selesai: DataTypes.DATE
+    periode_selesai: DataTypes.DATE,
+    foto_pengurus: DataTypes.STRING
 }, {
     tableName: "kepengurusan",
     timestamps: false

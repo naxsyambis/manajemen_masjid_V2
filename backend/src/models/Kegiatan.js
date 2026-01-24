@@ -6,7 +6,7 @@ module.exports = sequelize.define("kegiatan_masjid", {
     nama_kegiatan: DataTypes.STRING,
     waktu_kegiatan: DataTypes.DATE,
     lokasi: DataTypes.STRING,
-    deskripsi: DataTypes.TEXT,
+    deskripsi: DataTypes.STRING, 
     user_id: DataTypes.INTEGER
 }, {
     tableName: "kegiatan_masjid",

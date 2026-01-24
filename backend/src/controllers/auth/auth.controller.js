@@ -112,3 +112,34 @@ exports.getProfile = async (req, res) => {
         res.status(500).json({ message: "Gagal ambil profil" });
     }
 };
+
+/* ================= UPDATE TANDA TANGAN TAKMIR ================= */
+exports.updateTtd = async (req, res) => {
+    try {
+        // hanya takmir
+        if (req.user.role !== "takmir") {
+        return res.status(403).json({ message: "Akses ditolak" });
+        }
+
+        const { foto_tanda_tangan } = req.body;
+
+        // boleh string base64 atau null (hapus)
+        if (foto_tanda_tangan === undefined) {
+        return res.status(400).json({ message: "Data TTD tidak valid" });
+        }
+
+        const user = await User.findByPk(req.user.user_id);
+        if (!user) {
+        return res.status(404).json({ message: "User tidak ditemukan" });
+        }
+
+        await user.update({
+        foto_tanda_tangan
+        });
+
+        res.json({ message: "Tanda tangan berhasil diperbarui" });
+    } catch (error) {
+        console.error("UPDATE TTD ERROR:", error);
+        res.status(500).json({ message: "Gagal memperbarui tanda tangan" });
+    }
+};
