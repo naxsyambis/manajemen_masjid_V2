@@ -4,7 +4,6 @@ exports.getAll = async (req, res) => {
     try {
         const { masjid_id } = req.query;
 
-        // validasi wajib
         if (!masjid_id) {
             return res.status(400).json({
                 message: "masjid_id wajib diisi"

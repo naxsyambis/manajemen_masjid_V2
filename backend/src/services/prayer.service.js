@@ -65,7 +65,7 @@ exports.getTodayPrayerSchedule = async (kotaId = DEFAULT_KOTA_ID) => {
   return {
     lokasi: `${data.kabko}, ${data.prov}`,
     tanggal: period,
-    jadwal: todaySchedule, 
+    jadwal: todaySchedule,
     nextPrayer,
   };
 };
