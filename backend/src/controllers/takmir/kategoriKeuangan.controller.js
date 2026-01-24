@@ -1,4 +1,5 @@
 const Kategori = require("../../models/Kategori_Keuangan");
+const { logActivity } = require("../../services/auditLog.service");
 
 exports.create = async (req, res) => {
     const data = await Kategori.create({
@@ -6,6 +7,15 @@ exports.create = async (req, res) => {
         jenis: req.body.jenis,
         masjid_id: req.user.masjid_id
     });
+
+    await logActivity({
+        req,
+        action: "CREATE",
+        nama_tabel: "kategori_keuangan",
+        data_baru: data,
+        record_id: data.kategori_id
+    });
+
     res.json(data);
 };
 
@@ -24,34 +34,59 @@ exports.getById = async (req, res) => {
         }
     });
 
-    if (!data) {
-        return res.status(404).json({ message: "Kategori tidak ditemukan" });
-    }
-
+    if (!data) return res.status(404).json({ message: "Kategori tidak ditemukan" });
     res.json(data);
 };
 
 exports.update = async (req, res) => {
-    const updated = await Kategori.update(req.body, {
+    const kategori = await Kategori.findOne({
         where: {
             kategori_id: req.params.id,
             masjid_id: req.user.masjid_id
         }
     });
 
-    if (updated[0] === 0) {
-        return res.status(404).json({ message: "Kategori tidak ditemukan" });
-    }
+    if (!kategori) return res.status(404).json({ message: "Kategori tidak ditemukan" });
+
+    const oldData = kategori.toJSON();
+
+    await kategori.update(req.body);
+
+    await logActivity({
+        req,
+        action: "UPDATE",
+        nama_tabel: "kategori_keuangan",
+        data_lama: oldData,
+        data_baru: kategori,
+        record_id: req.params.id
+    });
 
     res.json({ message: "Kategori berhasil diupdate" });
 };
 
 exports.delete = async (req, res) => {
+    const oldData = await Kategori.findOne({
+        where: {
+            kategori_id: req.params.id,
+            masjid_id: req.user.masjid_id
+        }
+    });
+
+    if (!oldData) return res.status(404).json({ message: "Kategori tidak ditemukan" });
+
     await Kategori.destroy({
         where: {
             kategori_id: req.params.id,
             masjid_id: req.user.masjid_id
         }
+    });
+
+    await logActivity({
+        req,
+        action: "DELETE",
+        nama_tabel: "kategori_keuangan",
+        data_lama: oldData,
+        record_id: req.params.id
     });
 
     res.json({ message: "Kategori berhasil dihapus" });

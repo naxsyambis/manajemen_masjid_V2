@@ -10,14 +10,13 @@ exports.generateKeuanganPDF = async ({
     totalPengeluaran,
     takmir,
     masjid
-    }) => {
+}) => {
     const doc = new PDFDocument({ size: "A4", margin: 50 });
 
     const fileName = `laporan-keuangan-${Date.now()}.pdf`;
     const filePath = path.join(__dirname, "../files", fileName);
     doc.pipe(fs.createWriteStream(filePath));
 
-    /* ================= KOP SURAT ================= */
     const kopPath = path.join(__dirname, "../assets/kop.png");
     if (fs.existsSync(kopPath)) {
         doc.image(kopPath, 50, 30, { width: 500 });
@@ -25,7 +24,6 @@ exports.generateKeuanganPDF = async ({
 
     doc.moveDown(5);
 
-    /* ================= JUDUL ================= */
     doc
         .font("Helvetica-Bold")
         .fontSize(16)
@@ -40,7 +38,6 @@ exports.generateKeuanganPDF = async ({
 
     doc.moveDown(1.5);
 
-    /* ================= TABEL ================= */
     const tableTop = doc.y;
     const colX = {
         no: 50,
@@ -66,10 +63,10 @@ exports.generateKeuanganPDF = async ({
         doc.text(item.deskripsi, colX.deskripsi, y, { width: 240 });
 
         doc.text(
-        Number(item.jumlah).toLocaleString("id-ID"),
-        colX.jumlah,
-        y,
-        { align: "right" }
+            Number(item.jumlah).toLocaleString("id-ID"),
+            colX.jumlah,
+            y,
+            { align: "right" }
         );
 
         y += 20;
@@ -77,12 +74,10 @@ exports.generateKeuanganPDF = async ({
 
     doc.moveDown(2);
 
-    /* ================= TOTAL ================= */
     doc.font("Helvetica-Bold");
     doc.text(`Total Pemasukan  : Rp ${totalPemasukan.toLocaleString("id-ID")}`);
     doc.text(`Total Pengeluaran: Rp ${totalPengeluaran.toLocaleString("id-ID")}`);
 
-    /* ================= TTD ================= */
     doc.moveDown(3);
 
     const ttdX = 350;
@@ -96,11 +91,11 @@ exports.generateKeuanganPDF = async ({
         takmir.foto_tanda_tangan.startsWith("data:image")
     ) {
         try {
-        const base64 = takmir.foto_tanda_tangan.split(",")[1];
-        const buffer = Buffer.from(base64, "base64");
+            const base64 = takmir.foto_tanda_tangan.split(",")[1];
+            const buffer = Buffer.from(base64, "base64");
 
-        doc.image(buffer, ttdX, ttdY + 20, { width: 120 });
-        } catch (_) {}
+            doc.image(buffer, ttdX, ttdY + 20, { width: 120 });
+        } catch (_) { }
     }
 
     doc.text(takmir?.nama || "-", ttdX, ttdY + 90);
@@ -108,4 +103,4 @@ exports.generateKeuanganPDF = async ({
     doc.end();
 
     return `/files/${fileName}`;
-    };
+};

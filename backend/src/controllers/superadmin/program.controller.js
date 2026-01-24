@@ -1,4 +1,5 @@
 const Program = require("../../models/Program");
+const { logActivity } = require("../../services/auditLog.service");
 
 exports.create = async (req, res) => {
     const data = await Program.create({
@@ -7,6 +8,15 @@ exports.create = async (req, res) => {
         deskripsi: req.body.deskripsi,
         user_id: req.user.user_id
     });
+
+    await logActivity({
+        req,
+        action: "CREATE",
+        nama_tabel: "program",
+        data_baru: data,
+        record_id: data.program_id
+    });
+
     res.json(data);
 };
 
@@ -24,11 +34,35 @@ exports.update = async (req, res) => {
     const program = await Program.findByPk(req.params.id);
     if (!program) return res.status(404).json({ message: "Program tidak ditemukan" });
 
+    const oldData = program.toJSON();
+
     await program.update(req.body);
+
+    await logActivity({
+        req,
+        action: "UPDATE",
+        nama_tabel: "program",
+        data_lama: oldData,
+        data_baru: program,
+        record_id: req.params.id
+    });
+
     res.json({ message: "Program berhasil diupdate" });
 };
 
 exports.delete = async (req, res) => {
+    const oldData = await Program.findByPk(req.params.id);
+    if (!oldData) return res.status(404).json({ message: "Program tidak ditemukan" });
+
     await Program.destroy({ where: { program_id: req.params.id } });
+
+    await logActivity({
+        req,
+        action: "DELETE",
+        nama_tabel: "program",
+        data_lama: oldData,
+        record_id: req.params.id
+    });
+
     res.json({ message: "Program berhasil dihapus" });
 };
