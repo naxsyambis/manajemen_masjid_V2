@@ -10,9 +10,15 @@ const kategori = require("../controllers/takmir/kategoriKeuangan.controller");
 /* ===================== KEUANGAN ===================== */
 router.post("/keuangan", auth, takmirOnly, keuangan.create);
 router.get("/keuangan", auth, takmirOnly, keuangan.getAll);
+
+// ROUTE KHUSUS 
+router.get("/keuangan/report", auth, takmirOnly, keuangan.generateReport);
+
+// ROUTE PARAMETER DI BAWAH
 router.get("/keuangan/:id", auth, takmirOnly, keuangan.getById);
 router.put("/keuangan/:id", auth, takmirOnly, keuangan.update);
 router.delete("/keuangan/:id", auth, takmirOnly, keuangan.delete);
+
 
 /* ===================== JAMAAH ===================== */
 router.post("/jamaah", auth, takmirOnly, jamaah.create);
@@ -34,5 +40,4 @@ router.get("/kategori-keuangan", auth, takmirOnly, kategori.getAll);
 router.get("/kategori-keuangan/:id", auth, takmirOnly, kategori.getById);
 router.put("/kategori-keuangan/:id", auth, takmirOnly, kategori.update);
 router.delete("/kategori-keuangan/:id", auth, takmirOnly, kategori.delete);
-router.get("/keuangan/report",auth,takmirOnly,keuangan.generateReport);
 module.exports = router;

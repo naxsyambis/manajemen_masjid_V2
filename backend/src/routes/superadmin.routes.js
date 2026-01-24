@@ -8,6 +8,8 @@ const berita = require("../controllers/superadmin/berita.controller");
 const program = require("../controllers/superadmin/program.controller");
 const kegiatan = require("../controllers/superadmin/kegiatan.controller");
 const kepengurusan = require("../controllers/superadmin/kepengurusan.controller");
+const keuangan = require("../controllers/superadmin/keuangan.masjid.controller");
+
 
 
 /* MASJID */
@@ -19,6 +21,10 @@ router.delete("/masjid/:id", auth, superadminOnly, masjid.delete);
 
 /* TAKMIR */
 router.post("/takmir", auth, superadminOnly, takmir.create);
+router.get("/takmir", auth, superadminOnly, takmir.getAll);
+router.get("/takmir/:id", auth, superadminOnly, takmir.getById);
+router.put("/takmir/:id", auth, superadminOnly, takmir.update);
+router.delete("/takmir/:id", auth, superadminOnly, takmir.delete);
 
 /* BERITA */
 router.post("/berita", auth, superadminOnly, berita.create);
@@ -47,5 +53,9 @@ router.get("/kepengurusan", auth, takmirOnly, kepengurusan.getAll);
 router.get("/kepengurusan/:id", auth, takmirOnly, kepengurusan.getById);
 router.put("/kepengurusan/:id", auth, takmirOnly, kepengurusan.update);
 router.delete("/kepengurusan/:id", auth, takmirOnly, kepengurusan.delete);
+
+/* ===================== KEUANGAN ===================== */
+router.get("/keuangan", auth, superadminOnly, keuangan.getAll);
+
 
 module.exports = router;

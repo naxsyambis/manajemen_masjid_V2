@@ -116,14 +116,12 @@ exports.getProfile = async (req, res) => {
 /* ================= UPDATE TANDA TANGAN TAKMIR ================= */
 exports.updateTtd = async (req, res) => {
     try {
-        // hanya takmir
         if (req.user.role !== "takmir") {
         return res.status(403).json({ message: "Akses ditolak" });
         }
 
         const { foto_tanda_tangan } = req.body;
 
-        // boleh string base64 atau null (hapus)
         if (foto_tanda_tangan === undefined) {
         return res.status(400).json({ message: "Data TTD tidak valid" });
         }
@@ -133,13 +131,16 @@ exports.updateTtd = async (req, res) => {
         return res.status(404).json({ message: "User tidak ditemukan" });
         }
 
-        await user.update({
-        foto_tanda_tangan
+        await user.update({ foto_tanda_tangan });
+
+        return res.status(200).json({
+        message: "TTD berhasil disimpan"
         });
 
-        res.json({ message: "Tanda tangan berhasil diperbarui" });
-    } catch (error) {
-        console.error("UPDATE TTD ERROR:", error);
-        res.status(500).json({ message: "Gagal memperbarui tanda tangan" });
+    } catch (err) {
+        console.error("ERROR UPDATE TTD:", err);
+        return res.status(500).json({
+        message: "Gagal menyimpan tanda tangan"
+        });
     }
-};
+    };

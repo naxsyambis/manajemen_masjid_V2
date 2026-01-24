@@ -37,3 +37,83 @@ exports.create = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+/* ===================== GET ALL ===================== */
+exports.getAll = async (req, res) => {
+    try {
+        const data = await MasjidTakmir.findAll();
+        res.status(200).json({
+            message: "Berhasil mengambil data takmir",
+            data
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/* ===================== GET BY ID ===================== */
+exports.getById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const takmir = await MasjidTakmir.findByPk(id);
+        if (!takmir) {
+            return res.status(404).json({
+                message: "Data takmir tidak ditemukan"
+            });
+        }
+
+        res.status(200).json({
+            message: "Berhasil mengambil detail takmir",
+            data: takmir
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/* ===================== UPDATE ===================== */
+exports.update = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const takmir = await MasjidTakmir.findByPk(id);
+        if (!takmir) {
+            return res.status(404).json({
+                message: "Data takmir tidak ditemukan"
+            });
+        }
+
+        await takmir.update(req.body);
+
+        res.status(200).json({
+            message: "Data takmir berhasil diperbarui",
+            data: takmir
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/* ===================== DELETE ===================== */
+exports.delete = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const takmir = await MasjidTakmir.findByPk(id);
+        if (!takmir) {
+            return res.status(404).json({
+                message: "Data takmir tidak ditemukan"
+            });
+        }
+
+        await takmir.destroy();
+
+        res.status(200).json({
+            message: "Data takmir berhasil dihapus"
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

@@ -66,41 +66,86 @@ exports.delete = async (req, res) => {
     res.json({ message: "Keuangan berhasil dihapus" });
 };
 
+// ini untuk filter dan generate yang harusnya di helper ya
+
+const getPeriodeTanggal = (periode) => {
+    const now = new Date();
+
+    const today = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+    );
+
+    let start;
+    let end = today;
+
+    if (periode === "harian") {
+        start = today;
+    } else if (periode === "mingguan") {
+        start = new Date(today);
+        start.setDate(start.getDate() - 6);
+    } else if (periode === "bulanan") {
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+    } else {
+        throw new Error("Periode tidak valid");
+    }
+
+    const toYMD = (d) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+        d.getDate()
+        ).padStart(2, "0")}`;
+
+    return {
+        startDate: toYMD(start),
+        endDate: toYMD(end),
+    };
+};
+
 exports.generateReport = async (req, res) => {
     try {
-        const { jenis, kategori_id, startDate, endDate } = req.query;
+        const { periode, kategori_id, jenis } = req.query;
 
-        // ================= VALIDASI TANGGAL =================
-        const today = new Date();
-        const minDate = new Date();
-        minDate.setDate(today.getDate() - 5);
-
-        if (new Date(startDate) < minDate || new Date(endDate) > today) {
+        if (!periode) {
         return res.status(400).json({
-            message: "Tanggal hanya boleh 5 hari terakhir sampai hari ini"
+            message: "Periode wajib diisi (harian | mingguan | bulanan)",
         });
         }
 
-        // ================= FILTER DB =================
+        const { startDate, endDate } = getPeriodeTanggal(periode);
+
+        // ================= FILTER DB (FINAL & AMAN) =================
         const whereClause = {
         masjid_id: req.user.masjid_id,
-        tanggal: { [Op.between]: [startDate, endDate] }
+        tanggal: {
+            [Op.gte]: startDate,
+            [Op.lte]: endDate,
+        },
         };
 
-        if (kategori_id) whereClause.kategori_id = kategori_id;
+        if (kategori_id) {
+        whereClause.kategori_id = kategori_id;
+        }
 
         const data = await Keuangan.findAll({
         where: whereClause,
-        order: [["tanggal", "ASC"]]
+        order: [["tanggal", "ASC"]],
         });
+
+        if (!data || data.length === 0) {
+        return res.status(404).json({
+            message: "Data keuangan tidak ditemukan pada periode ini",
+        });
+        }
 
         // ================= HITUNG TOTAL =================
         let totalPemasukan = 0;
         let totalPengeluaran = 0;
 
-        data.forEach(d => {
-        if (Number(d.jumlah) > 0) totalPemasukan += Number(d.jumlah);
-        else totalPengeluaran += Math.abs(Number(d.jumlah));
+        data.forEach((d) => {
+        const jumlah = Number(d.jumlah);
+        if (jumlah >= 0) totalPemasukan += jumlah;
+        else totalPengeluaran += Math.abs(jumlah);
         });
 
         // ================= DATA PENDUKUNG =================
@@ -113,27 +158,31 @@ exports.generateReport = async (req, res) => {
         if (kat) kategori = kat.nama_kategori;
         }
 
-        const periode = `${startDate} s/d ${endDate}`;
+        const label =
+        periode === "harian"
+            ? "Harian"
+            : periode === "mingguan"
+            ? "Mingguan"
+            : "Bulanan";
 
         // ================= GENERATE PDF =================
         const file = await ReportService.generateKeuanganPDF({
         jenis,
         kategori,
-        periode,
+        periode: `${label} (${startDate} s/d ${endDate})`,
         data,
         totalPemasukan,
         totalPengeluaran,
         takmir,
-        masjid
+        masjid,
         });
 
-        res.json({
+        return res.json({
         message: "Laporan berhasil dibuat",
-        file
+        file,
         });
-
     } catch (err) {
         console.error("GENERATE REPORT ERROR:", err);
-        res.status(500).json({ message: "Gagal generate laporan" });
+        return res.status(500).json({ message: err.message });
     }
 };

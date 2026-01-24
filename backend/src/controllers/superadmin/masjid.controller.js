@@ -26,3 +26,4 @@ exports.delete = async (req, res) => {
     await Masjid.destroy({ where: { masjid_id: req.params.id } });
     res.json({ message: "Masjid berhasil dihapus" });
 };
+
