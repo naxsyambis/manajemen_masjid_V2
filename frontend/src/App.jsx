@@ -15,6 +15,13 @@ function App() {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [loading, setLoading] = useState(true);
 
+  // Fungsi internal untuk memetakan data profil ke localStorage
+  const syncUserContext = (data) => {
+    if (data.nama) localStorage.setItem('userName', data.nama);
+    if (data.nama_masjid) localStorage.setItem('namaMasjid', data.nama_masjid);
+    if (data.foto_tanda_tangan) localStorage.setItem('ttdImage', data.foto_tanda_tangan);
+  };
+
   useEffect(() => {
     const initApp = async () => {
       const token = localStorage.getItem('token');
@@ -25,9 +32,7 @@ function App() {
           });
           setUser(res.data);
           setIsLoggedIn(true);
-          if (res.data.nama_masjid) {
-            localStorage.setItem('namaMasjid', res.data.nama_masjid);
-          }
+          syncUserContext(res.data); // Sinkronisasi data untuk laporan PDF
         } catch (err) {
           console.error("Sesi berakhir");
           localStorage.clear();
@@ -47,6 +52,7 @@ function App() {
       });
       setUser(res.data);
       setIsLoggedIn(true);
+      syncUserContext(res.data); // Sinkronisasi saat login berhasil
     } catch (err) {
       alert("Gagal memproses profil.");
     }

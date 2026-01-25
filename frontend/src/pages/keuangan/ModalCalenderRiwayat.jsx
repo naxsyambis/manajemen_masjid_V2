@@ -9,6 +9,7 @@ const ModalCalenderRiwayat = ({ show, onClose, onExport }) => {
   if (!show) return null;
 
   const handleExportClick = () => {
+  console.log("🔥 KLIK DOWNLOAD", startDate, endDate);
     if (!startDate || !endDate) {
       alert("❌ Silakan pilih tanggal awal dan tanggal akhir!");
       return;
