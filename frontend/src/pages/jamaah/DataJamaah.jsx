@@ -138,7 +138,7 @@ const DataJamaah = () => {
           <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.3em] ml-1">Database Umat & Masyarakat</p>
         </div>
         
-        <Button onClick={openTambah} className="!rounded-2xl !py-5 !px-10 !bg-mu-green shadow-xl shadow-green-200 hover:translate-y-[-4px] transition-all flex items-center">
+        <Button onClick={openTambah} className="text-white !rounded-2xl !py-5 !px-10 !bg-mu-green shadow-xl shadow-green-200 hover:translate-y-[-4px] transition-all flex items-center">
           <UserPlus size={22} className="mr-2" strokeWidth={3} /> Registrasi Jamaah
         </Button>
       </div>

@@ -1,83 +1,138 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import Button from '../../components/Button';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const response = await axios.post('http://localhost:3000/auth/login', {
-        email: email,
-        password: password
+        email,
+        password
       });
 
       if (response.data.token) {
         const token = response.data.token;
-        
         const payload = JSON.parse(window.atob(token.split('.')[1]));
-        
+
         localStorage.setItem('token', token);
-        
         localStorage.setItem('user_session', JSON.stringify({ 
-          email: email, 
+          email,
           role: payload.role,
           masjid_id: payload.masjid_id,
           user_id: payload.user_id,
           nama: email.split('@')[0].toUpperCase() 
         }));
-        
+
         onLogin();
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Login Gagal! Akun tidak ditemukan di XAMPP.");
+      alert(err.response?.data?.message || "Login gagal. Periksa akun atau server.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-mu-green flex items-center justify-center p-0 md:p-6">
-      <div className="bg-white w-full max-w-5xl md:h-[600px] flex rounded-none md:rounded-3xl shadow-2xl overflow-hidden">
-        <div className="hidden md:flex flex-1 bg-mu-yellow items-center justify-center p-12 relative overflow-hidden">
-          <div className="z-10 text-center">
-            <h1 className="text-5xl font-black text-mu-green tracking-tighter mb-4 uppercase">SIM MASJID</h1>
-            <p className="text-mu-green font-bold text-lg opacity-80 uppercase tracking-widest">Panel Takmir</p>
-            <div className="h-1 w-20 bg-mu-green mx-auto my-8"></div>
-            <p className="text-mu-green italic font-medium leading-relaxed max-w-xs mx-auto">
-              Sistem Informasi Manajemen Administrasi Masjid.
+    <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2 bg-[#f4f7fb]">
+
+      {/* ================= LEFT IMAGE ================= */}
+      <div 
+        className="hidden md:flex relative items-center justify-center text-white"
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1584551246679-0daf3d275d0f')",
+          backgroundSize: "cover",
+          backgroundPosition: "center"
+        }}
+      >
+        {/* overlay */}
+        <div className="absolute inset-0 bg-black/55"></div>
+
+        {/* content */}
+        <div className="relative z-10 max-w-xl px-12 space-y-8 text-center">
+          <h1 className="text-5xl font-black tracking-tight leading-tight">
+            SIM MASJID
+          </h1>
+
+          <div className="h-[2px] w-24 bg-mu-yellow mx-auto"></div>
+
+          <p className="text-lg text-white/90 leading-relaxed">
+            Sistem Informasi Manajemen Masjid untuk mengelola administrasi,
+            keuangan, jamaah, dan inventaris secara terpusat dan profesional.
+          </p>
+
+          <div className="flex justify-center gap-8 text-sm pt-6 text-white/80">
+            <span>Transparan</span>
+            <span>Terintegrasi</span>
+            <span>Aman</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= RIGHT FORM ================= */}
+      <div className="flex items-center justify-center px-6">
+
+        <div className="w-full max-w-md bg-white px-10 py-14 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)]">
+
+          {/* brand */}
+          <div className="mb-10 space-y-3">
+            <p className="text-xs tracking-[0.3em] text-mu-green font-bold uppercase">
+              Panel Takmir
+            </p>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+              Login Sistem
+            </h2>
+            <p className="text-sm text-gray-400 italic">
+              Gunakan akun resmi yang terdaftar.
             </p>
           </div>
-          <div className="absolute -bottom-10 -left-10 text-[300px] opacity-10 text-mu-green">🕌</div>
-        </div>
 
-        <div className="flex-1 flex flex-col justify-center p-8 md:p-16">
-          <div className="mb-10 text-center md:text-left">
-            <h2 className="text-3xl font-black text-gray-800 tracking-tight">Login Takmir</h2>
-            <p className="text-gray-400 mt-2 font-medium italic">Masukkan akun dari Super Admin.</p>
-          </div>
-          
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Email</label>
+          {/* form */}
+          <form onSubmit={handleLogin} className="space-y-6">
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+                Email
+              </label>
               <input 
-                type="email" required placeholder="syafira@gmail.com"
-                className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-mu-green"
+                type="email"
+                required
+                placeholder="takmir@masjid.com"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-mu-green focus:ring-2 focus:ring-mu-green/30 transition-all"
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Password</label>
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+                Password
+              </label>
               <input 
-                type="password" required placeholder="••••••••"
-                className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-mu-green"
+                type="password"
+                required
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-mu-green focus:ring-2 focus:ring-mu-green/30 transition-all"
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button type="primary" className="w-full py-4 rounded-2xl text-lg shadow-xl">
-              Masuk Sekarang
-            </Button>
+
+            <button 
+              type="submit"
+              disabled={loading}
+              className="w-full mt-4 py-3 bg-mu-green text-mu-yellow rounded-lg font-bold tracking-wide shadow-md hover:shadow-lg hover:-translate-y-[1px] transition-all disabled:opacity-60"
+            >
+              {loading ? "MEMVERIFIKASI..." : "MASUK SISTEM"}
+            </button>
+
           </form>
+
+          <p className="mt-12 text-center text-[11px] text-gray-400 italic">
+            © {new Date().getFullYear()} SIM MASJID — Sistem Informasi Manajemen Masjid
+          </p>
         </div>
       </div>
     </div>
