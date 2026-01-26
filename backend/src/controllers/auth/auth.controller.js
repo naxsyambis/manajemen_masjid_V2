@@ -46,35 +46,80 @@ exports.register = async (req, res) => {
 
 
 exports.login = async (req, res) => {
-    const user = await User.findOne({ where: { email: req.body.email } });
-    if (!user) return res.status(401).json({ message: "User tidak ditemukan" });
+  try {
+    const { email, password } = req.body;
 
-    const valid = await bcrypt.compare(req.body.password, user.password);
-    if (!valid) return res.status(401).json({ message: "Password salah" });
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email dan password wajib diisi"
+      });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(401).json({
+        message: "User tidak ditemukan"
+      });
+    }
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      return res.status(401).json({
+        message: "Password salah"
+      });
+    }
 
     let masjid_id = null;
 
     if (user.role === "takmir") {
-        const mapping = await MasjidTakmir.findOne({ where: { user_id: user.user_id } });
-        if (!mapping) return res.status(403).json({ message: "Takmir belum punya masjid" });
-        masjid_id = mapping.masjid_id;
+      const mapping = await MasjidTakmir.findOne({
+        where: { user_id: user.user_id }
+      });
+
+      if (!mapping) {
+        return res.status(403).json({
+          message: "Takmir belum punya masjid"
+        });
+      }
+
+      masjid_id = mapping.masjid_id;
     }
 
     const token = jwt.sign(
-        { user_id: user.user_id, role: user.role, masjid_id },
-        secret,
-        { expiresIn: "1d" }
+      {
+        user_id: user.user_id,
+        role: user.role,
+        masjid_id
+      },
+      secret,
+      {
+        expiresIn: "2d" 
+      }
     );
 
     await logActivity({
-        req,
-        action: "LOGIN",
-        nama_tabel: "user_app",
-        data_baru: { email: user.email, role: user.role },
-        record_id: user.user_id
+      req,
+      action: "LOGIN",
+      nama_tabel: "user_app",
+      data_baru: {
+        email: user.email,
+        role: user.role
+      },
+      record_id: user.user_id
     });
 
-    res.json({ token });
+    res.status(200).json({
+      message: "Login berhasil",
+      token,
+      expires_in: "2 hari"
+    });
+
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+    res.status(500).json({
+      message: "Terjadi kesalahan server"
+    });
+  }
 };
 
 exports.getProfile = async (req, res) => {
