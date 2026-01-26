@@ -17,6 +17,16 @@ import Button from '../../components/Button';
 import StatCard from '../../components/StatCard';
 import ModalJamaah from './ModalJamaah';
 
+const handleAuthError = (err) => { //friska
+  if (err.response && err.response.status === 401) {
+    alert(err.response.data.message || "Sesi Anda telah berakhir");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+};
+
 const DataJamaah = () => {
   const [jamaah, setJamaah] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -45,6 +55,7 @@ const DataJamaah = () => {
       });
       setJamaah(res.data);
     } catch (err) {
+      if (handleAuthError(err)) return;
       console.error("Gagal ambil data jamaah");
     } finally {
       setLoading(false);
@@ -96,6 +107,7 @@ const DataJamaah = () => {
       setShowForm(false);
       fetchJamaah();
     } catch (err) {
+      if (handleAuthError(err)) return;
       alert("Gagal menyimpan data.");
     }
   };
@@ -108,6 +120,7 @@ const DataJamaah = () => {
         });
         fetchJamaah();
       } catch (err) {
+        if (handleAuthError(err)) return;
         alert("Gagal hapus data.");
       }
     }

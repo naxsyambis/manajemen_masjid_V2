@@ -7,6 +7,16 @@ import {
 } from 'lucide-react';
 import ModalKeuangan from './ModalKeuangan';
 
+const handleAuthError = (err) => { //friska
+  if (err.response && err.response.status === 401) {
+    alert(err.response.data.message || "Sesi Anda telah berakhir");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+};
+
 const Keuangan = () => {
   const [formData, setFormData] = useState({
     jenis_transaksi: 'pemasukan',
@@ -34,6 +44,7 @@ const Keuangan = () => {
         setFormData(prev => ({ ...prev, kategori_id: res.data[0].kategori_id }));
       }
     } catch (err) {
+      if (handleAuthError(err)) return;
       console.error("Gagal mengambil kategori");
     }
   };
@@ -91,6 +102,7 @@ const Keuangan = () => {
       alert(`✅ Data ${formData.jenis_transaksi.toUpperCase()} Berhasil Disimpan ke Database!`);
       setFormData({ ...formData, jumlah: '', deskripsi: '', donatur: '' });
     } catch (err) {
+      if (handleAuthError(err)) return;
       alert("Gagal menyimpan data ke database.");
     }
   };

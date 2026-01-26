@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { User, MapPin, ShieldCheck, PenTool, Trash2, Mail, Building, MessageCircle, HelpCircle } from 'lucide-react';
 
+const handleAuthError = (err) => {
+  if (err.response && err.response.status === 401) {
+    alert(err.response.data.message || "Sesi Anda telah berakhir");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+};
+
 const Settings = () => {
   const [profile, setProfile] = useState({ nama: '', email: '' });
   const [masjid, setMasjid] = useState({ nama_masjid: '', alamat: '' });
@@ -45,6 +55,7 @@ const Settings = () => {
         localStorage.setItem('namaMasjid', dataDb.nama_masjid);
       }
     } catch (err) {
+      if (handleAuthError(err)) return;
       console.error("Gagal sinkron data database:", err);
     }
   };
@@ -71,6 +82,7 @@ const Settings = () => {
 
         setPreviewTtd(`http://localhost:3000${res.data.path}?t=${Date.now()}`);
       } catch (err) {
+        if (handleAuthError(err)) return;
         console.error(err);
         alert("Gagal upload tanda tangan");
       }
@@ -90,6 +102,7 @@ const Settings = () => {
           );
           setPreviewTtd(null);
         } catch (err) {
+          if (handleAuthError(err)) return;
           alert("Gagal menghapus.");
         }
       }

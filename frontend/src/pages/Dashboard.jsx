@@ -19,6 +19,16 @@ import {
 } from 'lucide-react';
 import { formatRupiah } from '../utils/formatCurrency';
 
+const handleAuthError = (err) => {
+  if (err.response && err.response.status === 401) {
+    alert(err.response.data.message || "Sesi Anda telah berakhir");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+};
+
 const Dashboard = () => {
   const [chartData, setChartData] = useState([]);
   const [stats, setStats] = useState({ saldo: 0, masuk: 0, keluar: 0 });
@@ -123,6 +133,7 @@ const Dashboard = () => {
       setChartData(processedData);
 
     } catch (err) {
+      if (handleAuthError(err)) return;
       console.error("Gagal sinkronisasi Dashboard:", err);
     } finally {
       setTimeout(() => setLoading(false), 500);
