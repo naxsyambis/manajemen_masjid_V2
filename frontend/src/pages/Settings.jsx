@@ -24,7 +24,10 @@ const Settings = () => {
       });
 
       if (resUser.data.foto_tanda_tangan) {
-        setPreviewTtd(resUser.data.foto_tanda_tangan);
+        setPreviewTtd(
+        `http://localhost:3000${resUser.data.foto_tanda_tangan}?t=${Date.now()}`
+      );
+
         localStorage.setItem('ttdImage', resUser.data.foto_tanda_tangan);
       } else {
         setPreviewTtd(null);
@@ -51,44 +54,46 @@ const Settings = () => {
   }, []);
 
 // friska habis ngerubah ini 
-  const handleSaveTtd = async (base64Img) => {
-    try {
-      await axios.put(
-        "http://localhost:3000/auth/profile/ttd",
-        {
-          foto_tanda_tangan: base64Img
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-      fetchSemuaData();
-    } catch (err) {
-      alert("Gagal menyimpan tanda tangan.");
-    }
-  };
-
-// friska habis ngerubah ini 
-  const handleDeleteTtd = async () => {
-    if (window.confirm("Hapus berkas tanda tangan?")) {
+    const handleSaveTtd = async (file) => {
       try {
-        setPreviewTtd(null);
-        await axios.put(
+        const formData = new FormData();
+        formData.append("ttd", file);
+
+        const res = await axios.put(
           "http://localhost:3000/auth/profile/ttd",
+          formData,
           {
-            foto_tanda_tangan: null
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
         );
-        localStorage.removeItem("ttdImage");
-      } catch (err) {
-        alert("Gagal menghapus.");
-      }
-    }
-  };
 
+        setPreviewTtd(`http://localhost:3000${res.data.path}?t=${Date.now()}`);
+      } catch (err) {
+        console.error(err);
+        alert("Gagal upload tanda tangan");
+      }
+    };
+
+
+
+// friska habis ngerubah ini 
+    const handleDeleteTtd = async () => {
+      if (window.confirm("Hapus berkas tanda tangan?")) {
+        try {
+          await axios.delete(
+            "http://localhost:3000/auth/profile/ttd",
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+          setPreviewTtd(null);
+        } catch (err) {
+          alert("Gagal menghapus.");
+        }
+      }
+    };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn p-4 pb-20">
@@ -207,16 +212,17 @@ const Settings = () => {
 
             <label className="block w-full bg-mu-yellow text-mu-green py-5 rounded-2xl text-xs font-black hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-50 cursor-pointer text-center uppercase tracking-widest active:scale-[0.98]">
               {previewTtd ? "Ganti Berkas TTD" : "Unggah Berkas TTD"}
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    handleSaveTtd(reader.result);
-                  };
-                  reader.readAsDataURL(file);
+                  handleSaveTtd(file); 
                 }
-              }} />
+              }}
+            />
             </label>
           </div>
         </div>

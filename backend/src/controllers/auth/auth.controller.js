@@ -4,6 +4,9 @@ const User = require("../../models/User");
 const MasjidTakmir = require("../../models/masjid_takmir");
 const { secret } = require("../../config/jwt");
 const { logActivity } = require("../../services/auditLog.service");
+const sharp = require("sharp");
+const path = require("path");
+const fs = require("fs");
 
 exports.register = async (req, res) => {
     try {
@@ -94,20 +97,92 @@ exports.getProfile = async (req, res) => {
 };
 
 
-exports.updateTtd = async (req, res) => {
+exports.uploadTtd = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "File tidak ditemukan" });
+    }
+
     const user = await User.findByPk(req.user.user_id);
+    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
+
     const oldData = user.toJSON();
 
-    await user.update({ foto_tanda_tangan: req.body.foto_tanda_tangan });
+    const uploadDir = path.join(__dirname, "../../../uploads/ttd");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
-    await logActivity({
-        req,
-        action: "UPDATE",
-        nama_tabel: "user_app",
-        data_lama: oldData,
-        data_baru: user,
-        record_id: user.user_id
+    if (user.foto_tanda_tangan) {
+      const oldPath = path.join(__dirname, "../../../", user.foto_tanda_tangan);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+
+    const filename = `ttd_${user.user_id}_${Date.now()}.webp`;
+    const outputPath = path.join(uploadDir, filename);
+
+    await sharp(req.file.path)
+      .resize(500)
+      .toFormat("webp", { quality: 70 })
+      .toFile(outputPath);
+
+    await user.update({
+      foto_tanda_tangan: `/uploads/ttd/${filename}`
     });
 
-    res.json({ message: "TTD berhasil disimpan" });
+    const newData = user.toJSON();
+
+    await logActivity({
+      req,
+      action: "UPDATE",
+      nama_tabel: "user_app",
+      data_lama: {
+        ...oldData,
+        foto_tanda_tangan: oldData.foto_tanda_tangan ? "[OLD IMAGE]" : null
+      },
+      data_baru: newData,
+      record_id: user.user_id
+    });
+
+    res.json({
+      message: "TTD berhasil disimpan",
+      path: `/uploads/ttd/${filename}`
+    });
+
+  } catch (error) {
+    console.error("UPLOAD ERROR:", error);
+    res.status(500).json({ message: "Gagal upload TTD" });
+  }
 };
+
+
+exports.deleteTtd = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.user_id);
+    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
+
+    if (user.foto_tanda_tangan) {
+      const filePath = path.join(__dirname, "../../../", user.foto_tanda_tangan);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    const oldData = user.toJSON();
+
+    await user.update({ foto_tanda_tangan: null });
+
+    await logActivity({
+      req,
+      action: "DELETE",
+      nama_tabel: "user_app",
+      data_lama: oldData,
+      record_id: user.user_id
+    });
+
+    res.json({ message: "TTD berhasil dihapus" });
+
+  } catch (error) {
+    console.error("DELETE ERROR:", error);
+    res.status(500).json({ message: "Gagal hapus TTD" });
+  }
+};
+
