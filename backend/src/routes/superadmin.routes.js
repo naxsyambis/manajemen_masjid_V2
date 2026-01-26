@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const auth = require("../middleware/auth.middleware");
 const { superadminOnly, takmirOnly } = require("../middleware/role.middleware");
-
+const upload = require("../middleware/upload.middleware");
 const masjid = require("../controllers/superadmin/masjid.controller");
 const takmir = require("../controllers/superadmin/takmir.controller");
 const berita = require("../controllers/superadmin/berita.controller");
@@ -13,10 +13,10 @@ const audit = require("../controllers/superadmin/audit.controller");
 
 router.get("/audit-log", auth, superadminOnly, audit.getAll);
 
-router.post("/masjid", auth, superadminOnly, masjid.create);
+router.post("/masjid", auth, superadminOnly, upload.single("logo_foto"), masjid.create);
+router.put("/masjid/:id", auth, superadminOnly, upload.single("logo_foto"), masjid.update);
 router.get("/masjid", auth, superadminOnly, masjid.getAll);
 router.get("/masjid/:id", auth, superadminOnly, masjid.getById);
-router.put("/masjid/:id", auth, superadminOnly, masjid.update);
 router.delete("/masjid/:id", auth, superadminOnly, masjid.delete);
 
 router.post("/takmir", auth, superadminOnly, takmir.create);
@@ -25,10 +25,10 @@ router.get("/takmir/:id", auth, superadminOnly, takmir.getById);
 router.put("/takmir/:id", auth, superadminOnly, takmir.update);
 router.delete("/takmir/:id", auth, superadminOnly, takmir.delete);
 
-router.post("/berita", auth, superadminOnly, berita.create);
+router.post("/berita", auth, superadminOnly, upload.single("gambar"), berita.create);
+router.put("/berita/:id", auth, superadminOnly, upload.single("gambar"), berita.update);
 router.get("/berita", auth, superadminOnly, berita.getAll);
 router.get("/berita/:id", auth, superadminOnly, berita.getById);
-router.put("/berita/:id", auth, superadminOnly, berita.update);
 router.delete("/berita/:id", auth, superadminOnly, berita.delete);
 
 router.post("/program", auth, superadminOnly, program.create);
@@ -43,11 +43,11 @@ router.get("/kegiatan/:id", auth, superadminOnly, kegiatan.getById);
 router.put("/kegiatan/:id", auth, superadminOnly, kegiatan.update);
 router.delete("/kegiatan/:id", auth, superadminOnly, kegiatan.delete);
 
-router.post("/kepengurusan", auth, superadminOnly, kepengurusan.create);
-router.get("/kepengurusan", auth, takmirOnly, kepengurusan.getAll);
-router.get("/kepengurusan/:id", auth, takmirOnly, kepengurusan.getById);
-router.put("/kepengurusan/:id", auth, takmirOnly, kepengurusan.update);
-router.delete("/kepengurusan/:id", auth, takmirOnly, kepengurusan.delete);
+router.post("/kepengurusan", auth, superadminOnly, upload.single("foto_pengurus"), kepengurusan.create);
+router.put("/kepengurusan/:id", auth, superadminOnly, upload.single("foto_pengurus"), kepengurusan.update);
+router.get("/kepengurusan", auth, superadminOnly, kepengurusan.getAll);
+router.get("/kepengurusan/:id", auth, superadminOnly, kepengurusan.getById);
+router.delete("/kepengurusan/:id", auth, superadminOnly, kepengurusan.delete);
 
 router.get("/keuangan", auth, superadminOnly, keuangan.getAll);
 
