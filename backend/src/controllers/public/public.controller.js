@@ -4,6 +4,8 @@ const Berita = require("../../models/Berita");
 const Program = require("../../models/Program");
 const Kegiatan = require("../../models/Kegiatan");
 const Kepengurusan = require("../../models/Kepengurusan");
+const Keuangan = require("../../models/Keuangan");      
+const Inventaris = require("../../models/Inventaris"); 
 const prayerService = require("../../services/prayer.service");
 
 exports.listMasjid = async (req, res) => {
@@ -50,6 +52,57 @@ exports.getKepengurusan = async (req, res) => {
     res.json(await Kepengurusan.findAll());
 };
 
+exports.getKeuangan = async (req, res) => {
+    try {
+        const { masjid_id } = req.query;
+
+        if (!masjid_id) {
+            return res.status(400).json({
+                message: "masjid_id wajib diisi"
+            });
+        }
+
+        const data = await Keuangan.findAll({
+            where: { masjid_id },
+            order: [["tanggal", "DESC"]],
+        });
+
+        res.json({
+            message: "Data keuangan berhasil diambil",
+            data
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+exports.getInventaris = async (req, res) => {
+    try {
+        const { masjid_id } = req.query;
+
+        if (!masjid_id) {
+            return res.status(400).json({
+                message: "masjid_id wajib diisi"
+            });
+        }
+
+        const data = await Inventaris.findAll({
+            where: { masjid_id },
+            order: [["nama_barang", "ASC"]],
+        });
+
+        res.json({
+            message: "Data inventaris berhasil diambil",
+            data
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
 
 exports.getJadwalSholat = async (req, res) => {
     try {
@@ -65,3 +118,4 @@ exports.getJadwalSholat = async (req, res) => {
         });
     }
 };
+
