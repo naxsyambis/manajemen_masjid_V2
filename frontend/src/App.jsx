@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MainLayout from './layouts/MainLayout';
 import Login from './pages/auth/Login';
-import Dashboard from './pages/Dashboard'; 
-import Keuangan from './pages/keuangan/Keuangan'; 
-import Riwayat from './pages/keuangan/Riwayat';
-import DataJamaah from './pages/jamaah/DataJamaah';
-import DataInventaris from './pages/inventaris/DataInventaris';
-import Settings from './pages/Settings';
+import Dashboard from './pages/admin/Dashboard'; 
+import Keuangan from './pages/admin/keuangan/Keuangan'; 
+import Riwayat from './pages/admin/keuangan/Riwayat';
+import DataJamaah from './pages/admin/jamaah/DataJamaah';
+import DataInventaris from './pages/admin/inventaris/DataInventaris';
+import Settings from './pages/admin/Settings';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

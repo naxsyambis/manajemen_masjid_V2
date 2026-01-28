@@ -13,11 +13,11 @@ import {
   Shield,
   VenetianMask 
 } from 'lucide-react'; 
-import Button from '../../components/Button';
-import StatCard from '../../components/StatCard';
+import Button from '../../../components/Button';
+import StatCard from '../../../components/StatCard';
 import ModalJamaah from './ModalJamaah';
 
-const handleAuthError = (err) => { //friska
+const handleAuthError = (err) => { 
   if (err.response && err.response.status === 401) {
     alert(err.response.data.message || "Sesi Anda telah berakhir");
     localStorage.removeItem("token");

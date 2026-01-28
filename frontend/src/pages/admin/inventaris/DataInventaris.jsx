@@ -13,8 +13,8 @@ import {
   ArrowUpDown,
   Archive
 } from 'lucide-react'; 
-import Button from '../../components/Button';
-import StatCard from '../../components/StatCard';
+import Button from '../../../components/Button';
+import StatCard from '../../../components/StatCard';
 import ModalInventaris from './ModalInventaris';
 
 const handleAuthError = (err) => { 

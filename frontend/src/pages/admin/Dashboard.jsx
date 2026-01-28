@@ -17,7 +17,7 @@ import {
   ArrowUpRight, 
   RefreshCcw 
 } from 'lucide-react';
-import { formatRupiah } from '../utils/formatCurrency';
+import { formatRupiah } from '../../utils/formatCurrency';
 
 const handleAuthError = (err) => {
   if (err.response && err.response.status === 401) {
