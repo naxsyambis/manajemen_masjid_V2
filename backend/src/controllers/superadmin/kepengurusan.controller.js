@@ -26,7 +26,7 @@ exports.create = async (req, res) => {
     const data = await Kepengurusan.create({
       ...req.body,
       foto_pengurus: fotoPath,
-      masjid_id: req.user.masjid_id
+      masjid_id: req.user.role === 'super admin' ? null : req.user.masjid_id  // Super admin bisa set null jika tidak ada masjid_id
     });
 
     await logActivity({
@@ -47,7 +47,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const kep = await Kepengurusan.findOne({
-      where: { pengurus_id: req.params.id }
+      where: { pengurus_id: req.params.id }  // Cari berdasarkan ID saja, tanpa filter masjid_id untuk super admin
     });
 
     if (!kep) return res.status(404).json({ message: "Pengurus tidak ditemukan" });
@@ -99,7 +99,7 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const oldData = await Kepengurusan.findOne({
-      where: { pengurus_id: req.params.id }
+      where: { pengurus_id: req.params.id }  // Cari berdasarkan ID saja
     });
 
     if (!oldData) return res.status(404).json({ message: "Pengurus tidak ditemukan" });
@@ -129,17 +129,33 @@ exports.delete = async (req, res) => {
 };
 
 exports.getAll = async (req, res) => {
-  const data = await Kepengurusan.findAll({
-    where: { masjid_id: req.user.masjid_id }
-  });
-  res.json(data);
+  try {
+    // Kondisi berdasarkan role: super admin ambil semua, takmir filter berdasarkan masjid_id
+    const whereCondition = req.user.role === 'super admin' ? {} : { masjid_id: req.user.masjid_id };
+    const data = await Kepengurusan.findAll({
+      where: whereCondition
+    });
+    res.json(data);
+  } catch (error) {
+    console.error("GET ALL KEPENGURUSAN ERROR:", error);
+    res.status(500).json({ message: "Gagal mengambil data kepengurusan" });
+  }
 };
 
 exports.getById = async (req, res) => {
-  const data = await Kepengurusan.findOne({
-    where: { pengurus_id: req.params.id, masjid_id: req.user.masjid_id }
-  });
+  try {
+    // Kondisi berdasarkan role: super admin cari berdasarkan ID saja, takmir tambah filter masjid_id
+    const whereCondition = req.user.role === 'super admin' 
+      ? { pengurus_id: req.params.id } 
+      : { pengurus_id: req.params.id, masjid_id: req.user.masjid_id };
+    const data = await Kepengurusan.findOne({
+      where: whereCondition
+    });
 
-  if (!data) return res.status(404).json({ message: "Pengurus tidak ditemukan" });
-  res.json(data);
+    if (!data) return res.status(404).json({ message: "Pengurus tidak ditemukan" });
+    res.json(data);
+  } catch (error) {
+    console.error("GET BY ID KEPENGURUSAN ERROR:", error);
+    res.status(500).json({ message: "Gagal mengambil detail pengurus" });
+  }
 };

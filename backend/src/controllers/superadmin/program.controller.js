@@ -6,7 +6,8 @@ exports.create = async (req, res) => {
         nama_program: req.body.nama_program,
         jadwal_rutin: req.body.jadwal_rutin,
         deskripsi: req.body.deskripsi,
-        user_id: req.user.user_id
+        user_id: req.user.id
+
     });
 
     await logActivity({
