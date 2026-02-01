@@ -45,6 +45,12 @@ import EditKegiatan from './pages/superadmin/kegiatan/EditKegiatan';
 import DetailKegiatan from './pages/superadmin/kegiatan/DetailKegiatan';
 import HapusKegiatan from './pages/superadmin/kegiatan/HapusKegiatan';
 
+// Import untuk keuangan masjid (BARU)
+import KeuanganMasjid from './pages/superadmin/keuangan/KeuanganMasjid';
+
+// Import untuk riwayat (BARU)
+import Riwayat from './pages/superadmin/riwayat/Riwayat';
+
 const SuperAdminApp = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
@@ -103,6 +109,12 @@ const SuperAdminApp = () => {
     { path: 'kegiatan/edit/:id', element: <EditKegiatan user={user} onLogout={handleLogout} /> },
     { path: 'kegiatan/detail/:id', element: <DetailKegiatan user={user} onLogout={handleLogout} /> },
     { path: 'kegiatan/hapus/:id', element: <HapusKegiatan user={user} onLogout={handleLogout} /> },
+    
+    // Routes untuk keuangan masjid (BARU)
+    { path: 'keuangan/:masjid_id', element: <KeuanganMasjid user={user} onLogout={handleLogout} /> },
+    
+    // Routes untuk riwayat (BARU)
+    { path: 'riwayat', element: <Riwayat user={user} onLogout={handleLogout} /> },
   ], [user]); // Dependensi user
 
   // Panggil useRoutes di top level dengan array yang dimemoize

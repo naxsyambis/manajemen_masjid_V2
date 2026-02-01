@@ -3,8 +3,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom'; // Tambah untuk navigasi dan highlight aktif
 import { 
-  Home, LayoutGrid, Users, Calendar, FileText, DollarSign, LogOut, Menu, Activity 
-} from 'lucide-react'; // Ganti icon ke lucide-react untuk konsistensi, tambah Activity untuk Kegiatan
+  Home, LayoutGrid, Users, Calendar, FileText, LogOut, Menu, Activity, History 
+} from 'lucide-react'; // Tambah History untuk Riwayat
 
 const SuperAdminSidebar = ({ isOpen, setIsOpen, onLogout, user, setIsHovered, isExpanded }) => {
   const location = useLocation(); // Untuk menentukan menu aktif berdasarkan path
@@ -17,7 +17,7 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen, onLogout, user, setIsHovered, is
     { title: "Program", path: "/superadmin/program", icon: <Calendar size={20} /> },
     { title: "Berita", path: "/superadmin/berita", icon: <FileText size={20} /> },
     { title: "Kegiatan", path: "/superadmin/kegiatan", icon: <Activity size={20} /> },
-    { title: "Keuangan", path: "/superadmin/keuangan", icon: <DollarSign size={20} /> },
+    { title: "Riwayat", path: "/superadmin/riwayat", icon: <History size={20} /> }, // Menu baru untuk Riwayat
   ];
 
   return (
