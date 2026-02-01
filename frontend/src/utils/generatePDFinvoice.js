@@ -1,9 +1,37 @@
 import jsPDF from "jspdf";
 import { formatRupiah } from "./formatCurrency";
 import { formatTanggal } from "./formatDate";
-import logoKop from "../assets/kop-surat.png"; // Pastikan path asset benar
+import logoKop from "../assets/kop-surat.png"; 
 
-export const generateKwitansiPDF = (data, savedTtd) => {
+// =================================
+// HELPER: URL IMAGE → BASE64
+// =================================
+const imageUrlToBase64 = async (url) => {
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = url;
+
+  await new Promise((resolve) => {
+    img.onload = resolve;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  const ctx = canvas.getContext("2d");
+
+  // ⬇️ INI KUNCINYA: isi background putih dulu
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.drawImage(img, 0, 0);
+
+  // Return Base64 PNG TANPA alpha
+  return canvas.toDataURL("image/png");
+};
+
+export const generateKwitansiPDF = async (data, savedTtd) => {
   const doc = new jsPDF("p", "mm", "a4");
 
   // Ambil Nama Masjid dan Nama Takmir dari LocalStorage
@@ -107,12 +135,14 @@ export const generateKwitansiPDF = (data, savedTtd) => {
 
   // Render TTD jika ada di database/localStorage
   if (savedTtd) {
-    try {
-      doc.addImage(savedTtd, "PNG", signX - 15, signY + 10, 30, 20);
-    } catch (e) {
-      console.error("Gagal merender TTD pada kwitansi");
-    }
+  try {
+    const ttdUrl = `http://localhost:3000${savedTtd}`;
+    const ttdBase64 = await imageUrlToBase64(ttdUrl);
+    doc.addImage(ttdBase64, "PNG", signX - 15, signY + 10, 30, 20);
+  } catch (e) {
+    console.error("Gagal merender TTD pada kwitansi", e);
   }
+}
 
   doc.setFont("helvetica", "bold");
   doc.text(namaTakmir.toUpperCase(), signX, signY + 35, { align: "center" });

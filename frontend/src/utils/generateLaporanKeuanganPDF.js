@@ -4,19 +4,50 @@ import { formatRupiah } from "./formatCurrency";
 import { formatTanggal } from "./formatDate";
 import logoKop from "../assets/kop-surat.png"; // Pastikan file benar-benar ada di folder assets
 
-export const generateLaporanKeuanganPDF = (
+export const generateLaporanKeuanganPDF = async (
   transaksi,
   startDate,
   endDate
 ) => {
   const doc = new jsPDF("p", "mm", "a4");
 
+  // ===============================
+// HELPER: URL IMAGE → BASE64
+// ===============================
+const imageUrlToBase64 = async (url) => {
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = url;
+
+  await new Promise((resolve) => {
+    img.onload = resolve;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  const ctx = canvas.getContext("2d");
+
+  // ⬇️ INI KUNCINYA: isi background putih dulu
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.drawImage(img, 0, 0);
+
+  // Return Base64 PNG TANPA alpha
+  return canvas.toDataURL("image/png");
+};
   // ==========================================
   // AMBIL DATA REAL DARI LOCALSTORAGE
   // ==========================================
-  const savedTtd = localStorage.getItem('ttdImage'); 
-  const namaMasjid = localStorage.getItem('namaMasjid') || "MASJID JOGOKARYAN";
-  const namaTakmir = localStorage.getItem('userName') || "Takmir Masjid"; 
+const ttdPath = localStorage.getItem("ttdImage"); // contoh: /uploads/ttd/xxx.webp
+const ttdUrl = ttdPath
+  ? `http://localhost:3000${ttdPath}`
+  : null;
+
+const namaMasjid = localStorage.getItem('namaMasjid') || "MASJID JOGOKARYAN";
+const namaTakmir = localStorage.getItem('userName') || "Takmir Masjid"; 
 
   // ==========================================
   // HITUNG TOTAL (DIPERKUAT DENGAN PARSEFLOAT)
@@ -144,14 +175,14 @@ export const generateLaporanKeuanganPDF = (
   doc.text("Takmir Masjid,", posX, finalY + 14, { align: "center" });
 
   // INTEGRASI GAMBAR TTD OTOMATIS
-  if (savedTtd) {
-    try {
-      // Render gambar Base64 dari Settings
-      doc.addImage(savedTtd, "PNG", posX - 15, finalY + 16, 30, 20);
-    } catch (e) {
-      console.error("Gagal memproses gambar TTD");
-    }
+  if (ttdUrl) {
+  try {
+    const ttdBase64 = await imageUrlToBase64(ttdUrl);
+    doc.addImage(ttdBase64, "PNG", posX - 15, finalY + 16, 30, 20);
+  } catch (e) {
+    console.error("Gagal memproses gambar TTD", e);
   }
+}
 
   // INTEGRASI NAMA TAKMIR DARI DATABASE
   doc.setFont("helvetica", "bold");
