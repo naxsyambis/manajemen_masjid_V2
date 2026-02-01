@@ -14,11 +14,6 @@ app.use("/takmir", require("./routes/takmir.routes"));
 app.use("/public", require("./routes/public.routes"));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.use(
-    "/files",
-    express.static(path.join(__dirname, "src/files"))
-);
-
 app.get("/", (req, res) => {
     res.send("Backend hidup 🚀");
 });
