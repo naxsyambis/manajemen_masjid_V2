@@ -9,6 +9,8 @@ const program = require("../controllers/superadmin/program.controller");
 const kegiatan = require("../controllers/superadmin/kegiatan.controller");
 const kepengurusan = require("../controllers/superadmin/kepengurusan.controller");
 const keuangan = require("../controllers/superadmin/keuangan.masjid.controller");
+const inventaris = require("../controllers/superadmin/inventaris.controller");
+const jamaah = require("../controllers/superadmin/jamaah.controller");
 const audit = require("../controllers/superadmin/audit.controller");
 
 router.get("/audit-log", auth, superadminOnly, audit.getAll);
@@ -50,5 +52,6 @@ router.get("/kepengurusan/:id", auth, superadminOnly, kepengurusan.getById);
 router.delete("/kepengurusan/:id", auth, superadminOnly, kepengurusan.delete);
 
 router.get("/keuangan", auth, superadminOnly, keuangan.getAll);
-
+router.get("/inventaris", auth, superadminOnly, inventaris.getAll);
+router.get("/jamaah", auth, superadminOnly, jamaah.getAll);
 module.exports = router;
