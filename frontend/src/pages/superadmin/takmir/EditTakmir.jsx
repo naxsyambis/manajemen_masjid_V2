@@ -34,10 +34,11 @@ const EditTakmir = ({ user, onLogout }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFormData({
-        nama: res.data.nama,
-        email: res.data.email,
-        masjid_id: res.data.masjid_id
+        nama: res.data.user?.nama || "",
+        email: res.data.user?.email || "",
+        masjid_id: res.data.masjid_id || ""
       });
+
     } catch (err) {
       console.error('Error fetching takmir:', err);
       alert('Gagal memuat data takmir');
