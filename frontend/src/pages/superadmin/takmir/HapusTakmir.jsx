@@ -80,7 +80,7 @@ const HapusTakmir = ({ user, onLogout }) => {
                     <User size={40} className="text-white/80" />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-bold mb-2">{takmir.nama}</h1>
+                    <h1 className="text-4xl font-bold mb-2">{takmir.user?.nama}</h1>
                     <p className="text-red-100 text-lg">ID Takmir: {takmir.id}</p>
                   </div>
                 </div>
@@ -121,7 +121,7 @@ const HapusTakmir = ({ user, onLogout }) => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">Nama Takmir</h3>
               </div>
-              <p className="text-gray-600">{takmir.nama}</p>
+              <p className="text-gray-600">{takmir.user?.nama}</p>
             </div>
             
             {/* Card Email */}
@@ -132,7 +132,7 @@ const HapusTakmir = ({ user, onLogout }) => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">Email</h3>
               </div>
-              <p className="text-gray-600">{takmir.email}</p>
+              <p className="text-gray-600">{takmir.user?.email}</p>
             </div>
             
             {/* Card Masjid */}
@@ -143,7 +143,7 @@ const HapusTakmir = ({ user, onLogout }) => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">Masjid</h3>
               </div>
-              <p className="text-gray-600">{takmir.nama_masjid}</p>
+              <p className="text-gray-600">{takmir.masjid?.nama_masjid}</p>
             </div>
           </div>
           

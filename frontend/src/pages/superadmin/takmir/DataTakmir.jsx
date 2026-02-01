@@ -37,29 +37,30 @@ const DataTakmir = ({ user, onLogout }) => {
     setFilteredTakmirs(filtered);
   }, [takmirs, searchTerm]);
 
-  const fetchTakmirs = async () => {
-    try {
-      const res = await axios.get('http://localhost:3000/superadmin/takmir', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const rawData = res.data;
+const fetchTakmirs = async () => {
+  try {
+    const res = await axios.get('http://localhost:3000/superadmin/takmir', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
-      // Enrich data dengan fallback 'N/A' karena endpoint user/masjid tidak ada
-      const enrichedData = rawData.map(takmir => ({
-        ...takmir,
-        nama: 'N/A', // Fallback karena tidak bisa fetch user
-        email: 'N/A',
-        nama_masjid: 'N/A' // Fallback karena tidak bisa fetch masjid
-      }));
+    const formatted = res.data.map(t => ({
+      id: t.id,
+      nama: t.user?.nama || "-",
+      email: t.user?.email || "-",
+      nama_masjid: t.masjid?.nama_masjid || "-"
+    }));
 
-      setTakmirs(enrichedData);
-    } catch (err) {
-      console.error('Error fetching takmirs:', err);
-      alert('Gagal memuat data takmir');
-    } finally {
-      setLoading(false);
-    }
-  };
+
+    setTakmirs(formatted);
+
+  } catch (err) {
+    console.error('Error fetching takmirs:', err);
+    alert('Gagal memuat data takmir');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleDelete = async () => {
     if (!selectedTakmir) return;

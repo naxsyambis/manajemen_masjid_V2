@@ -91,7 +91,7 @@ const DetailTakmir = ({ user, onLogout }) => {
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
               {/* Header */}
               <div className="bg-mu-green p-10 text-white">
-                <h1 className="text-4xl font-bold text-center">{takmir.nama}</h1>
+                <h1 className="text-4xl font-bold text-center">{takmir.user?.nama}</h1>
                 <p className="text-green-100 text-lg text-center mt-2">ID Takmir: {takmir.id}</p>
               </div>
               
@@ -110,19 +110,19 @@ const DetailTakmir = ({ user, onLogout }) => {
                     {/* Nama */}
                     <div>
                       <h3 className="text-xl font-semibold text-gray-800 mb-2">Nama Takmir</h3>
-                      <p className="text-gray-600">{takmir.nama}</p>
+                      <p className="text-gray-600">{takmir.user?.nama}</p>
                     </div>
                     
                     {/* Email */}
                     <div>
                       <h3 className="text-xl font-semibold text-gray-800 mb-2">Email</h3>
-                      <p className="text-gray-600">{takmir.email}</p>
+                      <p className="text-gray-600">{takmir.user?.email}</p>
                     </div>
                     
                     {/* Masjid */}
                     <div>
                       <h3 className="text-xl font-semibold text-gray-800 mb-2">Masjid</h3>
-                      <p className="text-gray-600">{takmir.nama_masjid}</p>
+                      <p className="text-gray-600">{takmir.masjid?.nama_masjid}</p>
                     </div>
                   </div>
                 </div>
@@ -172,9 +172,9 @@ const DetailTakmir = ({ user, onLogout }) => {
               </p>
               
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                <h2 className="font-semibold text-lg text-gray-800">{takmir.nama}</h2>
-                <p className="text-gray-600 mt-1">{takmir.email}</p>
-                <p className="text-gray-600">{takmir.nama_masjid}</p>
+                <h2 className="font-semibold text-lg text-gray-800">{takmir.user?.nama}</h2>
+                <p className="text-gray-600 mt-1">{takmir.user?.email}</p>
+                <p className="text-gray-600">{takmir.masjid?.nama_masjid}</p>
               </div>
               
               <div className="flex justify-end space-x-4">
