@@ -1,5 +1,4 @@
-const AuditLog = require("../../models/AuditLog");
-const User = require("../../models/User");
+const { AuditLog, User } = require("../../models");
 
 exports.getAll = async (req, res) => {
     try {
