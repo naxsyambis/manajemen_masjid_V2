@@ -6,5 +6,7 @@ module.exports = (req, res, next) => {
     if (!token) return res.status(401).json({ message: "Token required" });
 
     req.user = jwt.verify(token, secret);
+    console.log("USER TOKEN:", req.user);
     next();
+
 };

@@ -6,12 +6,22 @@ import {
   Database, Clock, Calendar as CalendarIcon, Hash, User, FileText, ArrowRightLeft, Tag
 } from 'lucide-react';
 
-import Button from '../../components/Button';
-import { formatRupiah } from '../../utils/formatCurrency';
-import { formatTanggal } from '../../utils/formatDate';
-import { generateKwitansiPDF } from '../../utils/generatePDFinvoice';
-import { generateLaporanKeuanganPDF } from '../../utils/generateLaporanKeuanganPDF';
+import Button from '../../../components/Button';
+import { formatRupiah } from '../../../utils/formatCurrency';
+import { formatTanggal } from '../../../utils/formatDate';
+import { generateKwitansiPDF } from '../../../utils/generatePDFinvoice';
+import { generateLaporanKeuanganPDF } from '../../../utils/generateLaporanKeuanganPDF';
 import ModalRiwayat from './ModalRiwayat';
+
+const handleAuthError = (err) => { 
+  if (err.response && err.response.status === 401) {
+    alert(err.response.data.message || "Sesi Anda telah berakhir");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+};
 
 const Riwayat = () => {
   const [transaksi, setTransaksi] = useState([]);
@@ -42,6 +52,7 @@ const Riwayat = () => {
       setTransaksi(data);
       setFilteredTransaksi(data);
     } catch (err) {
+      if (handleAuthError(err)) return;
       console.error("Gagal ambil data riwayat");
     } finally {
       setLoading(false);

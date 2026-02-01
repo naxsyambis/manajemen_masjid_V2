@@ -3,6 +3,16 @@ import ReactDOM from 'react-dom';
 import axios from 'axios';
 import { X, Tag, Save, Pencil } from 'lucide-react';
 
+const handleAuthError = (err) => { 
+  if (err.response && err.response.status === 401) {
+    alert(err.response.data.message || "Sesi Anda telah berakhir");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+};
+
 const ModalKeuangan = ({ show, onClose, onSuccess, jenis, editData }) => {
   const [namaKategori, setNamaKategori] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,6 +53,7 @@ const ModalKeuangan = ({ show, onClose, onSuccess, jenis, editData }) => {
       setNamaKategori('');
       onClose();
     } catch (err) {
+      if (handleAuthError(err)) return;
       alert(editData ? "Gagal mengubah kategori." : "Gagal menambahkan kategori.");
     } finally {
       setLoading(false);

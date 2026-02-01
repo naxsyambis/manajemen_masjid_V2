@@ -1,10 +1,14 @@
+// frontend/src/pages/auth/Login.jsx
+
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Tambah import untuk redirect
 
-const Login = ({ onLogin }) => {
+const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Hook untuk navigasi
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,29 +21,43 @@ const Login = ({ onLogin }) => {
 
       if (response.data.token) {
         const token = response.data.token;
-        const payload = JSON.parse(window.atob(token.split('.')[1]));
+        const payload = JSON.parse(window.atob(token.split('.')[1])); // Parse token untuk data dasar
 
         localStorage.setItem('token', token);
         localStorage.setItem('user_session', JSON.stringify({ 
           email,
           role: payload.role,
           masjid_id: payload.masjid_id,
-          user_id: payload.user_id,
-          nama: email.split('@')[0].toUpperCase() 
+          user_id: payload.user_id
+          // Nama akan diambil dari profile nanti
         }));
 
-        onLogin();
+        // Hapus onLogin(); karena AppWrapper akan handle fetch profile otomatis saat mount
+
+        // Redirect berdasarkan role setelah login sukses
+        if (payload.role === 'super admin') {
+          navigate('/superadmin'); // Redirect ke dashboard super admin
+        } else if (payload.role === 'takmir') {
+          navigate('/admin'); // Asumsikan admin path adalah /admin, sesuaikan jika berbeda
+        } else {
+          // Jika role tidak valid, redirect ke home publik
+          alert("Role tidak valid. Anda akan diarahkan ke halaman utama.");
+          navigate('/');
+        }
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Login gagal. Periksa akun atau server.");
+      // Perbaiki error handling: lebih spesifik
+      const errorMessage = err.response?.data?.message || "Login gagal. Periksa email/password atau koneksi server.";
+      alert(errorMessage);
+      console.error("Login error:", err); // Tambah logging untuk debug
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    // Kode UI tetap sama, tidak ada perubahan di sini
     <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2 bg-[#f4f7fb]">
-
       {/* ================= LEFT IMAGE ================= */}
       <div 
         className="hidden md:flex relative items-center justify-center text-white"
@@ -75,9 +93,7 @@ const Login = ({ onLogin }) => {
 
       {/* ================= RIGHT FORM ================= */}
       <div className="flex items-center justify-center px-6">
-
         <div className="w-full max-w-md bg-white px-10 py-14 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)]">
-
           {/* brand */}
           <div className="mb-10 space-y-3">
             <p className="text-xs tracking-[0.3em] text-mu-green font-bold uppercase">
@@ -93,7 +109,6 @@ const Login = ({ onLogin }) => {
 
           {/* form */}
           <form onSubmit={handleLogin} className="space-y-6">
-
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
                 Email
@@ -127,7 +142,6 @@ const Login = ({ onLogin }) => {
             >
               {loading ? "MEMVERIFIKASI..." : "MASUK SISTEM"}
             </button>
-
           </form>
 
           <p className="mt-12 text-center text-[11px] text-gray-400 italic">

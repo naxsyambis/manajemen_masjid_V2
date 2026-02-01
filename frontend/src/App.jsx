@@ -1,26 +1,17 @@
+// frontend/src/App.jsx
+
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import MainLayout from './layouts/MainLayout';
-import Login from './pages/auth/Login';
-import Dashboard from './pages/Dashboard'; 
-import Keuangan from './pages/keuangan/Keuangan'; 
-import Riwayat from './pages/keuangan/Riwayat';
-import DataJamaah from './pages/jamaah/DataJamaah';
-import DataInventaris from './pages/inventaris/DataInventaris';
-import Settings from './pages/Settings';
+// import PublicApp from './PublicApp'; // Uncomment jika ada komponen PublicApp
+import AdminApp from './AdminApp';
+import SuperAdminApp from './SuperAdminApp';
+import Login from './pages/auth/Login'; // Tambah import Login
 
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
-  const [activeMenu, setActiveMenu] = useState('dashboard');
+const AppWrapper = () => {
+  const [currentApp, setCurrentApp] = useState('public'); // 'public', 'admin', 'superadmin'
   const [loading, setLoading] = useState(true);
-
-  // Fungsi internal untuk memetakan data profil ke localStorage
-  const syncUserContext = (data) => {
-    if (data.nama) localStorage.setItem('userName', data.nama);
-    if (data.nama_masjid) localStorage.setItem('namaMasjid', data.nama_masjid);
-    if (data.foto_tanda_tangan) localStorage.setItem('ttdImage', data.foto_tanda_tangan);
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
     const initApp = async () => {
@@ -30,42 +21,27 @@ function App() {
           const res = await axios.get('http://localhost:3000/auth/profile', {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setUser(res.data);
-          setIsLoggedIn(true);
-          syncUserContext(res.data); // Sinkronisasi data untuk laporan PDF
+          if (res.data.role === 'takmir') {
+            setCurrentApp('admin');
+            navigate('/admin');
+          } else if (res.data.role === 'super admin') {
+            setCurrentApp('superadmin');
+            navigate('/superadmin');
+          } else {
+            setCurrentApp('public');
+            localStorage.clear();
+          }
         } catch (err) {
-          console.error("Sesi berakhir");
+          setCurrentApp('public');
           localStorage.clear();
-          setIsLoggedIn(false);
         }
+      } else {
+        setCurrentApp('public');
       }
       setLoading(false);
     };
     initApp();
-  }, []);
-
-  const handleLoginSuccess = async () => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await axios.get('http://localhost:3000/auth/profile', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUser(res.data);
-      setIsLoggedIn(true);
-      syncUserContext(res.data); // Sinkronisasi saat login berhasil
-    } catch (err) {
-      alert("Gagal memproses profil.");
-    }
-  };
-
-  const handleLogout = () => {
-    if (window.confirm("Apakah anda yakin ingin keluar dari sistem Takmir?")) {
-      localStorage.clear();
-      setUser(null);
-      setIsLoggedIn(false);
-      setActiveMenu('dashboard');
-    }
-  };
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -78,32 +54,35 @@ function App() {
     );
   }
 
-  if (!isLoggedIn) {
-    return <Login onLogin={handleLoginSuccess} />;
+  if (currentApp === 'admin') {
+    return <AdminApp />;
+  } else if (currentApp === 'superadmin') {
+    return <SuperAdminApp />;
+  } else {
+    // Placeholder untuk public app, ganti dengan <PublicApp /> jika ada komponen
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div>
+          <h1 className="text-2xl font-bold mb-4">Selamat Datang di SIM MASJID</h1>
+          <p>Klik <a href="/login" className="text-blue-500 underline">di sini</a> untuk login.</p>
+        </div>
+      </div>
+    );
   }
+};
 
-  const renderContent = () => {
-    switch (activeMenu) {
-      case 'dashboard': return <Dashboard />;
-      case 'keuangan': return <Keuangan />;
-      case 'riwayat': return <Riwayat />;
-      case 'data-jamaah': return <DataJamaah />;
-      case 'inventaris': return <DataInventaris />;
-      case 'settings': return <Settings />;
-      default: return <Dashboard />;
-    }
-  };
-
+const App = () => {
   return (
-    <MainLayout 
-      activeMenu={activeMenu} 
-      setActiveMenu={setActiveMenu} 
-      onLogout={handleLogout}
-      user={user}
-    >
-      {renderContent()}
-    </MainLayout>
+    <Router>
+      <Routes>
+        <Route path="/" element={<AppWrapper />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/admin/*" element={<AdminApp />} />
+        <Route path="/superadmin/*" element={<SuperAdminApp />} />
+        <Route path="/*" element={<AppWrapper />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

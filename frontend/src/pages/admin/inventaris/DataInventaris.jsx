@@ -13,9 +13,19 @@ import {
   ArrowUpDown,
   Archive
 } from 'lucide-react'; 
-import Button from '../../components/Button';
-import StatCard from '../../components/StatCard';
+import Button from '../../../components/Button';
+import StatCard from '../../../components/StatCard';
 import ModalInventaris from './ModalInventaris';
+
+const handleAuthError = (err) => { 
+  if (err.response && err.response.status === 401) {
+    alert(err.response.data.message || "Sesi Anda telah berakhir");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+};
 
 const DataInventaris = () => {
   const [items, setItems] = useState([]);
@@ -43,6 +53,7 @@ const DataInventaris = () => {
       });
       setItems(res.data);
     } catch (err) {
+      if (handleAuthError(err)) return;
       console.error("Gagal load database inventaris");
     } finally {
       setLoading(false);
@@ -92,6 +103,7 @@ const DataInventaris = () => {
       setShowForm(false);
       fetchInventaris();
     } catch (err) {
+      if (handleAuthError(err)) return;
       alert("Gagal simpan ke database.");
     }
   };
@@ -104,6 +116,7 @@ const DataInventaris = () => {
         });
         fetchInventaris();
       } catch (err) {
+        if (handleAuthError(err)) return;
         alert("Gagal hapus data.");
       }
     }

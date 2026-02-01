@@ -1,20 +1,27 @@
+// frontend/src/components/Sidebar.jsx
+
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Wallet, Users, Package, ClipboardList, Settings, LogOut, Menu 
 } from 'lucide-react';
 
-const Sidebar = ({ activeMenu, setActiveMenu, isOpen, setIsOpen, onLogout, user }) => {
+const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
   const [isHovered, setIsHovered] = useState(false);
   const isExpanded = isOpen || isHovered;
+  const navigate = useNavigate();
 
   const menus = [
-    { id: 'dashboard', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { id: 'keuangan', name: 'Kelola Keuangan', icon: <Wallet size={20} /> },
-    { id: 'data-jamaah', name: 'Data Jamaah', icon: <Users size={20} /> },
-    { id: 'inventaris', name: 'Inventaris Masjid', icon: <Package size={20} /> },
-    { id: 'riwayat', name: 'Riwayat & Laporan', icon: <ClipboardList size={20} /> },
-    { id: 'settings', name: 'Pengaturan', icon: <Settings size={20} /> },
+    { id: 'dashboard', name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
+    { id: 'keuangan', name: 'Kelola Keuangan', path: '/admin/keuangan', icon: <Wallet size={20} /> },
+    { id: 'jamaah', name: 'Data Jamaah', path: '/admin/jamaah', icon: <Users size={20} /> },
+    { id: 'inventaris', name: 'Inventaris Masjid', path: '/admin/inventaris', icon: <Package size={20} /> },
+    { id: 'riwayat', name: 'Riwayat & Laporan', path: '/admin/riwayat', icon: <ClipboardList size={20} /> },
+    { id: 'settings', name: 'Pengaturan', path: '/admin/settings', icon: <Settings size={20} /> },
   ];
+
+  const currentPath = window.location.pathname;
+  const activeMenu = menus.find(menu => menu.path === currentPath)?.id || 'dashboard';
 
   return (
     <>
@@ -34,7 +41,6 @@ const Sidebar = ({ activeMenu, setActiveMenu, isOpen, setIsOpen, onLogout, user 
           </button>
           <div className={`ml-4 transition-all duration-300 ${isExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10 pointer-events-none'}`}>
             <h1 className="text-lg font-black text-mu-yellow tracking-tighter uppercase whitespace-nowrap leading-none">SIM MASJID</h1>
-            {}
             <p className="text-[10px] font-black text-white/90 uppercase mt-1.5 flex items-center gap-1.5 tracking-wider">
               <span className="w-1.5 h-1.5 bg-mu-yellow rounded-full animate-pulse"></span>
               {user?.nama || "Memuat..."}
@@ -46,7 +52,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, isOpen, setIsOpen, onLogout, user 
             <button
               key={item.id}
               onClick={() => {
-                setActiveMenu(item.id);
+                navigate(item.path);
                 if (window.innerWidth < 1024) setIsOpen(false);
               }}
               className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group relative
@@ -70,4 +76,5 @@ const Sidebar = ({ activeMenu, setActiveMenu, isOpen, setIsOpen, onLogout, user 
     </>
   );
 };
+
 export default Sidebar;

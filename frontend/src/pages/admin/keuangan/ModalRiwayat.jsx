@@ -3,6 +3,16 @@ import ReactDOM from 'react-dom';
 import axios from 'axios';
 import { X, Save, DollarSign, Tag, Calendar, User, FileText, AlertCircle } from 'lucide-react';
 
+const handleAuthError = (err) => { //friska
+  if (err.response && err.response.status === 401) {
+    alert(err.response.data.message || "Sesi Anda telah berakhir");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+};
+
 const ModalRiwayat = ({ show, onClose, onSuccess, data, categories }) => {
   const [form, setForm] = useState({
     jumlah: '',
@@ -56,6 +66,7 @@ const ModalRiwayat = ({ show, onClose, onSuccess, data, categories }) => {
       onSuccess();
       onClose();
     } catch (err) {
+      if (handleAuthError(err)) return;
       alert("❌ Gagal memperbarui data.");
     } finally {
       setLoading(false);
