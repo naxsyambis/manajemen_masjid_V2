@@ -3,7 +3,6 @@ const Keuangan = require("../../models/Keuangan");
 const Kategori = require("../../models/Kategori_Keuangan");
 const Masjid = require("../../models/Masjid");
 const User = require("../../models/User");
-const ReportService = require("../../services/generate.pdf");
 const { logActivity } = require("../../services/auditLog.service");
 
 exports.create = async (req, res) => {

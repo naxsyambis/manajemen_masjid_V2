@@ -1,9 +1,13 @@
 // frontend/src/SuperAdminApp.jsx
 
-import React, { useState, useEffect, useMemo } from 'react'; // Tambahkan useMemo
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { useRoutes, useNavigate } from 'react-router-dom'; // Tambah useNavigate
+import { useRoutes, useNavigate } from 'react-router-dom';
+
+// Import komponen dashboard dan utama
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
+
+// Import untuk masjid
 import DataMasjid from './pages/superadmin/masjid/DataMasjid';
 import TambahMasjid from './pages/superadmin/masjid/TambahMasjid';
 import EditMasjid from './pages/superadmin/masjid/EditMasjid';
@@ -31,44 +35,50 @@ import EditProgram from './pages/superadmin/program/EditProgram';
 import DetailProgram from './pages/superadmin/program/DetailProgram';
 import HapusProgram from './pages/superadmin/program/HapusProgram';
 
-// Import untuk berita (BARU)
+// Import untuk berita
 import DataBerita from './pages/superadmin/berita/DataBerita';
 import TambahBerita from './pages/superadmin/berita/TambahBerita';
 import EditBerita from './pages/superadmin/berita/EditBerita';
 import DetailBerita from './pages/superadmin/berita/DetailBerita';
 import HapusBerita from './pages/superadmin/berita/HapusBerita';
 
-// Import untuk kegiatan (BARU)
+// Import untuk kegiatan
 import DataKegiatan from './pages/superadmin/kegiatan/DataKegiatan';
 import TambahKegiatan from './pages/superadmin/kegiatan/TambahKegiatan';
 import EditKegiatan from './pages/superadmin/kegiatan/EditKegiatan';
 import DetailKegiatan from './pages/superadmin/kegiatan/DetailKegiatan';
 import HapusKegiatan from './pages/superadmin/kegiatan/HapusKegiatan';
 
-// Import untuk keuangan masjid (BARU)
+// Import untuk keuangan masjid
 import KeuanganMasjid from './pages/superadmin/keuangan/KeuanganMasjid';
 
-// Import untuk riwayat (BARU)
+// Import untuk riwayat
 import Riwayat from './pages/superadmin/riwayat/Riwayat';
+
+// Import untuk informasi masjid (sudah diperbaiki: menggunakan InformasiMasjid.jsx)
+import InformasiMasjid from './pages/superadmin/InformasiMasjid';
 
 const SuperAdminApp = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // Tambah navigate
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     if (window.confirm("Apakah anda yakin ingin keluar?")) {
       localStorage.clear();
       setUser(null);
       setIsLoggedIn(false);
-      navigate('/login'); // Redirect ke /login
+      navigate('/login');
     }
   };
 
-  // Memoize array routes, tapi panggil useRoutes di top level
+  // Memoize array routes untuk performa, dengan dependensi user (sudah diperbaiki: semua routes unik)
   const routesArray = useMemo(() => [
+    // Route utama (dashboard)
     { path: '', element: <SuperAdminDashboard user={user} onLogout={handleLogout} /> },
+    
+    // Routes untuk masjid
     { path: 'masjid', element: <DataMasjid user={user} onLogout={handleLogout} /> },
     { path: 'masjid/tambah', element: <TambahMasjid user={user} onLogout={handleLogout} /> },
     { path: 'masjid/edit/:id', element: <EditMasjid user={user} onLogout={handleLogout} /> },
@@ -96,28 +106,30 @@ const SuperAdminApp = () => {
     { path: 'program/detail/:id', element: <DetailProgram user={user} onLogout={handleLogout} /> },
     { path: 'program/hapus/:id', element: <HapusProgram user={user} onLogout={handleLogout} /> },
     
-    // Routes untuk berita (BARU)
+    // Routes untuk berita
     { path: 'berita', element: <DataBerita user={user} onLogout={handleLogout} /> },
     { path: 'berita/tambah', element: <TambahBerita user={user} onLogout={handleLogout} /> },
     { path: 'berita/edit/:id', element: <EditBerita user={user} onLogout={handleLogout} /> },
     { path: 'berita/detail/:id', element: <DetailBerita user={user} onLogout={handleLogout} /> },
     { path: 'berita/hapus/:id', element: <HapusBerita user={user} onLogout={handleLogout} /> },
     
-    // Routes untuk kegiatan (BARU)
+    // Routes untuk kegiatan
     { path: 'kegiatan', element: <DataKegiatan user={user} onLogout={handleLogout} /> },
     { path: 'kegiatan/tambah', element: <TambahKegiatan user={user} onLogout={handleLogout} /> },
     { path: 'kegiatan/edit/:id', element: <EditKegiatan user={user} onLogout={handleLogout} /> },
     { path: 'kegiatan/detail/:id', element: <DetailKegiatan user={user} onLogout={handleLogout} /> },
     { path: 'kegiatan/hapus/:id', element: <HapusKegiatan user={user} onLogout={handleLogout} /> },
     
-    // Routes untuk keuangan masjid (BARU)
+    // Routes untuk keuangan masjid
     { path: 'keuangan/:masjid_id', element: <KeuanganMasjid user={user} onLogout={handleLogout} /> },
     
-    // Routes untuk riwayat (BARU)
+    // Routes untuk riwayat
     { path: 'riwayat', element: <Riwayat user={user} onLogout={handleLogout} /> },
-  ], [user]); // Dependensi user
+    
+    // Route untuk informasi masjid (sudah diperbaiki: menggunakan InformasiMasjid.jsx)
+    { path: 'informasi/:masjid_id', element: <InformasiMasjid user={user} onLogout={handleLogout} /> },
+  ], [user]);
 
-  // Panggil useRoutes di top level dengan array yang dimemoize
   const routes = useRoutes(routesArray);
 
   useEffect(() => {
@@ -137,6 +149,7 @@ const SuperAdminApp = () => {
             navigate('/login');
           }
         } catch (err) {
+          console.error('Error fetching profile:', err);
           localStorage.clear();
           setIsLoggedIn(false);
           navigate('/login');

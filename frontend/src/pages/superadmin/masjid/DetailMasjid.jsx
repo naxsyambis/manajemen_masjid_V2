@@ -114,19 +114,21 @@ const DetailMasjid = ({ user, onLogout }) => {
               </div>
             </div>
             
-            <button 
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
-              {refreshing ? 'Memuat...' : 'Refresh Data'}
-            </button>
+            <div className="flex gap-4">
+              <button 
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
+                {refreshing ? 'Memuat...' : 'Refresh Data'}
+              </button>
+            </div>
           </div>
           
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4 shadow-lg">
               <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
               <div>
                 <p className="text-red-700 font-medium">Error</p>
@@ -135,90 +137,91 @@ const DetailMasjid = ({ user, onLogout }) => {
             </div>
           )}
           
-          {/* Detail Masjid */}
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-              <div>
-                <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">Informasi Masjid</h3>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                  Detail Lengkap Masjid {masjid.nama_masjid}
-                </p>
+          {/* Detail Masjid Modern dan Elegan */}
+          <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
+            <div className="p-10 lg:p-16">
+              <div className="mb-12 text-center">
+                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter mb-4">Detail Masjid</h2>
+                <p className="text-gray-600 text-lg">Informasi lengkap tentang masjid yang dipilih</p>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-              {/* Kolom Kiri: Logo */}
-              <div className="flex justify-center lg:justify-start">
-                <div className="w-32 h-32 bg-gradient-to-r from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center shadow-lg">
-                  {masjid.logo_foto ? (
-                    <img src={`http://localhost:3000${masjid.logo_foto}`} alt="Logo" className="w-28 h-28 object-cover rounded-xl" />
-                  ) : (
-                    <ImageIcon size={64} className="text-gray-400" />
-                  )}
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div className="space-y-10">
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Logo Masjid</h3>
+                    <div className="flex justify-center">
+                      <div className="w-64 h-64 bg-gradient-to-r from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center shadow-lg">
+                        {masjid.logo_foto ? (
+                          <img src={`http://localhost:3000${masjid.logo_foto}`} alt="Logo" className="w-60 h-60 object-cover rounded-xl" />
+                        ) : (
+                          <ImageIcon size={64} className="text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-10">
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Informasi Masjid</h3>
+                    
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Nama Masjid</label>
+                      <p className="text-gray-600 text-lg">{masjid.nama_masjid}</p>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">ID: {masjid.masjid_id}</p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Alamat Masjid</label>
+                      <div className="flex items-center gap-2">
+                        <MapPin size={20} className="text-mu-green" />
+                        <p className="text-gray-600">{masjid.alamat}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Kontak</label>
+                      <div className="flex items-center gap-2">
+                        <Phone size={20} className="text-mu-green" />
+                        <p className="text-gray-600">{masjid.no_hp}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Deskripsi</label>
+                      <div className="flex items-start gap-2">
+                        <FileText size={20} className="text-mu-green mt-1" />
+                        <p className="text-gray-600">{masjid.deskripsi || 'Tidak ada deskripsi yang tersedia untuk masjid ini.'}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              {/* Kolom Kanan: Detail */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Nama Masjid */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Nama Masjid</h3>
-                  <p className="text-gray-600">{masjid.nama_masjid}</p>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">ID: {masjid.masjid_id}</p>
-                </div>
-                
-                {/* Alamat */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <MapPin size={20} className="text-mu-green" />
-                    Alamat Masjid
-                  </h3>
-                  <p className="text-gray-600">{masjid.alamat}</p>
-                </div>
-                
-                {/* Kontak */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <Phone size={20} className="text-mu-green" />
-                    Kontak
-                  </h3>
-                  <p className="text-gray-600">{masjid.no_hp}</p>
-                </div>
-                
-                {/* Deskripsi */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <FileText size={20} className="text-mu-green" />
-                    Deskripsi
-                  </h3>
-                  <p className="text-gray-600">{masjid.deskripsi || 'Tidak ada deskripsi yang tersedia untuk masjid ini.'}</p>
-                </div>
+              {/* Tombol Aksi dengan Efek Hover */}
+              <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
+                <button
+                  onClick={() => navigate('/superadmin/masjid')}
+                  className="flex items-center px-8 py-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 rounded-2xl hover:from-gray-300 hover:to-gray-400 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
+                >
+                  <ArrowLeft size={22} className="mr-3" />
+                  Kembali ke Daftar Masjid
+                </button>
+                <button
+                  onClick={() => navigate(`/superadmin/masjid/edit/${id}`)}
+                  className="flex items-center px-8 py-4 bg-mu-green text-white rounded-2xl hover:bg-green-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
+                >
+                  <Edit size={22} className="mr-3" />
+                  Edit Masjid
+                </button>
+                <button
+                  onClick={openDeleteModal}
+                  className="flex items-center px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl hover:from-red-600 hover:to-red-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
+                >
+                  <Trash2 size={22} className="mr-3" />
+                  Hapus Masjid
+                </button>
               </div>
-            </div>
-            
-            {/* Tombol Aksi */}
-            <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">
-              <button
-                onClick={() => navigate('/superadmin/masjid')}
-                className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 flex items-center font-medium"
-              >
-                <ArrowLeft size={20} className="mr-2" />
-                Kembali ke Daftar Masjid
-              </button>
-              <button
-                onClick={() => navigate(`/superadmin/masjid/edit/${id}`)}
-                className="px-8 py-3 bg-mu-green text-white rounded-xl hover:bg-green-700 transition-all duration-200 flex items-center font-medium shadow-lg"
-              >
-                <Edit size={20} className="mr-2" />
-                Edit Masjid
-              </button>
-              <button
-                onClick={openDeleteModal}
-                className="px-8 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 flex items-center font-medium shadow-lg"
-              >
-                <Trash2 size={20} className="mr-2" />
-                Hapus Masjid
-              </button>
             </div>
           </div>
           
@@ -255,7 +258,7 @@ const DetailMasjid = ({ user, onLogout }) => {
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={closeDeleteModal}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 flex items-center font-medium"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 rounded-xl hover:from-gray-300 hover:to-gray-400 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
                 >
                   <X size={20} className="mr-2" />
                   Batal
@@ -263,7 +266,7 @@ const DetailMasjid = ({ user, onLogout }) => {
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  className="flex items-center px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Trash2 size={20} className="mr-2" />
                   {deleting ? 'Menghapus...' : 'Hapus Masjid'}

@@ -1,3 +1,4 @@
+// backend/controllers/public/public.controller.js
 const Masjid = require("../../models/Masjid");
 const Jamaah = require("../../models/Jamaah");
 const Berita = require("../../models/Berita");
@@ -119,3 +120,9 @@ exports.getJadwalSholat = async (req, res) => {
     }
 };
 
+// Tambah fungsi getBeritaById untuk detail berita
+exports.getBeritaById = async (req, res) => {
+    const data = await Berita.findByPk(req.params.id);
+    if (!data) return res.status(404).json({ message: "Berita tidak ditemukan" });
+    res.json(data);
+};

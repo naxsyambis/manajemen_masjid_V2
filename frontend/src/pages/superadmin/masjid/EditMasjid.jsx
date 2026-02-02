@@ -61,6 +61,7 @@ const EditMasjid = ({ user, onLogout }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     const data = new FormData();
     data.append('nama_masjid', formData.nama_masjid);
     data.append('alamat', formData.alamat);
@@ -76,7 +77,7 @@ const EditMasjid = ({ user, onLogout }) => {
       navigate('/superadmin/masjid');
     } catch (err) {
       console.error('Error updating masjid:', err);
-      alert('Gagal mengupdate masjid');
+      setError('Gagal mengupdate masjid. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -112,19 +113,21 @@ const EditMasjid = ({ user, onLogout }) => {
               </div>
             </div>
             
-            <button 
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
-              {refreshing ? 'Memuat...' : 'Refresh Data'}
-            </button>
+            <div className="flex gap-4">
+              <button 
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
+                {refreshing ? 'Memuat...' : 'Refresh Data'}
+              </button>
+            </div>
           </div>
           
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4 shadow-lg">
               <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
               <div>
                 <p className="text-red-700 font-medium">Error</p>
@@ -133,152 +136,145 @@ const EditMasjid = ({ user, onLogout }) => {
             </div>
           )}
           
-          {/* Form Container */}
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-              <div>
-                <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">Form Edit Masjid</h3>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                  Perbarui informasi masjid dengan lengkap dan akurat
-                </p>
+          {/* Form Edit Masjid Modern dan Elegan */}
+          <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
+            <div className="p-10 lg:p-16">
+              <div className="mb-12 text-center">
+                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter mb-4">Edit Masjid</h2>
+                <p className="text-gray-600 text-lg">Perbarui informasi masjid dengan lengkap dan akurat</p>
               </div>
-            </div>
-            
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                
-                {/* Kolom Kiri: Upload Logo dan No HP */}
-                <div className="space-y-8">
-                  {/* Section Upload Logo */}
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">Logo Masjid</h2>
-                    <div className="space-y-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="hidden"
-                        id="logo-upload"
-                      />
-                      <label htmlFor="logo-upload" className="block">
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-mu-green transition-colors">
-                          {file ? (
-                            <div className="space-y-4">
-                              <img src={URL.createObjectURL(file)} alt="Preview" className="w-24 h-24 object-cover rounded-lg mx-auto" />
-                              <div>
-                                <p className="text-sm font-medium text-gray-800">{file.name}</p>
-                                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+              
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  <div className="space-y-10">
+                    <div className="space-y-6">
+                      <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Logo Masjid</h3>
+                      <div className="space-y-4">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
+                          id="logo-upload"
+                        />
+                        <label htmlFor="logo-upload" className="block">
+                          <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            {file ? (
+                              <div className="space-y-6">
+                                <img src={URL.createObjectURL(file)} alt="Preview" className="w-32 h-32 object-cover rounded-xl mx-auto shadow-lg" />
+                                <div>
+                                  <p className="text-lg font-semibold text-gray-800">{file.name}</p>
+                                  <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                </div>
                               </div>
-                            </div>
-                          ) : formData.logo_foto ? (
-                            <div className="space-y-4">
-                              <img src={`http://localhost:3000${formData.logo_foto}`} alt="Current Logo" className="w-24 h-24 object-cover rounded-lg mx-auto" />
-                              <div>
-                                <p className="text-sm font-medium text-gray-700">Logo Saat Ini</p>
-                                <p className="text-xs text-gray-500">Klik untuk ganti</p>
+                            ) : formData.logo_foto ? (
+                              <div className="space-y-6">
+                                <img src={`http://localhost:3000${formData.logo_foto}`} alt="Current Logo" className="w-32 h-32 object-cover rounded-xl mx-auto shadow-lg" />
+                                <div>
+                                  <p className="text-lg font-semibold text-gray-700">Logo Saat Ini</p>
+                                  <p className="text-sm text-gray-500">Klik untuk ganti</p>
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                              <Upload size={48} className="text-gray-400 mx-auto" />
-                              <div>
-                                <p className="text-sm font-medium text-gray-700">Klik untuk upload logo</p>
-                                <p className="text-xs text-gray-500">PNG, JPG hingga 5MB</p>
+                            ) : (
+                              <div className="space-y-6">
+                                <Upload size={64} className="text-gray-400 mx-auto" />
+                                <div>
+                                  <p className="text-lg font-semibold text-gray-700">Klik untuk upload logo</p>
+                                  <p className="text-sm text-gray-500">PNG, JPG hingga 5MB</p>
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
+                        </label>
+                        <p className="text-sm text-gray-500">Upload foto logo masjid baru</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Kontak</h3>
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">No HP</label>
+                        <div className="relative">
+                          <Phone size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            value={formData.no_hp}
+                            onChange={(e) => setFormData({ ...formData, no_hp: e.target.value })}
+                            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                            placeholder="Masukkan nomor HP"
+                            required
+                          />
                         </div>
-                      </label>
-                      <p className="text-xs text-gray-500">Upload foto logo masjid baru</p>
+                        <p className="text-sm text-gray-500">Nomor yang bisa dihubungi</p>
+                      </div>
                     </div>
                   </div>
                   
-                  {/* Section No HP */}
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">Kontak</h2>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700 uppercase tracking-wide">No HP</label>
-                      <div className="relative">
-                        <Phone size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <div className="space-y-10">
+                    <div className="space-y-6">
+                      <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Informasi Masjid</h3>
+                      
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Nama Masjid</label>
                         <input
                           type="text"
-                          value={formData.no_hp}
-                          onChange={(e) => setFormData({ ...formData, no_hp: e.target.value })}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mu-green focus:border-mu-green transition-colors"
-                          placeholder="Masukkan nomor HP"
+                          value={formData.nama_masjid}
+                          onChange={(e) => setFormData({ ...formData, nama_masjid: e.target.value })}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                          placeholder="Masukkan nama masjid"
                           required
                         />
+                        <p className="text-sm text-gray-500">Isi dengan nama resmi masjid</p>
                       </div>
-                      <p className="text-xs text-gray-500">Nomor yang bisa dihubungi</p>
+                      
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Alamat</label>
+                        <textarea
+                          value={formData.alamat}
+                          onChange={(e) => setFormData({ ...formData, alamat: e.target.value })}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm resize-none"
+                          placeholder="Masukkan alamat lengkap"
+                          rows="4"
+                          required
+                        />
+                        <p className="text-sm text-gray-500">Sertakan nama jalan dan wilayah</p>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Deskripsi</label>
+                        <textarea
+                          value={formData.deskripsi}
+                          onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm resize-none"
+                          placeholder="Masukkan deskripsi masjid (opsional)"
+                          rows="6"
+                        />
+                        <p className="text-sm text-gray-500">Berikan penjelasan singkat</p>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Kolom Kanan: Nama, Alamat, Deskripsi */}
-                <div className="space-y-8">
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">Informasi Masjid</h2>
-                    
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700 uppercase tracking-wide">Nama Masjid</label>
-                      <input
-                        type="text"
-                        value={formData.nama_masjid}
-                        onChange={(e) => setFormData({ ...formData, nama_masjid: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mu-green focus:border-mu-green transition-colors"
-                        placeholder="Masukkan nama masjid"
-                        required
-                      />
-                      <p className="text-xs text-gray-500">Isi dengan nama resmi masjid</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700 uppercase tracking-wide">Alamat</label>
-                      <textarea
-                        value={formData.alamat}
-                        onChange={(e) => setFormData({ ...formData, alamat: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mu-green focus:border-mu-green transition-colors"
-                        placeholder="Masukkan alamat lengkap"
-                        rows="3"
-                        required
-                      />
-                      <p className="text-xs text-gray-500">Sertakan nama jalan dan wilayah</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-gray-700 uppercase tracking-wide">Deskripsi</label>
-                      <textarea
-                        value={formData.deskripsi}
-                        onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mu-green focus:border-mu-green transition-colors"
-                        placeholder="Masukkan deskripsi masjid (opsional)"
-                        rows="4"
-                      />
-                      <p className="text-xs text-gray-500">Berikan penjelasan singkat</p>
-                    </div>
-                  </div>
+                {/* Tombol Aksi dengan Efek Hover */}
+                <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/superadmin/masjid')}
+                    className="flex items-center px-8 py-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 rounded-2xl hover:from-gray-300 hover:to-gray-400 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex items-center px-8 py-4 bg-mu-green text-white rounded-2xl hover:bg-green-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Save size={22} className="mr-3" />
+                    {loading ? 'Menyimpan...' : 'Update Masjid'}
+                  </button>
                 </div>
-              </div>
-              
-              {/* Tombol Aksi - Di Bawah */}
-              <div className="flex justify-end space-x-4 pt-10 mt-10 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => navigate('/superadmin/masjid')}
-                  className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all duration-200 flex items-center font-medium"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-8 py-3 bg-mu-green text-white rounded-xl hover:bg-green-700 transition-all duration-200 flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                >
-                  <Save size={20} className="mr-2" />
-                  {loading ? 'Menyimpan...' : 'Update Masjid'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
           
           <div className="flex justify-center items-center gap-4 text-gray-300 py-4">

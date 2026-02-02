@@ -50,14 +50,27 @@ const KegiatanSection = () => {
     });
   };
 
-  // Array ikon hardcoded (sesuai urutan kegiatan; bisa diganti jika ada field di backend)
-  const icons = ['🕌', '📅', '👥', '🎉']; // Tambah lebih jika kegiatan > 4
+  // Array ikon SVG (sesuai urutan kegiatan; bisa diganti jika ada field di backend)
+  const icons = [
+    <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4a4 4 0 014-4h4a4 4 0 014 4v4M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.85M8 11a4 4 0 100-8 4 4 0 000 8z" />
+    </svg>, // Masjid/komunitas
+    <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>, // Kalender
+    <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>, // Orang
+    <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+    </svg> // Pesta/bintang
+  ];
 
   if (loading) {
     return (
-      <section id="kegiatan" className="py-20 bg-[#daf1de]/40">
+      <section id="kegiatan" className="kegiatan-section animate-fadeIn relative py-20">
         <div className="container mx-auto px-6 text-center">
-          <div className="text-2xl">Memuat kegiatan...</div>
+          <div className="animate-pulse text-2xl text-[#1e293b]">Memuat kegiatan...</div>
         </div>
       </section>
     );
@@ -65,10 +78,10 @@ const KegiatanSection = () => {
 
   if (error) {
     return (
-      <section id="kegiatan" className="py-20 bg-[#daf1de]/40">
+      <section id="kegiatan" className="kegiatan-section animate-fadeIn relative py-20">
         <div className="container mx-auto px-6 text-center">
           <div className="text-2xl text-red-500">Error: {error}</div>
-          <p className="text-sm text-gray-600 mt-2">Periksa console browser untuk detail lebih lanjut.</p>
+          <p className="text-sm text-[#1e293b] mt-2">Periksa console browser untuk detail lebih lanjut.</p>
         </div>
       </section>
     );
@@ -78,73 +91,78 @@ const KegiatanSection = () => {
   const kegiatanTerbaru = kegiatan.slice(0, 3);
 
   return (
-    <section id="kegiatan" className="py-20 bg-[#daf1de]/40 relative overflow-hidden">
+    <section id="kegiatan" className="kegiatan-section animate-fadeIn relative py-20 overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 relative z-10">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#163832] mb-4">
-            Kegiatan Ranting
-          </h2>
-          <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+          <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight">Kegiatan Ranting</h2>
+          <p className="text-lg md:text-xl text-[#1e293b] max-w-3xl mx-auto leading-relaxed">
             Daftar kegiatan yang diselenggarakan oleh Ranting Masjid Muhammadiyah untuk kemajuan umat dan masyarakat.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+        <div className="flex flex-col items-center gap-8 relative z-10">
           {kegiatanTerbaru.length > 0 ? (
             kegiatanTerbaru.map((item, index) => (
               <div
                 key={item.kegiatan_id}
-                className="group bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-3 border border-gray-200/50"
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 stat-card-hover max-w-lg w-full"
               >
-                {/* Ikon di atas */}
-                <div className="w-16 h-16 bg-gradient-to-br from-[#235347] to-[#163832] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500">
-                  <span className="text-white text-3xl">{icons[index] || '📋'}</span>
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold text-[#163832] mb-4 group-hover:text-[#235347] transition-colors line-clamp-2">
-                  {item.nama_kegiatan}
-                </h3>
-                <div className="text-sm text-gray-600 space-y-2 mb-6">
-                  <p className="flex items-center space-x-2">
-                    <span>🕒</span>
-                    <span><strong>Waktu:</strong> {formatWaktu(item.waktu_kegiatan)}</span>
+                <div className="p-6">
+                  {/* Ikon di atas */}
+                  <div className="w-20 h-20 bg-gradient-to-br from-[#006227] to-[#004a1e] rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500">
+                    {icons[index] || (
+                      <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    )} {/* Fallback ikon */}
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-[#006227] mb-4 group-hover:text-[#004a1e] transition-colors line-clamp-2 leading-tight">
+                    {item.nama_kegiatan}
+                  </h3>
+                  <div className="text-sm text-gray-500 space-y-2 mb-6">
+                    <p className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span><strong>Waktu:</strong> {formatWaktu(item.waktu_kegiatan)}</span>
+                    </p>
+                    <p className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span><strong>Lokasi:</strong> {item.lokasi || 'Lokasi belum ditentukan'}</span>
+                    </p>
+                  </div>
+                  <p className="text-[#1e293b] leading-relaxed mb-6 line-clamp-3">
+                    {getExcerpt(item.deskripsi)}
                   </p>
-                  <p className="flex items-center space-x-2">
-                    <span>📍</span>
-                    <span><strong>Lokasi:</strong> {item.lokasi || 'Lokasi belum ditentukan'}</span>
-                  </p>
-                </div>
-                <p className="text-gray-700 leading-relaxed mb-6 line-clamp-3">
-                  {getExcerpt(item.deskripsi)}
-                </p>
-                {/* Arrow untuk efek */}
-                <div className="flex justify-end">
-                  <span className="text-[#235347] group-hover:translate-x-2 transition-transform font-bold text-2xl">→</span>
+                  {/* Arrow untuk efek */}
+                  <div className="flex justify-end">
+                    <span className="text-[#006227] group-hover:translate-x-2 transition-transform font-bold text-lg">→</span>
+                  </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="col-span-full text-center text-gray-500">
-              Tidak ada kegiatan tersedia.
+            <div className="col-span-full text-center text-[#1e293b] py-12">
+              <p className="text-lg">Tidak ada kegiatan tersedia.</p>
             </div>
           )}
         </div>
 
         {/* Button Kegiatan Lainnya */}
-        <div className="text-center mt-16 relative z-10">
+        <div className="text-center mt-12 relative z-10">
           <Link
             to="/kegiatan" // Link ke halaman kegiatan lengkap; sesuaikan dengan routing Anda
-            className="inline-flex items-center gap-3 px-10 py-4 rounded-full bg-gradient-to-r from-[#163832] to-[#235347] text-white font-semibold hover:from-[#235347] hover:to-[#0b2b26] transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-1"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-[#006227] text-white rounded-xl font-semibold shadow-lg hover:bg-[#004a1e] transform hover:-translate-y-1 transition-all duration-300 hover:shadow-xl"
           >
-            Kegiatan Lainnya
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            <span>Kegiatan Lainnya</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
         </div>
       </div>
-
-      {/* Optional Decorative Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#daf1de]/20 via-transparent to-[#daf1de]/10 pointer-events-none"></div>
     </section>
   );
 };

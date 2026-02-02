@@ -6,7 +6,8 @@ import axios from 'axios';
 import SuperAdminNavbar from '../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../components/SuperAdminSidebar';
 import StatCard from '../../components/StatCard';
-import { Calendar, RefreshCcw, AlertCircle } from 'lucide-react';
+import Carimasjid from './Carimasjid'; // Import komponen Carimasjid
+import { Calendar, RefreshCcw, AlertCircle } from 'lucide-react'; // Hapus Search karena sudah di Carimasjid
 
 const SuperAdminDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -15,8 +16,7 @@ const SuperAdminDashboard = ({ user, onLogout }) => {
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [masjids, setMasjids] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [error, setError] = useState(null);
+  // Hapus state yang tidak perlu: searchQuery, showDropdown, error (karena error sudah ada untuk stats)
   const [time, setTime] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
   const token = localStorage.getItem('token');
@@ -28,16 +28,10 @@ const SuperAdminDashboard = ({ user, onLogout }) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Filter masjid berdasarkan search query
-  const filteredMasjids = masjids.filter(masjid =>
-    masjid.nama_masjid?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    masjid.alamat?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const fetchStats = async () => {
     try {
       setRefreshing(true);
-      setError(null);
+      // Hapus setError(null) karena error sudah untuk stats
       // Fetch data dari backend
       const [takmirRes, programRes, masjidRes, kegiatanRes] = await Promise.all([
         axios.get('http://localhost:3000/superadmin/takmir', { headers: { Authorization: `Bearer ${token}` } }),
@@ -70,7 +64,7 @@ const SuperAdminDashboard = ({ user, onLogout }) => {
       setMasjids(masjidRes.data);
     } catch (err) {
       console.error('Error fetching stats:', err);
-      setError('Gagal memuat data dashboard. Silakan coba lagi.');
+      // Hapus setError karena tidak ada state error terpisah
       // Fallback ke data statis jika error
       setStats([
         { title: 'Total Takmir', value: 0, icon: '👥', colorClass: 'bg-blue-100 text-blue-600' },
@@ -91,6 +85,11 @@ const SuperAdminDashboard = ({ user, onLogout }) => {
 
   const handleRefresh = () => {
     fetchStats();
+  };
+
+  // Diperbaiki: Navigasi relatif ke route informasi masjid (tanpa slash awal)
+  const handleMasjidClick = (masjidId) => {
+    navigate(`informasi/${masjidId}`);
   };
 
   if (loading) {
@@ -126,26 +125,18 @@ const SuperAdminDashboard = ({ user, onLogout }) => {
               </div>
             </div>
             
-            <button 
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
-              {refreshing ? 'Memuat...' : 'Refresh Data'}
-            </button>
-          </div>
-          
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
-              <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
-              <div>
-                <p className="text-red-700 font-medium">Error</p>
-                <p className="text-red-600 text-sm mt-1">{error}</p>
-              </div>
+            <div className="flex items-center gap-4">
+              {/* Hanya tombol Refresh Data di sini */}
+              <button 
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
+                {refreshing ? 'Memuat...' : 'Refresh Data'}
+              </button>
             </div>
-          )}
+          </div>
           
           {/* Stats Cards */}
           <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
@@ -171,88 +162,17 @@ const SuperAdminDashboard = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Section Daftar Masjid */}
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-              <div>
-                <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">Daftar Masjid</h3>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                  Klik untuk melihat keuangan masjid
-                </p>
-              </div>
+          {/* Bagian Cari Masjid - Sekarang cukup panggil Carimasjid saja */}
+          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="mb-6">
+              <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">Cari Masjid</h3>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                Pilih masjid untuk melihat informasi
+              </p>
             </div>
             
-            {/* Search Bar */}
-            <div className="mb-8">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Cari masjid berdasarkan nama atau alamat..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full p-4 pl-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
-                />
-                <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
-            
-            {/* List Masjid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMasjids.length > 0 ? (
-                filteredMasjids.map((masjid) => (
-                  <div 
-                    key={masjid.masjid_id} 
-                    className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 overflow-hidden cursor-pointer"
-                    onClick={() => navigate(`/superadmin/keuangan/${masjid.masjid_id}`)}
-                  >
-                    {masjid.logo_foto && (
-                      <div className="relative h-48 overflow-hidden rounded-t-2xl">
-                        <img
-                          src={`http://localhost:3000${masjid.logo_foto}`}
-                          alt={masjid.nama_masjid}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          onError={(e) => {
-                            e.target.src = '/placeholder-masjid.png'; // Fallback image
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                      </div>
-                    )}
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-mu-green transition-colors duration-300">{masjid.nama_masjid}</h3>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <p className="flex items-start gap-2">
-                          <svg className="w-4 h-4 mt-0.5 text-mu-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          {masjid.alamat}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-mu-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                          </svg>
-                          {masjid.no_hp}
-                        </p>
-                      </div>
-                      {masjid.deskripsi && (
-                        <p className="text-sm text-gray-500 mt-4 line-clamp-3">{masjid.deskripsi}</p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-full flex flex-col items-center justify-center py-16">
-                  <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <p className="text-gray-500 text-lg font-medium">Tidak ada masjid ditemukan.</p>
-                  <p className="text-gray-400 text-sm mt-1">Coba ubah kata kunci pencarian Anda.</p>
-                </div>
-              )}
-            </div>
+            {/* Panggil Carimasjid dengan prop onMasjidClick saja */}
+            <Carimasjid onMasjidClick={handleMasjidClick} />
           </div>
           
           <div className="flex justify-center items-center gap-4 text-gray-300 py-4">

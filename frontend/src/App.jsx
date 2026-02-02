@@ -1,12 +1,10 @@
-// frontend/src/App.jsx
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// import PublicApp from './PublicApp'; // Uncomment jika ada komponen PublicApp
+import PublicApp from './PublicApp';
 import AdminApp from './AdminApp';
 import SuperAdminApp from './SuperAdminApp';
-import Login from './pages/auth/Login'; // Tambah import Login
+import Login from './pages/auth/Login';
 
 const AppWrapper = () => {
   const [currentApp, setCurrentApp] = useState('public'); // 'public', 'admin', 'superadmin'
@@ -23,10 +21,10 @@ const AppWrapper = () => {
           });
           if (res.data.role === 'takmir') {
             setCurrentApp('admin');
-            navigate('/admin');
+            navigate('/admin'); // Navigasi otomatis ke admin
           } else if (res.data.role === 'super admin') {
             setCurrentApp('superadmin');
-            navigate('/superadmin');
+            navigate('/superadmin'); // Navigasi otomatis ke superadmin
           } else {
             setCurrentApp('public');
             localStorage.clear();
@@ -59,15 +57,8 @@ const AppWrapper = () => {
   } else if (currentApp === 'superadmin') {
     return <SuperAdminApp />;
   } else {
-    // Placeholder untuk public app, ganti dengan <PublicApp /> jika ada komponen
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div>
-          <h1 className="text-2xl font-bold mb-4">Selamat Datang di SIM MASJID</h1>
-          <p>Klik <a href="/login" className="text-blue-500 underline">di sini</a> untuk login.</p>
-        </div>
-      </div>
-    );
+    // Render PublicApp untuk public (default)
+    return <PublicApp />;
   }
 };
 
@@ -75,11 +66,11 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AppWrapper />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin/*" element={<AdminApp />} />
-        <Route path="/superadmin/*" element={<SuperAdminApp />} />
-        <Route path="/*" element={<AppWrapper />} />
+        <Route path="/*" element={<PublicApp />} /> {/* Ubah dari "/" ke "/*" agar parent match semua path dan child routes di PublicApp bisa render tanpa warning */}
+        <Route path="/login" element={<Login />} /> {/* Halaman login */}
+        <Route path="/admin/*" element={<AdminApp />} /> {/* Panggil AdminApp untuk route admin */}
+        <Route path="/superadmin/*" element={<SuperAdminApp />} /> {/* Panggil SuperAdminApp untuk route superadmin */}
+        {/* Hapus fallback <Route path="/*" element={<PublicApp />} /> karena sudah digantikan di atas */}
       </Routes>
     </Router>
   );

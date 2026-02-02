@@ -20,7 +20,8 @@ import {
   Wallet, 
   Calendar, 
   ArrowUpRight, 
-  RefreshCcw 
+  RefreshCcw,
+  AlertCircle
 } from 'lucide-react';
 
 const KeuanganMasjid = ({ user, onLogout }) => {
@@ -34,6 +35,7 @@ const KeuanganMasjid = ({ user, onLogout }) => {
   const [stats, setStats] = useState({ pemasukan: 0, pengeluaran: 0, total: 0 });
   const [chartData, setChartData] = useState([]);
   const [time, setTime] = useState(new Date());
+  const [error, setError] = useState(null);
   const token = localStorage.getItem('token');
 
   const isExpanded = isOpen || isHovered;
@@ -46,6 +48,7 @@ const KeuanganMasjid = ({ user, onLogout }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setError(null);
         // Fetch masjid details
         const masjidRes = await axios.get(`http://localhost:3000/superadmin/masjid/${masjid_id}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -56,7 +59,7 @@ const KeuanganMasjid = ({ user, onLogout }) => {
         const keuanganRes = await axios.get(`http://localhost:3000/superadmin/keuangan?masjid_id=${masjid_id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const data = keuanganRes.data.data;
+        const data = keuanganRes.data.data || [];
         setKeuanganData(data);
 
         // Calculate stats
@@ -94,12 +97,23 @@ const KeuanganMasjid = ({ user, onLogout }) => {
         setChartData(chartArray);
       } catch (err) {
         console.error('Error fetching data:', err);
+        setError('Gagal memuat data keuangan masjid. Pastikan masjid_id valid dan coba lagi.');
+        // Fallback data kosong
+        setMasjid(null);
+        setKeuanganData([]);
+        setStats({ pemasukan: 0, pengeluaran: 0, total: 0 });
+        setChartData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    if (masjid_id) {
+      fetchData();
+    } else {
+      setError('Masjid ID tidak ditemukan.');
+      setLoading(false);
+    }
   }, [masjid_id, token]);
 
   const formatRupiah = (value) => {
@@ -116,6 +130,35 @@ const KeuanganMasjid = ({ user, onLogout }) => {
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-mu-green border-t-transparent rounded-full animate-spin shadow-lg"></div>
           <p className="text-sm font-bold text-mu-green uppercase tracking-wider">Memuat Keuangan Masjid...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="keuangan-masjid h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
+        <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
+        
+        <div className="flex-1 flex flex-col">
+          <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
+          
+          <div className="main-content p-8 h-full overflow-y-auto space-y-8">
+            {/* Error Message */}
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
+              <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
+              <div>
+                <p className="text-red-700 font-medium">Error</p>
+                <p className="text-red-600 text-sm mt-1">{error}</p>
+                <button 
+                  onClick={() => navigate('/superadmin')}
+                  className="mt-4 bg-mu-green text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
+                >
+                  Kembali ke Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -203,7 +246,7 @@ const KeuanganMasjid = ({ user, onLogout }) => {
               <div>
                 <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">Analisis Arus Kas</h3>
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                  Data Bulanan Masjid {masjid?.nama_masjid || 'Loading...'}
+                  Data Bulanan Masjid {masjid?.nama_masjid || 'Tidak Diketahui'}
                 </p>
               </div>
             </div>
