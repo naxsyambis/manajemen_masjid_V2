@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SuperAdminNavbar from '../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../components/SuperAdminSidebar';
-import { Calendar, RefreshCcw, AlertCircle } from 'lucide-react'; // Hapus TrendingUp karena sudah di GrafikKeuangan
+import { Calendar, RefreshCcw, AlertCircle, Package, Users, UserCheck, UserX } from 'lucide-react'; // Tambahkan UserCheck dan UserX untuk ikon jamaah
 import GrafikKeuangan from '../public/masjid/GrafikKeuangan'; // Import komponen GrafikKeuangan dari public/masjid
 
 const InformasiMasjid = ({ user, onLogout }) => {
@@ -15,6 +15,8 @@ const InformasiMasjid = ({ user, onLogout }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [masjid, setMasjid] = useState(null);
   const [keuanganData, setKeuanganData] = useState([]);
+  const [inventarisData, setInventarisData] = useState([]); // State untuk inventaris
+  const [jamaahData, setJamaahData] = useState([]); // State untuk jamaah
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
@@ -68,12 +70,20 @@ const InformasiMasjid = ({ user, onLogout }) => {
       const masjidRes = await axios.get(`http://localhost:3000/superadmin/masjid/${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } });
       setMasjid(masjidRes.data);
 
-      // Fetch data keuangan dengan query masjid_id (diperbaiki: sesuai endpoint backend)
-      const keuanganRes = await axios.get(`http://localhost:3000/superadmin/keuangan?masjid_id=${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } });
+      // Fetch data keuangan, inventaris, dan jamaah secara paralel
+      const [keuanganRes, inventarisRes, jamaahRes] = await Promise.all([
+        axios.get(`http://localhost:3000/superadmin/keuangan?masjid_id=${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`http://localhost:3000/superadmin/inventaris?masjid_id=${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`http://localhost:3000/superadmin/jamaah?masjid_id=${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
       
       // Proses data keuangan untuk grafik
       const processedData = processKeuanganData(keuanganRes.data.data); // Asumsi response.data.data adalah array keuangan
       setKeuanganData(processedData);
+
+      // Set data inventaris dan jamaah
+      setInventarisData(inventarisRes.data.data || []);
+      setJamaahData(jamaahRes.data.data || []);
     } catch (err) {
       console.error('Error fetching masjid data:', err);
       setError('Gagal memuat data masjid. Pastikan ID masjid valid.');
@@ -92,6 +102,10 @@ const InformasiMasjid = ({ user, onLogout }) => {
   const handleRefresh = () => {
     fetchMasjidData();
   };
+
+  // Hitung total jamaah aktif dan tidak aktif
+  const totalJamaahAktif = jamaahData.filter(item => item.status === 'aktif').length;
+  const totalJamaahTidakAktif = jamaahData.filter(item => item.status === 'tidak aktif').length;
 
   if (loading) {
     return (
@@ -153,6 +167,97 @@ const InformasiMasjid = ({ user, onLogout }) => {
           
           {/* Panggil GrafikKeuangan dengan chartData yang sudah diproses */}
           <GrafikKeuangan chartData={keuanganData} />
+          
+          {/* Bagian Jamaah - Diperbaiki: tampilkan jumlah keseluruhan aktif dan tidak aktif */}
+          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="mb-6">
+              <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Users size={24} className="text-white" />
+                </div>
+                Data Jamaah
+              </h3>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                Statistik Anggota Masjid
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl border border-green-200 shadow-lg">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <UserCheck size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-black text-green-800">{totalJamaahAktif}</h4>
+                    <p className="text-sm font-medium text-green-700">Jamaah Aktif</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl border border-gray-200 shadow-lg">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <UserX size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-black text-gray-800">{totalJamaahTidakAktif}</h4>
+                    <p className="text-sm font-medium text-gray-700">Jamaah Tidak Aktif</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bagian Inventaris */}
+          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="mb-6">
+              <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Package size={24} className="text-white" />
+                </div>
+                Inventaris Masjid
+              </h3>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                Daftar Barang dan Kondisi
+              </p>
+            </div>
+            {inventarisData.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3">Nama Barang</th>
+                      <th className="px-6 py-3">Jumlah</th>
+                      <th className="px-6 py-3">Kondisi</th>
+                      <th className="px-6 py-3">Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inventarisData.map((item) => (
+                      <tr key={item.inventaris_id} className="bg-white border-b hover:bg-gray-50">
+                        <td className="px-6 py-4 font-medium text-gray-900">{item.nama_barang}</td>
+                        <td className="px-6 py-4">{item.jumlah}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            item.kondisi === 'baik' ? 'bg-green-100 text-green-800' :
+                            item.kondisi === 'rusak' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {item.kondisi}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">{item.keterangan || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Package size={48} className="text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Tidak ada data inventaris tersedia.</p>
+              </div>
+            )}
+          </div>
           
           <div className="flex justify-center items-center gap-4 text-gray-300 py-4">
             <div className="h-[1px] w-12 bg-gray-100"></div>
