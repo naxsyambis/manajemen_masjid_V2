@@ -192,7 +192,7 @@ const DataKegiatan = ({ user, onLogout }) => {
                   {filteredKegiatans.map((kegiatan, index) => (
                     <tr key={kegiatan.kegiatan_id} className={`border-t border-gray-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all duration-300 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
                       <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">{kegiatan.nama_kegiatan}</div>
+                        <div className="text-sm font-semibold text-gray-900 max-w-[150px] truncate" title={kegiatan.nama_kegiatan}>{kegiatan.nama_kegiatan}</div>
                         <div className="text-xs text-gray-500">ID: {kegiatan.kegiatan_id}</div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">
@@ -201,16 +201,16 @@ const DataKegiatan = ({ user, onLogout }) => {
                           <span className="text-sm text-gray-900">{new Date(kegiatan.waktu_kegiatan).toLocaleString()}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-start space-x-2">
-                          <MapPin size={16} className="text-mu-green mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-gray-900 max-w-xs truncate">{kegiatan.lokasi}</div>
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          <MapPin size={16} className="text-mu-green" />
+                          <span className="text-sm text-gray-900 max-w-[150px] truncate" title={kegiatan.lokasi}>{kegiatan.lokasi}</span>
                         </div>
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex items-start space-x-2">
                           <FileText size={16} className="text-mu-green mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-gray-900 max-w-xs truncate">{kegiatan.deskripsi || 'Tidak ada deskripsi'}</div>
+                          <div className="text-sm text-gray-900 max-w-[150px] truncate" title={kegiatan.deskripsi || 'Tidak ada deskripsi'}>{kegiatan.deskripsi || 'Tidak ada deskripsi'}</div>
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap text-center">

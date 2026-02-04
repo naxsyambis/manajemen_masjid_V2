@@ -74,11 +74,12 @@ const Kepengurusan = () => {
     fetchPengurus();
   };
 
+  // Loading State
   if (loading) {
     return (
       <div className="font-sans overflow-x-hidden bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
         <NavbarPublic />
-        <main className="pt-32 pb-20 min-h-screen flex items-center justify-center"> {/* Diubah dari pt-0 menjadi pt-32 pb-20 untuk memberikan lebih banyak space di atas */}
+        <main className="pt-32 pb-20 min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-20 w-20 border-4 border-mu-green border-t-transparent mx-auto mb-6 shadow-lg"></div>
             <p className="text-gray-700 font-semibold text-xl">Memuat data kepengurusan...</p>
@@ -89,11 +90,12 @@ const Kepengurusan = () => {
     );
   }
 
+  // Error State
   if (error) {
     return (
       <div className="font-sans overflow-x-hidden bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
         <NavbarPublic />
-        <main className="pt-32 pb-20 min-h-screen flex items-center justify-center"> {/* Diubah dari pt-0 menjadi pt-32 pb-20 untuk memberikan lebih banyak space di atas */}
+        <main className="pt-32 pb-20 min-h-screen flex items-center justify-center">
           <div className="text-center max-w-lg mx-auto p-8 bg-white rounded-3xl shadow-2xl">
             <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
               <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,14 +117,17 @@ const Kepengurusan = () => {
     );
   }
 
+  // Main Content
   return (
     <div className="font-sans overflow-x-hidden bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       <NavbarPublic />
-      <main className="pt-32 pb-20"> {/* Diubah dari pt-0 menjadi pt-32 pb-20 untuk memberikan lebih banyak space di atas */}
+      <main className="pt-32 pb-20">
         {/* Hero Section */}
         <section className="py-16 px-6 text-gray-800">
           <div className="container mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight">Kepengurusan Ranting</h1>
+            <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight">
+              Kepengurusan Ranting
+            </h1>
             <p className="text-lg md:text-xl text-[#1e293b] max-w-3xl mx-auto leading-relaxed">
               Daftar lengkap pengurus yang berkomitmen membangun umat melalui masjid dan program Muhammadiyah.
             </p>
@@ -140,7 +145,9 @@ const Kepengurusan = () => {
                   </svg>
                 </div>
                 <h2 className="text-gray-700 text-3xl font-bold mb-4">Belum Ada Data Kepengurusan</h2>
-                <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">Data akan muncul setelah administrator menambahkan pengurus.</p>
+                <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+                  Data akan muncul setelah administrator menambahkan pengurus.
+                </p>
                 <button 
                   onClick={handleRetry} 
                   className="bg-mu-green text-white px-10 py-3 rounded-full font-semibold hover:bg-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
@@ -149,7 +156,7 @@ const Kepengurusan = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
                 {pengurus.map((person, index) => (
                   <div 
                     key={person.pengurus_id} 
@@ -164,14 +171,18 @@ const Kepengurusan = () => {
                         onError={(e) => { e.target.src = 'https://picsum.photos/200/200?random=1'; }}
                       />
                     </div>
-                    <h3 className="text-2xl font-bold text-mu-green mb-3 group-hover:text-green-700 transition-colors duration-300">{person.nama_lengkap}</h3>
+                    <h3 className="text-2xl font-bold text-mu-green mb-3 group-hover:text-green-700 transition-colors duration-300">
+                      {person.nama_lengkap}
+                    </h3>
                     <p className="text-mu-green font-semibold text-lg mb-4">{person.jabatan}</p>
                     {person.periode_mulai && person.periode_selesai && (
                       <p className="text-gray-600 text-sm mb-4 bg-gray-50 py-2 px-4 rounded-full inline-block shadow-sm">
                         Periode: {new Date(person.periode_mulai).toLocaleDateString('id-ID')} - {new Date(person.periode_selesai).toLocaleDateString('id-ID')}
                       </p>
                     )}
-                    <p className="text-gray-500 text-sm leading-relaxed">Pengurus aktif di ranting Muhammadiyah, berkontribusi untuk kemajuan umat.</p>
+                    <p className="text-gray-500 text-sm leading-relaxed">
+                      Pengurus aktif di ranting Muhammadiyah, berkontribusi untuk kemajuan umat.
+                    </p>
                   </div>
                 ))}
               </div>

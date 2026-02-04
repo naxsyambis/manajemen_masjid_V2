@@ -8,6 +8,9 @@ const ListKegiatan = () => {
   const [kegiatan, setKegiatan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const [expanded, setExpanded] = useState({}); // State untuk melacak kartu yang diperluas
 
   // Fungsi untuk fetch semua kegiatan dari backend
   useEffect(() => {
@@ -53,6 +56,11 @@ const ListKegiatan = () => {
     });
   };
 
+  // Fungsi untuk toggle expanded
+  const toggleExpanded = (id) => {
+    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   // Array ikon SVG (sesuai urutan kegiatan; bisa diganti jika ada field di backend)
   const icons = [
     <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -68,6 +76,21 @@ const ListKegiatan = () => {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
     </svg> // Pesta/bintang
   ];
+
+  // Hitung total halaman
+  const totalPages = Math.ceil(kegiatan.length / itemsPerPage);
+
+  // Potong kegiatan berdasarkan halaman saat ini
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentKegiatan = kegiatan.slice(startIndex, endIndex);
+
+  // Fungsi untuk navigasi halaman
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   if (loading) {
     return (
@@ -110,12 +133,12 @@ const ListKegiatan = () => {
             </p>
           </div>
 
-          <div className="flex flex-col items-center gap-8">
-            {kegiatan.length > 0 ? (
-              kegiatan.map((item, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {currentKegiatan.length > 0 ? (
+              currentKegiatan.map((item, index) => (
                 <div
                   key={item.kegiatan_id}
-                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 border border-gray-100 stat-card-hover max-w-lg w-full"
+                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 border border-gray-100 stat-card-hover"
                 >
                   <div className="p-6">
                     {/* Ikon di atas */}
@@ -143,12 +166,17 @@ const ListKegiatan = () => {
                         <span><strong>Lokasi:</strong> {item.lokasi || 'Lokasi belum ditentukan'}</span>
                       </p>
                     </div>
-                    <p className="text-[#1e293b] leading-relaxed mb-6 line-clamp-3">
-                      {getExcerpt(item.deskripsi)}
+                    <p className={`text-[#1e293b] leading-relaxed mb-6 ${expanded[item.kegiatan_id] ? '' : 'line-clamp-3'}`}>
+                      {expanded[item.kegiatan_id] ? item.deskripsi : getExcerpt(item.deskripsi)}
                     </p>
-                    {/* Arrow untuk efek */}
+                    {/* Tombol untuk expand/collapse */}
                     <div className="flex justify-end">
-                      <span className="text-[#006227] group-hover:translate-x-2 transition-transform font-bold text-lg">→</span>
+                      <button
+                        onClick={() => toggleExpanded(item.kegiatan_id)}
+                        className="text-[#006227] hover:text-[#004a1e] font-semibold transition-colors"
+                      >
+                        {expanded[item.kegiatan_id] ? 'Baca Lebih Sedikit' : 'Baca Selengkapnya'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -159,6 +187,39 @@ const ListKegiatan = () => {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-12 space-x-2">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-[#006227] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#004a1e] transition-colors"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => goToPage(index + 1)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    currentPage === index + 1
+                      ? 'bg-[#006227] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-[#006227] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#004a1e] transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </main>
       <FooterPublic />

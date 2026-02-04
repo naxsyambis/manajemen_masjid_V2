@@ -92,7 +92,7 @@ const Masjid = () => {
     return (
       <div className="font-sans overflow-x-hidden">
         <NavbarPublic />
-        <main className="site-bg py-20">
+        <main className="site-bg py-32">
           <div className="container mx-auto px-6 text-center">
             <div className="animate-pulse text-2xl text-[#1e293b]">Memuat detail masjid...</div>
           </div>
@@ -106,7 +106,7 @@ const Masjid = () => {
     return (
       <div className="font-sans overflow-x-hidden">
         <NavbarPublic />
-        <main className="site-bg py-20">
+        <main className="site-bg py-32">
           <div className="container mx-auto px-6 text-center">
             <div className="text-2xl text-red-500">Error: {error}</div>
             <p className="text-sm text-[#1e293b] mt-2">Periksa console browser untuk detail lebih lanjut.</p>
@@ -127,7 +127,7 @@ const Masjid = () => {
     return (
       <div className="font-sans overflow-x-hidden">
         <NavbarPublic />
-        <main className="site-bg py-20">
+        <main className="site-bg py-32">
           <div className="container mx-auto px-6 text-center">
             <div className="text-2xl text-[#1e293b]">Masjid tidak ditemukan.</div>
             <Link
@@ -146,23 +146,10 @@ const Masjid = () => {
   return (
     <div className="font-sans overflow-x-hidden">
       <NavbarPublic />
-      <main className="site-bg py-20">
+      <main className="site-bg py-32">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
-            {/* Breadcrumb */}
-            <nav className="mb-8">
-              <ol className="flex items-center space-x-2 text-sm text-gray-500">
-                <li>
-                  <Link to="/" className="hover:text-[#006227] transition-colors">Home</Link>
-                </li>
-                <li>/</li>
-                <li>
-                  <Link to="/masjid" className="hover:text-[#006227] transition-colors">Masjid</Link>
-                </li>
-                <li>/</li>
-                <li className="text-[#006227] font-semibold">{masjid.nama_masjid}</li>
-              </ol>
-            </nav>
+            {/* Breadcrumb dihapus */}
 
             <DeskripsiMasjid masjid={masjid} />
             <TotalJamaah jamaah={jamaah} totalPemasukan={totalPemasukan} totalPengeluaran={totalPengeluaran} inventaris={inventaris} />

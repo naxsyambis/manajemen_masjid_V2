@@ -148,9 +148,9 @@ const JadwalSholatSection = () => {
                 {prayerSchedule.map((prayer, index) => (
                   <div
                     key={index}
-                    className="group bg-gradient-to-br from-gray-50 to-white rounded-2xl p-5 text-center shadow-md hover:from-mu-green hover:to-mu-green hover:text-white transition-all duration-500 hover:scale-105 border border-gray-100 cursor-pointer"
+                    className="group bg-gradient-to-br from-gray-50 to-white rounded-2xl p-5 text-center shadow-md hover:from-yellow-400 hover:to-yellow-500 hover:text-black transition-all duration-500 hover:scale-105 border border-gray-100 cursor-pointer"
                   >
-                    <div className="text-mu-green group-hover:text-white mb-3 flex justify-center">
+                    <div className="text-mu-green mb-3 flex justify-center">
                       {prayer.icon}
                     </div>
                     <h4 className="font-semibold text-lg mb-1">{prayer.name}</h4>

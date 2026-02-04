@@ -8,6 +8,8 @@ const ListBerita = () => {
   const [berita, setBerita] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   // Fungsi untuk fetch semua berita dari backend
   useEffect(() => {
@@ -48,6 +50,21 @@ const ListBerita = () => {
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  // Hitung total halaman
+  const totalPages = Math.ceil(berita.length / itemsPerPage);
+
+  // Potong berita berdasarkan halaman saat ini
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentBerita = berita.slice(startIndex, endIndex);
+
+  // Fungsi untuk navigasi halaman
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
   if (loading) {
@@ -91,13 +108,13 @@ const ListBerita = () => {
             </p>
           </div>
 
-          <div className="flex flex-col items-center gap-8">
-            {berita.length > 0 ? (
-              berita.map((item) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {currentBerita.length > 0 ? (
+              currentBerita.map((item) => (
                 <Link
                   key={item.berita_id}
                   to={`/berita/${item.berita_id}`} // Link ke halaman detail berita; sesuaikan dengan routing Anda
-                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 block border border-gray-100 stat-card-hover max-w-lg w-full"
+                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 block border border-gray-100 stat-card-hover"
                 >
                   <div className="relative h-60 overflow-hidden rounded-t-2xl">
                     <img
@@ -145,6 +162,39 @@ const ListBerita = () => {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-12 space-x-2">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-[#006227] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#004a1e] transition-colors"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => goToPage(index + 1)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    currentPage === index + 1
+                      ? 'bg-[#006227] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-[#006227] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#004a1e] transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </main>
       <FooterPublic />

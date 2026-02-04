@@ -11,20 +11,15 @@ const DeskripsiMasjid = ({ masjid }) => {
         <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight leading-tight">
           {masjid.nama_masjid}
         </h1>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-gray-500">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <MapPin size={16} className="text-gray-400" />
-              <span>{masjid.alamat}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Phone size={16} className="text-gray-400" />
-              <span>{masjid.no_hp}</span>
-            </div>
+        <div className="flex flex-col gap-4 text-sm text-gray-500">
+          <div className="flex items-center space-x-2">
+            <MapPin size={16} className="text-gray-400" />
+            <span className="break-words">{masjid.alamat}</span>
           </div>
-          <span className="px-4 py-2 bg-[#006227] text-white text-sm font-semibold rounded-full shadow-md">
-            Masjid
-          </span>
+          <div className="flex items-center space-x-2">
+            <Phone size={16} className="text-gray-400" />
+            <span className="break-words">{masjid.no_hp}</span>
+          </div>
         </div>
       </div>
 

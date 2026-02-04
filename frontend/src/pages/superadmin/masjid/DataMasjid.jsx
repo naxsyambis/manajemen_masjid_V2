@@ -203,13 +203,13 @@ const DataMasjid = ({ user, onLogout }) => {
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">{masjid.nama_masjid}</div>
+                        <div className="text-sm font-semibold text-gray-900 max-w-[150px] truncate" title={masjid.nama_masjid}>{masjid.nama_masjid}</div>
                         <div className="text-xs text-gray-500">ID: {masjid.masjid_id}</div>
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex items-start space-x-2">
                           <MapPin size={16} className="text-mu-green mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-gray-900 max-w-32 truncate">{masjid.alamat}</div>
+                          <div className="text-sm text-gray-900 max-w-[150px] truncate" title={masjid.alamat}>{masjid.alamat}</div>
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">
@@ -221,7 +221,7 @@ const DataMasjid = ({ user, onLogout }) => {
                       <td className="px-8 py-6">
                         <div className="flex items-start space-x-2">
                           <FileText size={16} className="text-mu-green mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-gray-900 max-w-32 truncate">{masjid.deskripsi || 'Tidak ada deskripsi'}</div>
+                          <div className="text-sm text-gray-900 max-w-[150px] truncate" title={masjid.deskripsi || 'Tidak ada deskripsi'}>{masjid.deskripsi || 'Tidak ada deskripsi'}</div>
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap text-center">

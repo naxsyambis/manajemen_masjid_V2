@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { Save, User, Mail, Building, Calendar, AlertCircle, RefreshCcw } from 'lucide-react';
+import { Save, User, Mail, Lock, Building, Calendar, AlertCircle, RefreshCcw, CheckCircle } from 'lucide-react';
 
 const EditTakmir = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,11 +13,16 @@ const EditTakmir = ({ user, onLogout }) => {
   const [formData, setFormData] = useState({
     nama: '',
     email: '',
+    password: '',
+    confirmPassword: '', // Tambahan untuk konfirmasi password
     masjid_id: ''
   });
   const [masjids, setMasjids] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [passwordError, setPasswordError] = useState(''); // State untuk error password
+  const [confirmPasswordError, setConfirmPasswordError] = useState(''); // State untuk error konfirmasi password
+  const [successMessage, setSuccessMessage] = useState(''); // State untuk notifikasi sukses
   const [time, setTime] = useState(new Date());
   const navigate = useNavigate();
   const { id } = useParams();
@@ -44,6 +49,8 @@ const EditTakmir = ({ user, onLogout }) => {
       setFormData({
         nama: res.data.user?.nama || "",
         email: res.data.user?.email || "",
+        password: '', // Password tidak diambil dari response untuk keamanan
+        confirmPassword: '', // Kosongkan konfirmasi
         masjid_id: res.data.masjid_id || ""
       });
     } catch (err) {
@@ -64,16 +71,95 @@ const EditTakmir = ({ user, onLogout }) => {
     }
   };
 
+  // Fungsi validasi password dengan constraint lebih ketat
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < minLength) {
+      return 'Password harus minimal 8 karakter.';
+    }
+    if (!hasUpperCase) {
+      return 'Password harus mengandung setidaknya satu huruf besar.';
+    }
+    if (!hasLowerCase) {
+      return 'Password harus mengandung setidaknya satu huruf kecil.';
+    }
+    if (!hasNumbers) {
+      return 'Password harus mengandung setidaknya satu angka.';
+    }
+    if (!hasSpecialChar) {
+      return 'Password harus mengandung setidaknya satu karakter khusus (!@#$%^&*).';
+    }
+    return '';
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, password: value });
+    const error = validatePassword(value);
+    setPasswordError(error);
+    // Validasi konfirmasi jika sudah diisi
+    if (formData.confirmPassword && value !== formData.confirmPassword) {
+      setConfirmPasswordError('Password dan konfirmasi password tidak cocok.');
+    } else {
+      setConfirmPasswordError('');
+    }
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, confirmPassword: value });
+    if (value !== formData.password) {
+      setConfirmPasswordError('Password dan konfirmasi password tidak cocok.');
+    } else {
+      setConfirmPasswordError('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMessage('');
+
+    // Validasi password jika diisi
+    if (formData.password) {
+      const passwordValidation = validatePassword(formData.password);
+      if (passwordValidation) {
+        setError(passwordValidation);
+        setLoading(false);
+        return;
+      }
+      // Validasi konfirmasi password
+      if (formData.password !== formData.confirmPassword) {
+        setError('Password dan konfirmasi password tidak cocok.');
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Jika password kosong, hapus dari formData agar tidak dikirim
+    const dataToSend = { ...formData };
+    if (!formData.password) {
+      delete dataToSend.password;
+      delete dataToSend.confirmPassword;
+    }
+
     try {
-      await axios.put(`http://localhost:3000/superadmin/takmir/${id}`, formData, {
+      await axios.put(`http://localhost:3000/superadmin/takmir/${id}`, dataToSend, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Takmir berhasil diupdate');
-      navigate('/superadmin/takmir');
+      setSuccessMessage('Takmir berhasil diupdate!');
+      setPasswordError('');
+      setConfirmPasswordError('');
+      // Auto navigate setelah beberapa detik
+      setTimeout(() => {
+        navigate('/superadmin/takmir');
+      }, 2000);
     } catch (err) {
       console.error('Error updating takmir:', err);
       setError('Gagal mengupdate takmir. Silakan coba lagi.');
@@ -118,6 +204,17 @@ const EditTakmir = ({ user, onLogout }) => {
               </button>
             </div>
           </div>
+          
+          {/* Success Message */}
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-6 flex items-center gap-4 shadow-lg">
+              <CheckCircle size={24} className="text-green-500 flex-shrink-0" />
+              <div>
+                <p className="text-green-700 font-medium">Berhasil</p>
+                <p className="text-green-600 text-sm mt-1">{successMessage}</p>
+              </div>
+            </div>
+          )}
           
           {/* Error Message */}
           {error && (
@@ -183,6 +280,38 @@ const EditTakmir = ({ user, onLogout }) => {
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Detail Takmir</h3>
                       
                       <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Password</label>
+                        <div className="relative">
+                          <Lock size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="password"
+                            value={formData.password}
+                            onChange={handlePasswordChange}
+                            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                            placeholder="Masukkan password baru (opsional)"
+                          />
+                        </div>
+                        <p className="text-sm text-gray-500">Biarkan kosong jika tidak ingin mengubah password. Jika diisi, minimal 8 karakter dengan huruf besar, kecil, angka, dan karakter khusus</p>
+                        {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Konfirmasi Password</label>
+                        <div className="relative">
+                          <Lock size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="password"
+                            value={formData.confirmPassword}
+                            onChange={handleConfirmPasswordChange}
+                            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                            placeholder="Konfirmasi password baru (opsional)"
+                          />
+                        </div>
+                        <p className="text-sm text-gray-500">Ulangi password untuk konfirmasi jika mengubah password</p>
+                        {confirmPasswordError && <p className="text-red-500 text-sm mt-1">{confirmPasswordError}</p>}
+                      </div>
+                      
+                      <div className="space-y-3">
                         <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Masjid</label>
                         <div className="relative">
                           <Building size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -215,7 +344,7 @@ const EditTakmir = ({ user, onLogout }) => {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || passwordError || confirmPasswordError}
                     className="flex items-center px-8 py-4 bg-mu-green text-white rounded-2xl hover:bg-green-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Save size={22} className="mr-3" />

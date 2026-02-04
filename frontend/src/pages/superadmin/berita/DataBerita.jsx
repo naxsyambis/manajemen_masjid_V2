@@ -201,7 +201,7 @@ const DataBerita = ({ user, onLogout }) => {
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900 max-w-xs truncate">{berita.judul}</div>
+                        <div className="text-sm font-semibold text-gray-900 max-w-[150px] truncate" title={berita.judul}>{berita.judul}</div>
                         <div className="text-xs text-gray-500">ID: {berita.berita_id}</div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">
@@ -213,7 +213,7 @@ const DataBerita = ({ user, onLogout }) => {
                       <td className="px-8 py-6">
                         <div className="flex items-start space-x-2">
                           <FileText size={16} className="text-mu-green mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-gray-900 max-w-xs truncate">{berita.isi || 'Tidak ada isi'}</div>
+                          <div className="text-sm text-gray-900 max-w-[150px] truncate" title={berita.isi || 'Tidak ada isi'}>{berita.isi || 'Tidak ada isi'}</div>
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap text-center">

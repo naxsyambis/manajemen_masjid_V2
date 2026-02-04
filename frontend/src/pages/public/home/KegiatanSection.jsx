@@ -1,20 +1,27 @@
-import React, { useState, useEffect } from 'react';
+// frontend/src/components/KegiatanSection.jsx (atau path yang sesuai)
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom'; // Asumsikan menggunakan React Router
 
 const KegiatanSection = () => {
   const [kegiatan, setKegiatan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedCards, setExpandedCards] = useState([]); // State untuk kartu yang expanded
+  const hasFetched = useRef(false); // Flag untuk mencegah fetch ganda
 
   // Fungsi untuk fetch kegiatan dari backend
   useEffect(() => {
+    if (hasFetched.current) return; // Jika sudah fetch, skip
+    hasFetched.current = true;
+
     const fetchKegiatan = async () => {
       try {
         console.log('Fetching kegiatan from: http://localhost:3000/public/kegiatan'); // Logging URL untuk debugging
         const response = await fetch('http://localhost:3000/public/kegiatan'); // Pastikan URL backend benar dan server berjalan
         console.log('Response status for kegiatan:', response.status); // Logging status HTTP
         if (!response.ok) {
-          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          throw new Error(`Gagal mengambil data kegiatan: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
         console.log('Data kegiatan received:', data); // Logging data yang diterima
@@ -47,6 +54,15 @@ const KegiatanSection = () => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+    });
+  };
+
+  // Fungsi untuk toggle expand kartu
+  const toggleExpand = (index) => {
+    setExpandedCards((prev) => {
+      const newExpanded = [...prev];
+      newExpanded[index] = !newExpanded[index];
+      return newExpanded;
     });
   };
 
@@ -100,14 +116,14 @@ const KegiatanSection = () => {
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center relative z-10"> {/* Gunakan place-items-center untuk center item di grid */}
           {kegiatanTerbaru.length > 0 ? (
             kegiatanTerbaru.map((item, index) => (
               <div
                 key={item.kegiatan_id}
-                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 stat-card-hover max-w-lg w-full"
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 stat-card-hover w-full max-w-sm min-h-[400px] flex flex-col" // min-h-[400px] untuk tinggi minimum sama, tanpa tinggi tetap
               >
-                <div className="p-6">
+                <div className="p-6 flex-grow flex flex-col"> {/* flex-grow dan flex flex-col untuk mengisi ruang, tanpa overflow-y-auto */}
                   {/* Ikon di atas */}
                   <div className="w-20 h-20 bg-gradient-to-br from-[#006227] to-[#004a1e] rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500">
                     {icons[index] || (
@@ -133,18 +149,23 @@ const KegiatanSection = () => {
                       <span><strong>Lokasi:</strong> {item.lokasi || 'Lokasi belum ditentukan'}</span>
                     </p>
                   </div>
-                  <p className="text-[#1e293b] leading-relaxed mb-6 line-clamp-3">
-                    {getExcerpt(item.deskripsi)}
+                  <p className={`text-[#1e293b] leading-relaxed mb-6 flex-grow ${expandedCards[index] ? '' : 'line-clamp-3'}`}> {/* flex-grow agar deskripsi mengisi ruang */}
+                    {expandedCards[index] ? item.deskripsi : getExcerpt(item.deskripsi)}
                   </p>
-                  {/* Arrow untuk efek */}
-                  <div className="flex justify-end">
-                    <span className="text-[#006227] group-hover:translate-x-2 transition-transform font-bold text-lg">→</span>
+                  {/* Tombol untuk expand/collapse */}
+                  <div className="flex justify-end mt-auto"> {/* mt-auto untuk push ke bawah */}
+                    <button
+                      onClick={() => toggleExpand(index)}
+                      className="text-[#006227] hover:text-[#004a1e] font-semibold transition-colors"
+                    >
+                      {expandedCards[index] ? 'Baca Lebih Sedikit' : 'Baca Selengkapnya'}
+                    </button>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="col-span-full text-center text-[#1e293b] py-12">
+            <div className="col-span-full text-center text-[#1e293b] py-12"> {/* Gunakan col-span-full untuk span seluruh grid */}
               <p className="text-lg">Tidak ada kegiatan tersedia.</p>
             </div>
           )}

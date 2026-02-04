@@ -67,7 +67,7 @@ const BeritaSection = () => {
     return (
       <section id="berita" className="berita-section animate-fadeIn relative py-20 overflow-hidden">
         <div className="container mx-auto px-6 text-center">
-          <div className="text-2xl text-red-500">Error: {error}</div>
+          <div className="text-center text-2xl text-red-500">Error: {error}</div>
           <p className="text-sm text-[#1e293b] mt-2">Periksa console browser untuk detail lebih lanjut atau pastikan backend berjalan.</p>
         </div>
       </section>
@@ -86,13 +86,13 @@ const BeritaSection = () => {
             Update dan informasi terkini seputar kegiatan ranting Muhammadiyah
           </p>
         </div>
-        <div className="flex flex-col items-center gap-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10"> {/* Ubah dari flex flex-col items-center gap-8 menjadi grid untuk layout horizontal */}
           {beritaTerbaru.length > 0 ? (
             beritaTerbaru.map((item) => (
               <Link
                 key={item.berita_id}
                 to={`/berita/${item.berita_id}`} // Link ke halaman detail berita; sesuaikan dengan routing Anda
-                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 block border border-gray-100 stat-card-hover max-w-lg w-full"
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 block border border-gray-100 stat-card-hover w-full" // Hapus max-w-lg agar kartu bisa melebar di grid
               >
                 <div className="relative h-60 overflow-hidden rounded-t-2xl">
                   <img
@@ -135,7 +135,7 @@ const BeritaSection = () => {
               </Link>
             ))
           ) : (
-            <div className="col-span-full text-center text-[#1e293b] py-12">
+            <div className="col-span-full text-center text-[#1e293b] py-12"> {/* Gunakan col-span-full untuk span seluruh grid */}
               <p className="text-lg">Tidak ada berita tersedia.</p>
             </div>
           )}

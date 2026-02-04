@@ -1,20 +1,30 @@
-import React, { useState, useEffect } from 'react';
+// frontend/src/components/ProgramSection.jsx (atau path yang sesuai)
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom'; // Asumsikan menggunakan React Router
 
 const ProgramSection = () => {
   const [program, setProgram] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedCards, setExpandedCards] = useState([]); // State untuk kartu yang expanded
+  const hasFetched = useRef(false); // Flag untuk mencegah fetch ganda
 
   // Fungsi untuk fetch program dari backend
   useEffect(() => {
+    if (hasFetched.current) return; // Jika sudah fetch, skip
+    hasFetched.current = true;
+
     const fetchProgram = async () => {
       try {
+        console.log('Fetching program from: http://localhost:3000/public/program'); // Logging untuk debugging
         const response = await fetch('http://localhost:3000/public/program'); // Ganti dengan URL backend Anda jika berbeda
+        console.log('Response status:', response.status); // Logging status
         if (!response.ok) {
-          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          throw new Error(`Gagal mengambil data program: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
+        console.log('Data program received:', data); // Logging data
         setProgram(data);
       } catch (err) {
         console.error('Error fetching program:', err); // Logging detail untuk debugging
@@ -30,6 +40,15 @@ const ProgramSection = () => {
   // Fungsi untuk memotong deskripsi (excerpt)
   const getExcerpt = (text, maxLength = 100) => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
+  // Fungsi untuk toggle expand kartu
+  const toggleExpand = (index) => {
+    setExpandedCards((prev) => {
+      const newExpanded = [...prev];
+      newExpanded[index] = !newExpanded[index];
+      return newExpanded;
+    });
   };
 
   // Array ikon SVG (sesuai urutan program; bisa diganti jika ada field di backend)
@@ -82,14 +101,14 @@ const ProgramSection = () => {
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center relative z-10"> {/* Gunakan place-items-center untuk center item di grid */}
           {programTerbaru.length > 0 ? (
             programTerbaru.map((item, index) => (
               <div
                 key={item.program_id}
-                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 border border-gray-100 stat-card-hover max-w-lg w-full"
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 border border-gray-100 stat-card-hover w-full max-w-sm min-h-[350px] flex flex-col" // min-h-[350px] untuk tinggi minimum lebih kecil
               >
-                <div className="p-6">
+                <div className="p-6 flex-grow flex flex-col"> {/* flex-grow dan flex flex-col untuk layout */}
                   <div className="w-20 h-20 bg-gradient-to-br from-[#006227] to-[#004a1e] rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500">
                     {icons[index] || (
                       <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -100,17 +119,23 @@ const ProgramSection = () => {
                   <h3 className="text-xl md:text-2xl font-bold text-[#006227] mb-3 group-hover:text-[#004a1e] transition-colors line-clamp-2 leading-tight">
                     {item.nama_program}
                   </h3>
-                  <p className="text-[#1e293b] mb-4 line-clamp-3 leading-relaxed">
-                    {getExcerpt(item.deskripsi)}
+                  <p className={`text-[#1e293b] mb-4 leading-relaxed flex-grow ${expandedCards[index] ? '' : 'line-clamp-3'}`}> {/* flex-grow agar deskripsi mengisi ruang */}
+                    {expandedCards[index] ? item.deskripsi : getExcerpt(item.deskripsi)}
                   </p>
-                  <div className="flex justify-end pt-4 border-t border-gray-200">
-                    <span className="text-[#006227] group-hover:translate-x-2 transition-transform font-bold text-lg">→</span>
+                  {/* Tombol untuk expand/collapse */}
+                  <div className="flex justify-end mt-auto"> {/* mt-auto untuk push ke bawah */}
+                    <button
+                      onClick={() => toggleExpand(index)}
+                      className="text-[#006227] hover:text-[#004a1e] font-semibold transition-colors"
+                    >
+                      {expandedCards[index] ? 'Baca Lebih Sedikit' : 'Baca Selengkapnya'}
+                    </button>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="col-span-full text-center text-[#1e293b] py-12">
+            <div className="col-span-full text-center text-[#1e293b] py-12"> {/* Gunakan col-span-full untuk span seluruh grid */}
               <p className="text-lg">Tidak ada program tersedia.</p>
             </div>
           )}

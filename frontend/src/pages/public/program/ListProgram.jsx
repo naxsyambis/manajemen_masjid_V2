@@ -8,6 +8,9 @@ const ListProgram = () => {
   const [program, setProgram] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const [expanded, setExpanded] = useState({}); // State untuk melacak kartu yang diperluas
 
   // Fungsi untuk fetch semua program dari backend
   useEffect(() => {
@@ -40,6 +43,11 @@ const ListProgram = () => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
+  // Fungsi untuk toggle expanded
+  const toggleExpanded = (id) => {
+    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   // Array ikon SVG (sesuai urutan program; bisa diganti jika ada field di backend)
   const icons = [
     <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -55,6 +63,21 @@ const ListProgram = () => {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
     </svg> // Topi wisuda untuk pendidikan
   ];
+
+  // Hitung total halaman
+  const totalPages = Math.ceil(program.length / itemsPerPage);
+
+  // Potong program berdasarkan halaman saat ini
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProgram = program.slice(startIndex, endIndex);
+
+  // Fungsi untuk navigasi halaman
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   if (loading) {
     return (
@@ -97,12 +120,12 @@ const ListProgram = () => {
             </p>
           </div>
 
-          <div className="flex flex-col items-center gap-8">
-            {program.length > 0 ? (
-              program.map((item, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {currentProgram.length > 0 ? (
+              currentProgram.map((item, index) => (
                 <div
                   key={item.program_id}
-                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 border border-gray-100 stat-card-hover max-w-lg w-full"
+                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-4 border border-gray-100 stat-card-hover"
                 >
                   <div className="p-6">
                     {/* Ikon di atas */}
@@ -113,14 +136,21 @@ const ListProgram = () => {
                         </svg>
                       )} {/* Fallback ikon */}
                     </div>
-                    <h3 className="text-xl md:text-2xl font-bold text-[#006227] mb-3 group-hover:text-[#004a1e] transition-colors line-clamp-2 leading-tight">
+                    <h3 className="text-xl md:text-2xl font-bold text-[#006227] mb-4 group-hover:text-[#004a1e] transition-colors line-clamp-2 leading-tight">
                       {item.nama_program}
                     </h3>
-                    <p className="text-[#1e293b] mb-4 line-clamp-3 leading-relaxed">
-                      {getExcerpt(item.deskripsi)}
+                    <p className="text-[#1e293b] leading-relaxed mb-6 line-clamp-3">
+                      {expanded[item.program_id] ? item.deskripsi : getExcerpt(item.deskripsi)}
                     </p>
-                    <div className="flex justify-end pt-4 border-t border-gray-200">
-                      <span className="text-[#006227] group-hover:translate-x-2 transition-transform font-bold text-lg">→</span>
+                    {/* Tombol Baca Selengkapnya */}
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => toggleExpanded(item.program_id)}
+                        className="text-[#006227] hover:text-[#004a1e] transition-colors font-bold text-lg flex items-center space-x-1"
+                      >
+                        <span>{expanded[item.program_id] ? 'Tutup' : 'Baca Selengkapnya'}</span>
+                        <span className={`transform transition-transform ${expanded[item.program_id] ? 'rotate-180' : ''}`}>↓</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -131,6 +161,39 @@ const ListProgram = () => {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-12 space-x-2">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-[#006227] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#004a1e] transition-colors"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => goToPage(index + 1)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    currentPage === index + 1
+                      ? 'bg-[#006227] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-[#006227] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#004a1e] transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </main>
       <FooterPublic />

@@ -25,6 +25,13 @@ const EditKegiatan = ({ user, onLogout }) => {
 
   const isExpanded = isOpen || isHovered;
 
+  // Hitung minDate untuk membatasi tanggal mulai dari hari ini (00:00)
+  const minDate = (() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today.toISOString().slice(0, 16);
+  })();
+
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -57,6 +64,17 @@ const EditKegiatan = ({ user, onLogout }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
+    // Validasi tambahan: Pastikan waktu_kegiatan tidak di masa lalu
+    const selectedDate = new Date(formData.waktu_kegiatan);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      setError('Waktu kegiatan tidak boleh di masa lalu.');
+      setLoading(false);
+      return;
+    }
+    
     try {
       await axios.put(`http://localhost:3000/superadmin/kegiatan/${id}`, formData, {
         headers: { Authorization: `Bearer ${token}` }
@@ -154,11 +172,12 @@ const EditKegiatan = ({ user, onLogout }) => {
                             type="datetime-local"
                             value={formData.waktu_kegiatan}
                             onChange={(e) => setFormData({ ...formData, waktu_kegiatan: e.target.value })}
+                            min={minDate} // Menambahkan batasan tanggal minimal dari hari ini (00:00)
                             className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
                             required
                           />
                         </div>
-                        <p className="text-sm text-gray-500">Pilih tanggal dan waktu kegiatan</p>
+                        <p className="text-sm text-gray-500">Pilih tanggal dan waktu kegiatan (minimal hari ini)</p>
                       </div>
                     </div>
                   </div>
@@ -184,7 +203,10 @@ const EditKegiatan = ({ user, onLogout }) => {
                       </div>
                       
                       <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Deskripsi</label>
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Deskripsi</label>
+                          <p className="text-sm text-gray-500">{formData.deskripsi.length} / 255 karakter</p>
+                        </div>
                         <div className="relative">
                           <FileText size={20} className="absolute left-3 top-3 text-gray-400" />
                           <textarea
@@ -193,6 +215,7 @@ const EditKegiatan = ({ user, onLogout }) => {
                             className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm resize-none"
                             placeholder="Masukkan deskripsi kegiatan (opsional)"
                             rows="8"
+                            maxLength={255}
                           />
                         </div>
                         <p className="text-sm text-gray-500">Berikan penjelasan singkat tentang kegiatan</p>

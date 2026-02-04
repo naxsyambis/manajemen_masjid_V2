@@ -17,6 +17,7 @@ const TambahKepengurusan = ({ user, onLogout }) => {
     periode_selesai: ''
   });
   const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
@@ -61,6 +62,7 @@ const TambahKepengurusan = ({ user, onLogout }) => {
         periode_selesai: ''
       });
       setFile(null);
+      setPreviewUrl(null);
       navigate('/superadmin/kepengurusan');
     } catch (err) {
       console.error('Error adding pengurus:', err);
@@ -77,6 +79,11 @@ const TambahKepengurusan = ({ user, onLogout }) => {
       return;
     }
     setFile(selectedFile);
+    if (selectedFile) {
+      setPreviewUrl(URL.createObjectURL(selectedFile));
+    } else {
+      setPreviewUrl(null);
+    }
   };
 
   const handleRefresh = () => {
@@ -150,9 +157,9 @@ const TambahKepengurusan = ({ user, onLogout }) => {
                         />
                         <label htmlFor="foto-upload" className="block">
                           <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition-all duration-300 shadow-lg hover:shadow-xl">
-                            {file ? (
+                            {previewUrl ? (
                               <div className="space-y-6">
-                                <img src={URL.createObjectURL(file)} alt="Preview" className="w-32 h-32 object-cover rounded-xl mx-auto shadow-lg" />
+                                <img src={previewUrl} alt="Preview" className="w-32 h-32 object-cover rounded-xl mx-auto shadow-lg" />
                                 <div>
                                   <p className="text-lg font-semibold text-gray-800">{file.name}</p>
                                   <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>

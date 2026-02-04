@@ -18,6 +18,7 @@ const EditKepengurusan = ({ user, onLogout }) => {
     foto_pengurus: null
   });
   const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
@@ -66,6 +67,10 @@ const EditKepengurusan = ({ user, onLogout }) => {
       alert('Harap isi semua field yang diperlukan.');
       return;
     }
+    if (file && file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB.');
+      return;
+    }
     setLoading(true);
     setError(null);
     const data = new FormData();
@@ -90,7 +95,17 @@ const EditKepengurusan = ({ user, onLogout }) => {
   };
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    if (selectedFile && selectedFile.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB.');
+      return;
+    }
+    setFile(selectedFile);
+    if (selectedFile) {
+      setPreviewUrl(URL.createObjectURL(selectedFile));
+    } else {
+      setPreviewUrl(null);
+    }
   };
 
   const handleRefresh = () => {
@@ -165,9 +180,9 @@ const EditKepengurusan = ({ user, onLogout }) => {
                         />
                         <label htmlFor="foto-upload" className="block">
                           <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition-all duration-300 shadow-lg hover:shadow-xl">
-                            {file ? (
+                            {previewUrl ? (
                               <div className="space-y-6">
-                                <img src={URL.createObjectURL(file)} alt="Preview" className="w-32 h-32 object-cover rounded-xl mx-auto shadow-lg" />
+                                <img src={previewUrl} alt="Preview" className="w-32 h-32 object-cover rounded-xl mx-auto shadow-lg" />
                                 <div>
                                   <p className="text-lg font-semibold text-gray-800">{file.name}</p>
                                   <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
