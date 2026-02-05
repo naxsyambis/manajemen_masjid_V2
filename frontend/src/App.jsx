@@ -5,6 +5,7 @@ import PublicApp from './PublicApp';
 import AdminApp from './AdminApp';
 import SuperAdminApp from './SuperAdminApp';
 import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword'; // Tambahkan import untuk ForgotPassword
 
 const AppWrapper = () => {
   const [currentApp, setCurrentApp] = useState('public'); // 'public', 'admin', 'superadmin'
@@ -68,6 +69,7 @@ const App = () => {
       <Routes>
         <Route path="/*" element={<PublicApp />} /> {/* Ubah dari "/" ke "/*" agar parent match semua path dan child routes di PublicApp bisa render tanpa warning */}
         <Route path="/login" element={<Login />} /> {/* Halaman login */}
+        <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Tambahkan route untuk halaman lupa password */}
         <Route path="/admin/*" element={<AdminApp />} /> {/* Panggil AdminApp untuk route admin */}
         <Route path="/superadmin/*" element={<SuperAdminApp />} /> {/* Panggil SuperAdminApp untuk route superadmin */}
         {/* Hapus fallback <Route path="/*" element={<PublicApp />} /> karena sudah digantikan di atas */}

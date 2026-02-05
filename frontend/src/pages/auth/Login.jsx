@@ -56,7 +56,6 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
   };
 
   return (
-    // Kode UI tetap sama, tidak ada perubahan di sini
     <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2 bg-[#f4f7fb]">
       {/* ================= LEFT IMAGE ================= */}
       <div 
@@ -143,6 +142,16 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
               {loading ? "MEMVERIFIKASI..." : "MASUK SISTEM"}
             </button>
           </form>
+
+          {/* Tambahan: Link Lupa Password */}
+          <div className="mt-6 text-center">
+            <button 
+              onClick={() => navigate('/forgot-password')}
+              className="text-sm text-mu-green hover:text-mu-green/80 font-semibold underline transition-all"
+            >
+              Lupa Password?
+            </button>
+          </div>
 
           <p className="mt-12 text-center text-[11px] text-gray-400 italic">
             © {new Date().getFullYear()} SIM MASJID — Sistem Informasi Manajemen Masjid
