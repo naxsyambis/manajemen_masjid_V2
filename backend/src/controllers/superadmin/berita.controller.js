@@ -15,7 +15,7 @@ exports.create = async (req, res) => {
       const filename = `berita_${Date.now()}.webp`;
       const filepath = path.join(dir, filename);
 
-      await sharp(req.file.path)
+      await sharp(req.file.buffer)
         .resize(800)
         .toFormat("webp", { quality: 70 })
         .toFile(filepath);
@@ -66,10 +66,10 @@ exports.update = async (req, res) => {
       const filename = `berita_${Date.now()}.webp`;
       const filepath = path.join(dir, filename);
 
-      await sharp(req.file.path)
-        .resize(800)
-        .toFormat("webp", { quality: 70 })
-        .toFile(filepath);
+      await sharp(req.file.buffer)
+      .resize(800)
+      .toFormat("webp", { quality: 70 })
+      .toFile(filepath);
 
       gambarPath = `/uploads/berita/${filename}`;
     }
