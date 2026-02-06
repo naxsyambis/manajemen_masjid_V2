@@ -16,7 +16,8 @@ exports.create = async (req, res) => {
       const filepath = path.join(dir, filename);
 
       await sharp(req.file.buffer)
-        .resize(500)
+        .rotate()
+        .resize(800)
         .toFormat("webp", { quality: 70 })
         .toFile(filepath);
 
@@ -68,7 +69,7 @@ exports.update = async (req, res) => {
       const filepath = path.join(dir, filename);
 
       await sharp(req.file.buffer)
-        .resize(500)
+        .resize(800)
         .toFormat("webp", { quality: 70 })
         .toFile(filepath);
 
