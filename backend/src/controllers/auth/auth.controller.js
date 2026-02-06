@@ -159,17 +159,24 @@ exports.uploadTtd = async (req, res) => {
     }
 
     if (user.foto_tanda_tangan) {
-      const oldPath = path.join(__dirname, "../../../", user.foto_tanda_tangan);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    const oldPath = path.resolve(
+      "uploads",
+      "ttd",
+      path.basename(user.foto_tanda_tangan)
+    );
+
+    if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
     }
 
     const filename = `ttd_${user.user_id}_${Date.now()}.webp`;
     const outputPath = path.join(uploadDir, filename);
 
-    await sharp(req.file.path)
-      .resize(500)
-      .toFormat("webp", { quality: 70 })
-      .toFile(outputPath);
+    await sharp(req.file.buffer)
+    .resize(500)
+    .toFormat("webp", { quality: 70 })
+    .toFile(outputPath);
 
     await user.update({
       foto_tanda_tangan: `/uploads/ttd/${filename}`
@@ -204,14 +211,23 @@ exports.uploadTtd = async (req, res) => {
 exports.deleteTtd = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.user_id);
-    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
-
-    if (user.foto_tanda_tangan) {
-      const filePath = path.join(__dirname, "../../../", user.foto_tanda_tangan);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    if (!user) {
+      return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
     const oldData = user.toJSON();
+
+    if (user.foto_tanda_tangan) {
+      const filePath = path.resolve(
+        "uploads",
+        "ttd",
+        path.basename(user.foto_tanda_tangan)
+      );
+
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
 
     await user.update({ foto_tanda_tangan: null });
 
@@ -219,7 +235,10 @@ exports.deleteTtd = async (req, res) => {
       req,
       action: "DELETE",
       nama_tabel: "user_app",
-      data_lama: oldData,
+      data_lama: {
+        ...oldData,
+        foto_tanda_tangan: oldData.foto_tanda_tangan ? "[OLD IMAGE]" : null
+      },
       record_id: user.user_id
     });
 
@@ -230,4 +249,3 @@ exports.deleteTtd = async (req, res) => {
     res.status(500).json({ message: "Gagal hapus TTD" });
   }
 };
-
