@@ -149,7 +149,7 @@ const DetailBerita = () => {
             )}
 
             {/* Isi Berita */}
-            <div className="prose prose-lg max-w-none text-[#1e293b] leading-relaxed mb-12">
+            <div className="prose prose-lg max-w-none text-[#1e293b] leading-relaxed mb-12 text-justify">
               <div className="whitespace-pre-wrap">{berita.isi}</div>
             </div>
 
