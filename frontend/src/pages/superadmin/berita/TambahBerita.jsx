@@ -14,7 +14,7 @@ const TambahBerita = ({ user, onLogout }) => {
     judul: '',
     isi: ''
   });
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
@@ -35,7 +35,10 @@ const TambahBerita = ({ user, onLogout }) => {
     const data = new FormData();
     data.append('judul', formData.judul);
     data.append('isi', formData.isi);
-    if (file) data.append('gambar', file);
+    files.forEach((file) => {
+    data.append('gambar', file);
+    });
+
 
     try {
       await axios.post('http://localhost:3000/superadmin/berita', data, {
@@ -52,7 +55,7 @@ const TambahBerita = ({ user, onLogout }) => {
   };
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    setFiles(Array.from(e.target.files));
   };
 
   const handleRefresh = () => {
@@ -117,34 +120,50 @@ const TambahBerita = ({ user, onLogout }) => {
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Gambar Berita</h3>
                       <div className="space-y-4">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="hidden"
-                          id="gambar-upload"
-                        />
-                        <label htmlFor="gambar-upload" className="block">
-                          <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition-all duration-300 shadow-lg hover:shadow-xl">
-                            {file ? (
-                              <div className="space-y-6">
-                                <img src={URL.createObjectURL(file)} alt="Preview" className="w-32 h-32 object-cover rounded-xl mx-auto shadow-lg" />
-                                <div>
-                                  <p className="text-lg font-semibold text-gray-800">{file.name}</p>
-                                  <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                                </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="gambar-upload"
+                      />
+                      <label htmlFor="gambar-upload" className="block">
+                        <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition-all duration-300 shadow-lg hover:shadow-xl">
+
+                          {files.length > 0 ? (
+                            <div className="space-y-4">
+                              <p className="font-semibold text-gray-700">
+                                {files.length} gambar dipilih
+                              </p>
+
+                              <div className="grid grid-cols-3 gap-4">
+                                {files.map((f, i) => (
+                                  <img
+                                    key={i}
+                                    src={URL.createObjectURL(f)}
+                                    alt="preview"
+                                    className="w-full h-24 object-cover rounded-lg"
+                                  />
+                                ))}
                               </div>
-                            ) : (
-                              <div className="space-y-6">
-                                <Upload size={64} className="text-gray-400 mx-auto" />
-                                <div>
-                                  <p className="text-lg font-semibold text-gray-700">Klik untuk upload gambar</p>
-                                  <p className="text-sm text-gray-500">PNG, JPG hingga 5MB</p>
-                                </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-6">
+                              <Upload size={64} className="text-gray-400 mx-auto" />
+                              <div>
+                                <p className="text-lg font-semibold text-gray-700">
+                                  Klik untuk upload gambar
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  Bisa pilih banyak gambar
+                                </p>
                               </div>
-                            )}
-                          </div>
-                        </label>
+                            </div>
+                          )}
+
+                        </div>
+                      </label>
                         <p className="text-sm text-gray-500">Upload foto gambar berita</p>
                       </div>
                     </div>

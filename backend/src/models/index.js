@@ -2,6 +2,18 @@ const User = require("./User");
 const Masjid = require("./Masjid");
 const MasjidTakmir = require("./masjid_takmir");
 const AuditLog = require("./AuditLog");
+const Berita = require("./Berita");
+const BeritaGambar = require("./BeritaGambar");
+
+Berita.hasMany(BeritaGambar, {
+  foreignKey: "berita_id",
+  as: "gambar_list",
+  onDelete: "CASCADE"
+});
+
+BeritaGambar.belongsTo(Berita, {
+  foreignKey: "berita_id"
+});
 
 MasjidTakmir.belongsTo(User, {
   foreignKey: "user_id",
@@ -35,5 +47,7 @@ module.exports = {
     User,
     Masjid,
     MasjidTakmir,
-    AuditLog
+    AuditLog,
+    Berita,
+    BeritaGambar
 };

@@ -7,7 +7,7 @@ router.get("/masjid", publicController.listMasjid);
 router.get("/masjid/:id", publicController.detailMasjid);
 
 router.get("/berita", publicController.getBerita);
-router.get("/berita/:id", publicController.getBeritaById); // Tambah route ini
+router.get("/berita/:id", publicController.getBeritaById);
 router.get("/program", publicController.getProgram);
 router.get("/kegiatan", publicController.getKegiatan);
 router.get("/kepengurusan", publicController.getKepengurusan);

@@ -1,4 +1,3 @@
-// backend/controllers/public/public.controller.js
 const Masjid = require("../../models/Masjid");
 const Jamaah = require("../../models/Jamaah");
 const Berita = require("../../models/Berita");
@@ -10,34 +9,73 @@ const Inventaris = require("../../models/Inventaris");
 const prayerService = require("../../services/prayer.service");
 
 exports.listMasjid = async (req, res) => {
-    res.json(await Masjid.findAll());
+  try {
+    const data = await Masjid.findAll();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-
 exports.detailMasjid = async (req, res) => {
+  try {
     const masjid_id = req.params.id;
 
     const masjid = await Masjid.findByPk(masjid_id);
     if (!masjid) {
-        return res.status(404).json({ message: "Masjid tidak ditemukan" });
+      return res.status(404).json({ message: "Masjid tidak ditemukan" });
     }
 
     const jamaah = await Jamaah.findAll({
-        where: { masjid_id },
-        attributes: ["jamaah_id", "nama", "jenis_kelamin", "status"]
+      where: { masjid_id },
+      attributes: ["jamaah_id", "nama", "jenis_kelamin", "status"]
     });
 
-    res.json({
-        masjid,
-        jamaah
-    });
+    res.json({ masjid, jamaah });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
-
 
 exports.getBerita = async (req, res) => {
-    res.json(await Berita.findAll({ order: [["tanggal", "DESC"]] }));
+  try {
+    const where = {
+      status: "dipublikasi"
+    };
+
+    if (req.query.masjid_id) {
+      where.masjid_id = req.query.masjid_id;
+    }
+
+    const data = await Berita.findAll({
+      where,
+      order: [["published_at", "DESC"]]
+    });
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+exports.getBeritaById = async (req, res) => {
+  try {
+    const data = await Berita.findOne({
+      where: {
+        berita_id: req.params.id,
+        status: "dipublikasi"
+      }
+    });
+
+    if (!data) {
+      return res.status(404).json({ message: "Berita tidak ditemukan" });
+    }
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 exports.getProgram = async (req, res) => {
     res.json(await Program.findAll());
@@ -118,11 +156,4 @@ exports.getJadwalSholat = async (req, res) => {
             message: err.message,
         });
     }
-};
-
-// Tambah fungsi getBeritaById untuk detail berita
-exports.getBeritaById = async (req, res) => {
-    const data = await Berita.findByPk(req.params.id);
-    if (!data) return res.status(404).json({ message: "Berita tidak ditemukan" });
-    res.json(data);
 };

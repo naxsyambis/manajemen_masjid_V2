@@ -9,27 +9,24 @@ exports.create = async (req, res) => {
   try {
     let gambarList = [];
 
-    if (req.files?.length) {
+    if (req.files && req.files.length > 0) {
       const dir = path.join(__dirname, "../../../uploads/berita");
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
       for (const file of req.files) {
-        const filename = `berita_${Date.now()}_${Math.random()
-          .toString(36)
-          .slice(2)}.webp`;
-
+        const filename = `berita_${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
         const filepath = path.join(dir, filename);
 
         await sharp(file.buffer)
           .resize(800)
-          .webp({ quality: 70 })
+          .toFormat("webp", { quality: 70 })
           .toFile(filepath);
 
         gambarList.push(`/uploads/berita/${filename}`);
       }
     }
 
-    const thumbnail = gambarList[0] || null;
+    const thumbnail = gambarList.length > 0 ? gambarList[0] : null;
 
     const data = await Berita.create({
       judul: req.body.judul,
@@ -37,18 +34,18 @@ exports.create = async (req, res) => {
       tanggal: new Date(),
       gambar: thumbnail,
       user_id: req.user.user_id,
-      masjid_id: null,
-      status: "dipublikasi",
-      published_at: new Date()
+      masjid_id: req.user.masjid_id,
+      status: "menunggu",
+      published_at: null
     });
 
-    if (gambarList.length) {
-      await BeritaGambar.bulkCreate(
-        gambarList.map(p => ({
-          berita_id: data.berita_id,
-          path_gambar: p
-        }))
-      );
+    if (gambarList.length > 0) {
+      const bulkData = gambarList.map(path => ({
+        berita_id: data.berita_id,
+        path_gambar: path
+      }));
+
+      await BeritaGambar.bulkCreate(bulkData);
     }
 
     await logActivity({
@@ -66,31 +63,32 @@ exports.create = async (req, res) => {
   }
 };
 
+
 exports.update = async (req, res) => {
   try {
     const berita = await Berita.findByPk(req.params.id);
-    if (!berita)
-      return res.status(404).json({ message: "Berita tidak ditemukan" });
+    if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan" });
+
+    if (berita.user_id !== req.user.user_id) {
+    return res.status(403).json({ message: "Tidak punya akses" });
+    }
 
     const oldData = berita.toJSON();
     let gambarPath = berita.gambar;
 
-    if (req.files?.length) {
+    if (req.files && req.files.length > 0) {
       const dir = path.join(__dirname, "../../../uploads/berita");
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
       const newImages = [];
 
       for (const file of req.files) {
-        const filename = `berita_${Date.now()}_${Math.random()
-          .toString(36)
-          .slice(2)}.webp`;
-
+        const filename = `berita_${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
         const filepath = path.join(dir, filename);
 
         await sharp(file.buffer)
           .resize(800)
-          .webp({ quality: 70 })
+          .toFormat("webp", { quality: 70 })
           .toFile(filepath);
 
         newImages.push(`/uploads/berita/${filename}`);
@@ -98,19 +96,23 @@ exports.update = async (req, res) => {
 
       gambarPath = newImages[0];
 
-      await BeritaGambar.bulkCreate(
-        newImages.map(p => ({
-          berita_id: berita.berita_id,
-          path_gambar: p
-        }))
-      );
+      const bulkData = newImages.map(p => ({
+        berita_id: berita.berita_id,
+        path_gambar: p
+      }));
+      await BeritaGambar.bulkCreate(bulkData);
     }
 
     await berita.update({
-      judul: req.body.judul,
-      isi: req.body.isi,
-      gambar: gambarPath
+    judul: req.body.judul,
+    isi: req.body.isi,
+    gambar: gambarPath,
+    status: "menunggu",
+    approved_by: null,
+    approved_at: null,
+    published_at: null
     });
+
 
     await logActivity({
       req,
@@ -130,12 +132,15 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
   try {
-    const berita = await Berita.findByPk(req.params.id);
-    if (!berita)
-      return res.status(404).json({ message: "Berita tidak ditemukan" });
+    const oldData = await Berita.findByPk(req.params.id);
+    if (!oldData) return res.status(404).json({ message: "Berita tidak ditemukan" });
 
-    if (berita.gambar) {
-      const filePath = path.join(__dirname, "../../../", berita.gambar);
+    if (oldData.user_id !== req.user.user_id) {
+    return res.status(403).json({ message: "Tidak punya akses" });
+    }
+
+    if (oldData.gambar) {
+      const filePath = path.join(__dirname, "../../../", oldData.gambar);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
@@ -154,7 +159,7 @@ exports.delete = async (req, res) => {
       req,
       action: "DELETE",
       nama_tabel: "berita_masjid",
-      data_lama: berita.toJSON(),
+      data_lama: oldData.toJSON(),
       record_id: req.params.id
     });
 
@@ -162,6 +167,22 @@ exports.delete = async (req, res) => {
   } catch (error) {
     console.error("DELETE BERITA ERROR:", error);
     res.status(500).json({ message: "Gagal hapus berita" });
+  }
+};
+
+exports.getAll = async (req, res) => {
+  try {
+    const data = await Berita.findAll({
+      where: {
+        user_id: req.user.user_id
+      },
+      order: [["tanggal", "DESC"]]
+    });
+
+    res.json(data);
+  } catch (error) {
+    console.error("GET ALL BERITA TAKMIR ERROR:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -174,12 +195,12 @@ exports.getById = async (req, res) => {
           as: "gambar_list",
           attributes: ["gambar_id", "path_gambar"]
         }
-      ],
-      order: [[{ model: BeritaGambar, as: "gambar_list" }, "gambar_id", "ASC"]]
+      ]
     });
 
-    if (!data)
+    if (!data) {
       return res.status(404).json({ message: "Berita tidak ditemukan" });
+    }
 
     res.json(data);
   } catch (error) {
@@ -188,60 +209,3 @@ exports.getById = async (req, res) => {
   }
 };
 
-exports.getAll = async (req, res) => {
-  try {
-    const data = await Berita.findAll({
-      include: [
-        {
-          model: BeritaGambar,
-          as: "gambar_list",
-          attributes: ["gambar_id", "path_gambar"]
-        }
-      ],
-      order: [["tanggal", "DESC"]]
-    });
-
-    res.json(data);
-  } catch (error) {
-    console.error("GET ALL BERITA ERROR:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-exports.updateStatus = async (req, res) => {
-  try {
-    const berita = await Berita.findByPk(req.params.id);
-    if (!berita) {
-      return res.status(404).json({ message: "Berita tidak ditemukan" });
-    }
-
-    const oldData = berita.toJSON();
-
-    let publishedAt = berita.published_at;
-
-    if (req.body.status === "dipublikasi") {
-      publishedAt = new Date();
-    }
-
-    await berita.update({
-      status: req.body.status,
-      approved_by: req.user.user_id,
-      approved_at: new Date(),
-      published_at: publishedAt
-    });
-
-    await logActivity({
-      req,
-      action: "APPROVAL",
-      nama_tabel: "berita_masjid",
-      data_lama: oldData,
-      data_baru: berita.toJSON(),
-      record_id: berita.berita_id
-    });
-
-    res.json({ message: "Status berita berhasil diupdate" });
-  } catch (error) {
-    console.error("UPDATE STATUS ERROR:", error);
-    res.status(500).json({ message: "Gagal update status" });
-  }
-};

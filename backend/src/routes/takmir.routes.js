@@ -6,6 +6,8 @@ const keuangan = require("../controllers/takmir/keuangan.controller");
 const jamaah = require("../controllers/takmir/jamaah.controller");
 const inventaris = require("../controllers/takmir/inventaris.controller");
 const kategori = require("../controllers/takmir/kategoriKeuangan.controller");
+const berita = require("../controllers/takmir/berita.controller");
+const upload = require("../middleware/upload.middleware");
 
 router.post("/keuangan", auth, takmirOnly, keuangan.create);
 router.get("/keuangan", auth, takmirOnly, keuangan.getAll);
@@ -32,5 +34,11 @@ router.get("/kategori-keuangan", auth, takmirOnly, kategori.getAll);
 router.get("/kategori-keuangan/:id", auth, takmirOnly, kategori.getById);
 router.put("/kategori-keuangan/:id", auth, takmirOnly, kategori.update);
 router.delete("/kategori-keuangan/:id", auth, takmirOnly, kategori.delete);
+
+router.post("/berita", auth, takmirOnly, upload.array("gambar", 10), berita.create);
+router.get("/berita", auth, takmirOnly, berita.getAll);
+router.get("/berita/:id", auth, takmirOnly, berita.getById);
+router.put("/berita/:id", auth, takmirOnly, upload.array("gambar", 10), berita.update);
+router.delete("/berita/:id", auth, takmirOnly, berita.delete);
 
 module.exports = router;

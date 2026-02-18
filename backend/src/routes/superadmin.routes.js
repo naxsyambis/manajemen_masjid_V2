@@ -27,11 +27,12 @@ router.get("/takmir/:id", auth, superadminOnly, takmir.getById);
 router.put("/takmir/:id", auth, superadminOnly, takmir.update);
 router.delete("/takmir/:id", auth, superadminOnly, takmir.delete);
 
-router.post("/berita", auth, superadminOnly, upload.single("gambar"), berita.create);
-router.put("/berita/:id", auth, superadminOnly, upload.single("gambar"), berita.update);
+router.post("/berita", auth, superadminOnly, upload.array("gambar", 10), berita.create);
+router.put("/berita/:id", auth, superadminOnly, upload.array("gambar", 10), berita.update);
 router.get("/berita", auth, superadminOnly, berita.getAll);
 router.get("/berita/:id", auth, superadminOnly, berita.getById);
 router.delete("/berita/:id", auth, superadminOnly, berita.delete);
+router.patch("/berita/:id/status", auth, superadminOnly, berita.updateStatus);
 
 router.post("/program", auth, superadminOnly, program.create);
 router.get("/program", auth, superadminOnly, program.getAll);
