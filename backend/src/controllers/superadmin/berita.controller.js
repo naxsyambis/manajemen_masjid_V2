@@ -75,6 +75,32 @@ exports.update = async (req, res) => {
     const oldData = berita.toJSON();
     let gambarPath = berita.gambar;
 
+    if (req.body.deletedImages) {
+      const deletedIds = JSON.parse(req.body.deletedImages);
+
+      if (deletedIds.length > 0) {
+        const imagesToDelete = await BeritaGambar.findAll({
+          where: { gambar_id: deletedIds }
+        });
+
+        for (const img of imagesToDelete) {
+          const filePath = path.join(
+            __dirname,
+            "../../../",
+            img.path_gambar
+          );
+
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        }
+
+        await BeritaGambar.destroy({
+          where: { gambar_id: deletedIds }
+        });
+      }
+    }
+
     if (req.files?.length) {
       const dir = path.join(__dirname, "../../../uploads/berita");
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -96,8 +122,6 @@ exports.update = async (req, res) => {
         newImages.push(`/uploads/berita/${filename}`);
       }
 
-      gambarPath = newImages[0];
-
       await BeritaGambar.bulkCreate(
         newImages.map(p => ({
           berita_id: berita.berita_id,
@@ -105,6 +129,15 @@ exports.update = async (req, res) => {
         }))
       );
     }
+
+    const remainingImages = await BeritaGambar.findAll({
+      where: { berita_id: berita.berita_id },
+      order: [["gambar_id", "ASC"]]
+    });
+
+    gambarPath = remainingImages.length
+      ? remainingImages[0].path_gambar
+      : null;
 
     await berita.update({
       judul: req.body.judul,
@@ -122,6 +155,7 @@ exports.update = async (req, res) => {
     });
 
     res.json({ message: "Berita berhasil diupdate" });
+
   } catch (error) {
     console.error("UPDATE BERITA ERROR:", error);
     res.status(500).json({ message: "Gagal update berita" });

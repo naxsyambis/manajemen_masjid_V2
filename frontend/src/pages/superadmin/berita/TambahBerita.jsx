@@ -48,14 +48,19 @@ const TambahBerita = ({ user, onLogout }) => {
       navigate('/superadmin/berita');
     } catch (err) {
       console.error('Error adding berita:', err);
-      setError('Gagal menambahkan berita. Silakan coba lagi.');
+      setError('Gagal menambahkan berita. Silakan coba lagi dengan gambar kurang dari 5mb.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleFileChange = (e) => {
-    setFiles(Array.from(e.target.files));
+  const selected = Array.from(e.target.files);
+  setFiles((prev) => [...prev, ...selected]);
+  };
+
+  const handleRemoveFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleRefresh = () => {
@@ -128,42 +133,33 @@ const TambahBerita = ({ user, onLogout }) => {
                         className="hidden"
                         id="gambar-upload"
                       />
-                      <label htmlFor="gambar-upload" className="block">
-                        <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition-all duration-300 shadow-lg hover:shadow-xl">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 
-                          {files.length > 0 ? (
-                            <div className="space-y-4">
-                              <p className="font-semibold text-gray-700">
-                                {files.length} gambar dipilih
-                              </p>
+                      {files.map((file, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt="preview"
+                            className="w-full h-32 object-cover rounded-xl shadow-md"
+                          />
 
-                              <div className="grid grid-cols-3 gap-4">
-                                {files.map((f, i) => (
-                                  <img
-                                    key={i}
-                                    src={URL.createObjectURL(f)}
-                                    alt="preview"
-                                    className="w-full h-24 object-cover rounded-lg"
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="space-y-6">
-                              <Upload size={64} className="text-gray-400 mx-auto" />
-                              <div>
-                                <p className="text-lg font-semibold text-gray-700">
-                                  Klik untuk upload gambar
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  Bisa pilih banyak gambar
-                                </p>
-                              </div>
-                            </div>
-                          )}
-
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFile(index)}
+                            className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center"
+                          >
+                            ✕
+                          </button>
                         </div>
+                      ))}
+
+                      <label
+                        htmlFor="gambar-upload"
+                        className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl h-32 cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition"
+                      >
+                        +
                       </label>
+                      </div>
                         <p className="text-sm text-gray-500">Upload foto gambar berita</p>
                       </div>
                     </div>

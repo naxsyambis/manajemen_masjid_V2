@@ -39,9 +39,7 @@ exports.detailMasjid = async (req, res) => {
 
 exports.getBerita = async (req, res) => {
   try {
-    const where = {
-      status: "dipublikasi"
-    };
+    const where = { status: "dipublikasi" };
 
     if (req.query.masjid_id) {
       where.masjid_id = req.query.masjid_id;
@@ -49,6 +47,13 @@ exports.getBerita = async (req, res) => {
 
     const data = await Berita.findAll({
       where,
+      include: [
+        {
+          model: require("../../models/BeritaGambar"),
+          as: "gambar_list",
+          attributes: ["gambar_id", "path_gambar"]
+        }
+      ],
       order: [["published_at", "DESC"]]
     });
 
@@ -64,7 +69,17 @@ exports.getBeritaById = async (req, res) => {
       where: {
         berita_id: req.params.id,
         status: "dipublikasi"
-      }
+      },
+      include: [
+        {
+          model: require("../../models/BeritaGambar"),
+          as: "gambar_list",
+          attributes: ["gambar_id", "path_gambar"]
+        }
+      ],
+      order: [
+        [{ model: require("../../models/BeritaGambar"), as: "gambar_list" }, "gambar_id", "ASC"]
+      ]
     });
 
     if (!data) {

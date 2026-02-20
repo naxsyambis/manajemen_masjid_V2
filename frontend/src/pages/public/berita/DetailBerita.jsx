@@ -22,6 +22,7 @@ const DetailBerita = () => {
         }
         const data = await response.json();
         console.log('Data berita detail received:', data); // Logging data yang diterima
+        console.log("DATA BERITA:", data);
         setBerita(data);
       } catch (err) {
         console.error('Error fetching berita detail:', err); // Logging error detail
@@ -137,17 +138,23 @@ const DetailBerita = () => {
             </div>
 
             {/* Gambar Berita */}
-            {berita.gambar && (
-              <div className="mb-8">
-                <img
-                  src={`http://localhost:3000${berita.gambar}`}
-                  alt={berita.judul}
-                  className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-lg"
-                  onError={(e) => { e.target.src = 'https://via.placeholder.com/800x400?text=No+Image'; }}
-                />
+            {berita.gambar_list && berita.gambar_list.length > 0 && (
+              <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {berita.gambar_list.map((item, index) => (
+                  <img
+                    key={item.gambar_id}
+                    src={`http://localhost:3000${item.path_gambar}`}
+                    alt={`${berita.judul}-${index}`}
+                    className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-lg"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://via.placeholder.com/800x400?text=No+Image";
+                    }}
+                  />
+                ))}
               </div>
             )}
-
+            
             {/* Isi Berita */}
             <div className="prose prose-lg max-w-none text-[#1e293b] leading-relaxed mb-12 text-justify">
               <div className="whitespace-pre-wrap">{berita.isi}</div>
