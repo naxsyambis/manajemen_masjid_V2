@@ -1,71 +1,118 @@
 const axios = require("axios");
+const dayjs = require("dayjs");
 
-const BASE_URL = "https://api.myquran.com/v3/sholat";
-const DEFAULT_KOTA_ID = "9b04d152845ec0a378394003c96da594";
+const LATITUDE = -7.796667;
+const LONGITUDE = 110.363889;
 
-exports.getTodayPrayerSchedule = async (kotaId = DEFAULT_KOTA_ID) => {
-  const now = new Date();
+const METHOD = 99;
+const FAJR_ANGLE = 20;
+const ISHA_ANGLE = 18;
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const period = `${year}-${month}-${day}`;
+// ===============================
+// TUNE (Disesuaikan Jadwal Resmi DIY 1447 H)
+// Format:
+// Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Sunset,Isha,Midnight
+// ===============================
+const TUNE = "-11,-11,-3,2,2,3,0,14,0";
 
-  const url = `${BASE_URL}/jadwal/${kotaId}/${period}`;
+exports.getTodayPrayer = async () => {
 
-  const response = await axios.get(url, {
-    headers: { Accept: "application/json" },
-  });
+  const today = dayjs().format("DD-MM-YYYY");
 
-  const data = response.data?.data;
-  if (!data || !data.jadwal) {
-    throw new Error("Data jadwal tidak tersedia");
-  }
+  const response = await axios.get(
+    `https://api.aladhan.com/v1/timings/${today}`,
+    {
+      params: {
+        latitude: LATITUDE,
+        longitude: LONGITUDE,
+        method: METHOD,
+        fajrAngle: FAJR_ANGLE,
+        ishaAngle: ISHA_ANGLE,
+        school: 0,
+        latitudeAdjustmentMethod: 3,
+        tune: TUNE,
+        adjustment: 0
+      }
+    }
+  );
+
+  const data = response.data.data;
+  const timings = data.timings;
+  const hijri = data.date.hijri;
+
+  const jadwal = {
+    lokasi: "Kabupaten Bantul",
+    tanggal: data.date.gregorian.date,
+
+    sholat5Waktu: {
+      subuh: cleanTime(timings.Fajr),
+      dzuhur: cleanTime(timings.Dhuhr),
+      ashar: cleanTime(timings.Asr),
+      maghrib: cleanTime(timings.Maghrib),
+      isya: cleanTime(timings.Isha)
+    },
+
+    pemisah: "---------------------",
+
+    ramadhan: {
+      isRamadhan: hijri.month.number === 9,
+      bulanHijriyah: hijri.month.en,
+      tanggalHijriyah: hijri.date,
+      hariKe: hijri.month.number === 9 ? Number(hijri.day) : null,
+      imsak: cleanTime(timings.Imsak),
+      terbit: cleanTime(timings.Sunrise)
+    }
+  };
+
+  return addNextPrayer(jadwal);
+};
+
+function cleanTime(timeString) {
+  return timeString.split(" ")[0];
+}
 
 
-  const todaySchedule = data.jadwal[period];
-  if (!todaySchedule) {
-    throw new Error("Jadwal hari ini tidak ditemukan");
-  }
+function addNextPrayer(jadwal) {
 
-  const prayerTimes = [
-    { name: "Subuh", time: todaySchedule.subuh },
-    { name: "Dzuhur", time: todaySchedule.dzuhur },
-    { name: "Ashar", time: todaySchedule.ashar },
-    { name: "Maghrib", time: todaySchedule.maghrib },
-    { name: "Isya", time: todaySchedule.isya },
+  const now = dayjs();
+
+  const prayers = [
+    { name: "Subuh", time: jadwal.sholat5Waktu.subuh },
+    { name: "Dzuhur", time: jadwal.sholat5Waktu.dzuhur },
+    { name: "Ashar", time: jadwal.sholat5Waktu.ashar },
+    { name: "Maghrib", time: jadwal.sholat5Waktu.maghrib },
+    { name: "Isya", time: jadwal.sholat5Waktu.isya }
   ];
 
-  let nextPrayer = null;
+  for (const prayer of prayers) {
 
-  for (const prayer of prayerTimes) {
-    if (!prayer.time) continue;
+    const prayerTime = dayjs(
+      `${now.format("YYYY-MM-DD")} ${prayer.time}`
+    );
 
-    const [hour, minute] = prayer.time.split(":").map(Number);
+    if (now.isBefore(prayerTime)) {
 
-    const prayerDate = new Date();
-    prayerDate.setHours(hour, minute, 0, 0);
+      const diff = prayerTime.diff(now, "second");
 
-    if (prayerDate > now) {
-      const diff = prayerDate - now;
-
-      nextPrayer = {
-        name: prayer.name,
-        time: prayer.time,
-        remaining: {
-          hours: Math.floor(diff / 3600000),
-          minutes: Math.floor((diff % 3600000) / 60000),
-          seconds: Math.floor((diff % 60000) / 1000),
-        },
+      return {
+        ...jadwal,
+        nextPrayer: {
+          nama: prayer.name,
+          sisa: {
+            jam: Math.floor(diff / 3600),
+            menit: Math.floor((diff % 3600) / 60),
+            detik: diff % 60
+          }
+        }
       };
-      break;
     }
   }
 
   return {
-    lokasi: `${data.kabko}, ${data.prov}`,
-    tanggal: period,
-    jadwal: todaySchedule,
-    nextPrayer,
+    ...jadwal,
+    nextPrayer: {
+      nama: "Subuh",
+      sisa: "Menunggu hari berikutnya"
+    }
   };
-};
+}

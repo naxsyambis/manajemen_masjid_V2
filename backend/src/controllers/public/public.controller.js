@@ -158,17 +158,13 @@ exports.getInventaris = async (req, res) => {
     }
 };
 
-exports.getJadwalSholat = async (req, res) => {
-    try {
-        const kotaId = req.query.kota_id;
-        const data = await prayerService.getTodayPrayerSchedule(kotaId);
+const jadwalService = require("../../services/prayer.service");
 
-        res.json({ success: true, data });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            success: false,
-            message: err.message,
-        });
-    }
+exports.getJadwalSholat = async (req, res) => {
+  try {
+    const data = await jadwalService.getTodayPrayer();
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
