@@ -8,6 +8,7 @@ const JadwalSholatSection = () => {
   const [prayerSchedule, setPrayerSchedule] = useState([]);
   const [lokasi, setLokasi] = useState('Yogyakarta & Sekitarnya');
   const [nextPrayer, setNextPrayer] = useState(null);
+  const [ramadhanInfo, setRamadhanInfo] = useState(null); // State untuk data ramadhan
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -15,49 +16,49 @@ const JadwalSholatSection = () => {
   // =========================
   // FETCH DATA BACKEND
   // =========================
-const fetchPrayerSchedule = async () => {
-  try {
-    setRefreshing(true);
-    setError(null);
+  const fetchPrayerSchedule = async () => {
+    try {
+      setRefreshing(true);
+      setError(null);
 
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/public/jadwal-sholat`
-    );
+      const response = await axios.get("http://localhost:3000/public/jadwal-sholat");
 
-    console.log("FULL RESPONSE:", response.data);
+      console.log("FULL RESPONSE:", response.data);
 
-    // ✅ FIX UTAMA DI SINI
-    const result = response.data.data;
+      const result = response.data.data;
 
-    if (!result || !result.jadwal) {
-      console.error("INVALID DATA:", result);
-      throw new Error("Format data tidak valid");
+      if (!result || !result.jadwal) {
+        console.error("INVALID DATA:", result);
+        throw new Error("Format data tidak valid");
+      }
+
+      setLokasi(result.lokasi || "Lokasi tidak diketahui");
+      
+      // Simpan data ramadhan dari backend
+      setRamadhanInfo(result.ramadhan || null);
+
+      setPrayerSchedule([
+        { name: "Subuh", time: result.jadwal.subuh, icon: <Sunrise size={32} /> },
+        { name: "Dzuhur", time: result.jadwal.dzuhur, icon: <Sun size={32} /> },
+        { name: "Ashar", time: result.jadwal.ashar, icon: <CloudSun size={32} /> },
+        { name: "Maghrib", time: result.jadwal.maghrib, icon: <Sunset size={32} /> },
+        { name: "Isya", time: result.jadwal.isya, icon: <Moon size={32} /> },
+      ]);
+
+      setNextPrayer({
+        name: result.nextPrayer?.name || "-",
+        time: result.nextPrayer?.time || "-"
+      });
+
+    } catch (err) {
+      console.error('Error fetching prayer schedule:', err);
+      setError('Gagal memuat jadwal sholat.');
+      setPrayerSchedule([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-
-    setLokasi(result.lokasi || "Lokasi tidak diketahui");
-
-    setPrayerSchedule([
-      { name: "Subuh", time: result.jadwal.subuh, icon: <Sunrise size={32} /> },
-      { name: "Dzuhur", time: result.jadwal.dzuhur, icon: <Sun size={32} /> },
-      { name: "Ashar", time: result.jadwal.ashar, icon: <CloudSun size={32} /> },
-      { name: "Maghrib", time: result.jadwal.maghrib, icon: <Sunset size={32} /> },
-      { name: "Isya", time: result.jadwal.isya, icon: <Moon size={32} /> },
-    ]);
-
-    setNextPrayer({
-      name: result.nextPrayer?.name || "-",
-      time: result.nextPrayer?.time || "-"
-    });
-
-  } catch (err) {
-    console.error('Error fetching prayer schedule:', err);
-    setError('Gagal memuat jadwal sholat.');
-    setPrayerSchedule([]);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
+  };
 
   useEffect(() => {
     fetchPrayerSchedule();
@@ -172,6 +173,28 @@ const fetchPrayerSchedule = async () => {
                 <div>
                   <p className="text-red-700 font-medium">Error</p>
                   <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {/* RAMADHAN SECTION */}
+            {ramadhanInfo?.isRamadhan && (
+              <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                  <p className="text-amber-800 font-bold text-lg">Ramadhan {ramadhanInfo.hariKe}</p>
+                  <p className="text-amber-600 text-sm">
+                    {ramadhanInfo.bulanHijriyah} - {ramadhanInfo.tanggalHijriyah}
+                  </p>
+                </div>
+                <div className="flex gap-6 text-center">
+                  <div>
+                    <p className="text-xs text-amber-600 uppercase font-bold">Imsak</p>
+                    <p className="text-lg font-bold text-amber-800">{ramadhanInfo.imsak}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-amber-600 uppercase font-bold">Terbit</p>
+                    <p className="text-lg font-bold text-amber-800">{ramadhanInfo.terbit}</p>
+                  </div>
                 </div>
               </div>
             )}

@@ -53,7 +53,7 @@ exports.getTodayPrayer = async () => {
     nextPrayer,      
 
     ramadhan: {
-      isRamadhan: hijri.month.number === 9,
+      isRamadhan: hijri.month.number === 9, //tambahkan true nanti ya
       bulanHijriyah: hijri.month.en,
       tanggalHijriyah: hijri.date,
       hariKe: hijri.month.number === 9 ? Number(hijri.day) : null,
