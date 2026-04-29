@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatRupiah } from "./formatCurrency";
 import { formatTanggal } from "./formatDate";
-import logoKop from "../assets/kop-surat.png"; // Pastikan file benar-benar ada di folder assets
+import logoKop from "../assets/kop-surat.jpeg"; // Pastikan file benar-benar ada di folder assets
 
 export const generateLaporanKeuanganPDF = async (
   transaksi,
