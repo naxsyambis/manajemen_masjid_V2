@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { Save, Calendar, RefreshCcw, AlertCircle } from 'lucide-react';
+import { Save, RefreshCcw, AlertCircle } from 'lucide-react';
 
 const EditBerita = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,6 +18,8 @@ const EditBerita = ({ user, onLogout }) => {
   const [newFiles, setNewFiles] = useState([]);
   const [deletedImageIds, setDeletedImageIds] = useState([]);
 
+  const [status, setStatus] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
@@ -28,6 +30,7 @@ const EditBerita = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
 
   const isExpanded = isOpen || isHovered;
+  const isPublished = status === "dipublikasi";
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -55,6 +58,7 @@ const EditBerita = ({ user, onLogout }) => {
         isi: res.data.isi
       });
 
+      setStatus(res.data.status);
       setExistingImages(res.data.gambar_list || []);
       setNewFiles([]);
       setDeletedImageIds([]);
@@ -65,6 +69,26 @@ const EditBerita = ({ user, onLogout }) => {
       navigate('/superadmin/berita');
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  // 🔥 UPDATE STATUS DINAMIS
+  const updateStatus = async (newStatus) => {
+    try {
+      await axios.patch(
+        `http://localhost:3000/superadmin/berita/${id}/status`,
+        { status: newStatus },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      setStatus(newStatus);
+      alert(`Status diubah ke ${newStatus} ✅`);
+
+    } catch (err) {
+      console.error(err);
+      alert("Gagal update status");
     }
   };
 
@@ -142,9 +166,14 @@ const EditBerita = ({ user, onLogout }) => {
               <h1 className="text-3xl font-bold">
                 Edit <span className="text-mu-green">Berita</span>
               </h1>
+
               <div className="text-sm text-gray-500 mt-1">
                 {time.toLocaleDateString('id-ID')} • {time.toLocaleTimeString('id-ID')}
               </div>
+
+              <span className="text-xs px-3 py-1 bg-gray-200 rounded-full mt-2 inline-block">
+                Status: {status}
+              </span>
             </div>
 
             <button
@@ -252,24 +281,73 @@ const EditBerita = ({ user, onLogout }) => {
               />
             </div>
 
-            <div className="flex justify-end gap-4">
-              <button
-                type="button"
-                onClick={() => navigate('/superadmin/berita')}
-                className="px-6 py-3 bg-gray-300 rounded-xl"
-              >
-                Batal
-              </button>
+            <div className="flex justify-between items-center gap-4">
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-3 bg-mu-green text-white rounded-xl flex items-center gap-2"
-              >
-                <Save size={18} />
-                {loading ? 'Menyimpan...' : 'Update'}
-              </button>
-            </div>
+  {/* 🔥 ACTION BUTTON */}
+  <div className="flex gap-3">
+
+    {!isPublished && (
+      <>
+        {/* ✅ SETUJUI */}
+        {(status === "draft" || status === "menunggu" || status === "ditolak") && (
+          <button
+            type="button"
+            onClick={() => updateStatus("disetujui")}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:scale-105 transition"
+          >
+            Setujui
+          </button>
+        )}
+
+        {/* ✅ TOLAK */}
+        {(status === "draft" || status === "menunggu" || status === "disetujui") && (
+          <button
+            type="button"
+            onClick={() => updateStatus("ditolak")}
+            className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:scale-105 transition"
+          >
+            Tolak
+          </button>
+        )}
+
+        {/* ✅ PUBLIKASI */}
+        {status === "disetujui" && (
+          <button
+            type="button"
+            onClick={() => updateStatus("dipublikasi")}
+            className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:scale-105 transition"
+          >
+            Publikasi
+          </button>
+        )}
+      </>
+    )}
+
+  </div>
+
+  {/* 🔥 RIGHT BUTTON */}
+  <div className="flex gap-4">
+
+    <button
+      type="button"
+      onClick={() => navigate('/superadmin/berita')}
+      className="px-6 py-3 bg-gray-300 rounded-xl"
+    >
+      Batal
+    </button>
+
+    <button
+      type="submit"
+      disabled={loading}
+      className="px-6 py-3 bg-mu-green text-white rounded-xl flex items-center gap-2 font-bold"
+    >
+      <Save size={18} />
+      {loading ? 'Menyimpan...' : 'Update'}
+    </button>
+
+  </div>
+
+</div>
 
           </form>
         </div>
