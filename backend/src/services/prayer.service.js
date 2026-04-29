@@ -8,15 +8,9 @@ const METHOD = 99;
 const FAJR_ANGLE = 20;
 const ISHA_ANGLE = 18;
 
-// ===============================
-// TUNE (Disesuaikan Jadwal Resmi DIY 1447 H)
-// Format:
-// Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Sunset,Isha,Midnight
-// ===============================
 const TUNE = "-11,-11,-3,2,2,3,0,14,0";
 
 exports.getTodayPrayer = async () => {
-
   const today = dayjs().format("DD-MM-YYYY");
 
   const response = await axios.get(
@@ -41,18 +35,22 @@ exports.getTodayPrayer = async () => {
   const hijri = data.date.hijri;
 
   const jadwal = {
+    subuh: cleanTime(timings.Fajr),
+    dzuhur: cleanTime(timings.Dhuhr),
+    ashar: cleanTime(timings.Asr),
+    maghrib: cleanTime(timings.Maghrib),
+    isya: cleanTime(timings.Isha)
+  };
+
+  //  NEXT PRAYER (format frontend)
+  const nextPrayer = getNextPrayer(jadwal);
+
+  return {
     lokasi: "Kabupaten Bantul",
     tanggal: data.date.gregorian.date,
 
-    sholat5Waktu: {
-      subuh: cleanTime(timings.Fajr),
-      dzuhur: cleanTime(timings.Dhuhr),
-      ashar: cleanTime(timings.Asr),
-      maghrib: cleanTime(timings.Maghrib),
-      isya: cleanTime(timings.Isha)
-    },
-
-    pemisah: "---------------------",
+    jadwal,          
+    nextPrayer,      
 
     ramadhan: {
       isRamadhan: hijri.month.number === 9,
@@ -63,56 +61,41 @@ exports.getTodayPrayer = async () => {
       terbit: cleanTime(timings.Sunrise)
     }
   };
-
-  return addNextPrayer(jadwal);
 };
+
+// =============================
+// HELPER
+// =============================
 
 function cleanTime(timeString) {
   return timeString.split(" ")[0];
 }
 
-
-function addNextPrayer(jadwal) {
-
+function getNextPrayer(jadwal) {
   const now = dayjs();
 
   const prayers = [
-    { name: "Subuh", time: jadwal.sholat5Waktu.subuh },
-    { name: "Dzuhur", time: jadwal.sholat5Waktu.dzuhur },
-    { name: "Ashar", time: jadwal.sholat5Waktu.ashar },
-    { name: "Maghrib", time: jadwal.sholat5Waktu.maghrib },
-    { name: "Isya", time: jadwal.sholat5Waktu.isya }
+    { name: "Subuh", time: jadwal.subuh },
+    { name: "Dzuhur", time: jadwal.dzuhur },
+    { name: "Ashar", time: jadwal.ashar },
+    { name: "Maghrib", time: jadwal.maghrib },
+    { name: "Isya", time: jadwal.isya }
   ];
 
   for (const prayer of prayers) {
-
-    const prayerTime = dayjs(
-      `${now.format("YYYY-MM-DD")} ${prayer.time}`
-    );
+    const prayerTime = dayjs(`${now.format("YYYY-MM-DD")} ${prayer.time}`);
 
     if (now.isBefore(prayerTime)) {
-
-      const diff = prayerTime.diff(now, "second");
-
       return {
-        ...jadwal,
-        nextPrayer: {
-          nama: prayer.name,
-          sisa: {
-            jam: Math.floor(diff / 3600),
-            menit: Math.floor((diff % 3600) / 60),
-            detik: diff % 60
-          }
-        }
+        name: prayer.name,
+        time: prayer.time
       };
     }
   }
 
+  // fallback besok
   return {
-    ...jadwal,
-    nextPrayer: {
-      nama: "Subuh",
-      sisa: "Menunggu hari berikutnya"
-    }
+    name: "Subuh",
+    time: jadwal.subuh
   };
 }
