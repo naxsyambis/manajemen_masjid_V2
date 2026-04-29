@@ -29,7 +29,7 @@ const NavbarPublic = () => {
   };
 
   return (
-    <header className="h-20 bg-green-900 text-white flex items-center justify-between px-6 lg:px-10 fixed top-0 left-0 right-0 z-50 transition-all border-b border-black shadow-md">
+    <header className="h-20 bg-green-900 text-white flex items-center justify-between px-6 lg:px-10 fixed top-0 left-0 right-0 z-[9999] transition-all border-b border-black shadow-md">
       {/* Logo dan Teks */}
       <div className="flex items-center gap-4 group">
         <div className="w-12 h-12 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-gray-50 p-1 transform group-hover:scale-110 transition-transform duration-300">
@@ -57,7 +57,9 @@ const NavbarPublic = () => {
       {/* Menu Desktop */}
       <nav className="hidden md:flex items-center space-x-2" role="navigation" aria-label="Main navigation">
         <button onClick={() => handleSectionLink('home')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Home</button>
-        <button onClick={() => handleSectionLink('masjid')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Masjid</button>
+        <button 
+  onClick={() => handlePageLink('/masjid')} 
+  className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Masjid</button>
         <button onClick={() => handleSectionLink('berita')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Berita Ranting</button>
         <button onClick={() => handleSectionLink('program')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Program Ranting</button>
         <button onClick={() => handleSectionLink('kegiatan')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kegiatan</button>
@@ -109,7 +111,9 @@ const NavbarPublic = () => {
         <div className="absolute top-full left-0 w-full bg-green-900 border-t border-black shadow-lg md:hidden z-40" role="navigation" aria-label="Mobile navigation">
           <div className="px-6 py-4 space-y-2 max-h-96 overflow-y-auto">
             <button onClick={() => handleSectionLink('home')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Home</button>
-            <button onClick={() => handleSectionLink('masjid')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Masjid</button>
+            <button 
+  onClick={() => handlePageLink('/masjid')} 
+  className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Masjid</button>
             <button onClick={() => handleSectionLink('berita')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Berita Ranting</button>
             <button onClick={() => handleSectionLink('program')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Program Ranting</button>
             <button onClick={() => handleSectionLink('kegiatan')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kegiatan</button>
