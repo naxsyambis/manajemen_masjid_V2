@@ -10,6 +10,8 @@ const storage = multer.diskStorage({
     else if (req.baseUrl.includes("berita")) folder = "uploads/berita";
     else if (req.originalUrl.includes("kepengurusan")) folder = "uploads/kepengurusan";
     else if (req.baseUrl.includes("masjid")) folder = "uploads/masjid";
+    if (file.fieldname === 'poster_kegiatan') folder = 'uploads/kegiatan'; 
+    if (file.fieldname === 'gambar_program') folder = 'uploads/program'; 
 
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder, { recursive: true });

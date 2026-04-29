@@ -7,7 +7,8 @@ module.exports = sequelize.define("kegiatan_masjid", {
     waktu_kegiatan: DataTypes.DATE,
     lokasi: DataTypes.STRING,
     deskripsi: DataTypes.STRING, 
-    user_id: DataTypes.INTEGER
+    user_id: DataTypes.INTEGER,
+    poster: DataTypes.STRING 
 }, {
     tableName: "kegiatan_masjid",
     timestamps: false

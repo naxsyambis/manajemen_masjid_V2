@@ -6,6 +6,7 @@ const Keuangan = sequelize.define("keuangan", {
     jumlah: DataTypes.DECIMAL,
     tanggal: DataTypes.DATE,
     deskripsi: DataTypes.TEXT,
+    nama_donatur: DataTypes.STRING, 
     user_id: DataTypes.INTEGER,
     kategori_id: DataTypes.INTEGER,
     masjid_id: DataTypes.INTEGER
