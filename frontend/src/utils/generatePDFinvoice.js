@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import { formatRupiah } from "./formatCurrency";
 import { formatTanggal } from "./formatDate";
-import logoKop from "../assets/kop-surat.png"; 
+import logoKop from "../assets/kop-surat.jpeg"; 
 
 // =================================
 // HELPER: URL IMAGE → BASE64
