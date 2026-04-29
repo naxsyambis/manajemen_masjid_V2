@@ -11,11 +11,13 @@ const TambahMasjid = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [formData, setFormData] = useState({
-    nama_masjid: '',
-    alamat: '',
-    no_hp: '',
-    deskripsi: ''
-  });
+  nama_masjid: '',
+  alamat: '',
+  no_hp: '',
+  deskripsi: '',
+  latitude: '',
+  longitude: ''
+});
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
