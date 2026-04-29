@@ -1,114 +1,126 @@
 const { Op } = require("sequelize");
 const Keuangan = require("../../models/Keuangan");
 const Kategori = require("../../models/Kategori_Keuangan");
-const Masjid = require("../../models/Masjid");
-const User = require("../../models/User");
 const { logActivity } = require("../../services/auditLog.service");
 
 exports.create = async (req, res) => {
-    const data = await Keuangan.create({
-        jumlah: req.body.jumlah,
-        tanggal: req.body.tanggal,
-        deskripsi: req.body.deskripsi,
-        kategori_id: req.body.kategori_id,
-        user_id: req.user.user_id,
-        masjid_id: req.user.masjid_id
-    });
+    try {
+        const data = await Keuangan.create({
+            jumlah: req.body.jumlah,
+            tanggal: req.body.tanggal,
+            deskripsi: req.body.deskripsi,
+            kategori_id: req.body.kategori_id,
+            user_id: req.user.user_id,
+            masjid_id: req.user.masjid_id
+        });
 
-    await logActivity({
-        req,
-        action: "CREATE",
-        nama_tabel: "keuangan",
-        data_baru: data,
-        record_id: data.keuangan_id
-    });
+        await logActivity({
+            req,
+            action: "CREATE",
+            nama_tabel: "keuangan",
+            data_baru: data,
+            record_id: data.keuangan_id
+        });
 
-    res.json(data);
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(500).json({ message: "Gagal menambahkan data keuangan", error: error.message });
+    }
 };
 
 exports.getAll = async (req, res) => {
-    const data = await Keuangan.findAll({
-        where: { masjid_id: req.user.masjid_id }
-    });
-    res.json(data);
+    try {
+        const data = await Keuangan.findAll({
+            where: { masjid_id: req.user.masjid_id },
+            include: [{ model: Kategori, as: 'kategori_keuangan' }] 
+        });
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ message: "Gagal mengambil data keuangan", error: error.message });
+    }
 };
 
 exports.getById = async (req, res) => {
-    const data = await Keuangan.findOne({
-        where: {
-            keuangan_id: req.params.id,
-            masjid_id: req.user.masjid_id
-        }
-    });
+    try {
+        const data = await Keuangan.findOne({
+            where: {
+                keuangan_id: req.params.id,
+                masjid_id: req.user.masjid_id
+            }
+        });
 
-    if (!data) return res.status(404).json({ message: "Data keuangan tidak ditemukan" });
-    res.json(data);
+        if (!data) return res.status(404).json({ message: "Data keuangan tidak ditemukan" });
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ message: "Gagal mengambil data keuangan", error: error.message });
+    }
 };
 
 exports.update = async (req, res) => {
-    const keuangan = await Keuangan.findOne({
-        where: {
-            keuangan_id: req.params.id,
-            masjid_id: req.user.masjid_id
-        }
-    });
+    try {
+        const keuangan = await Keuangan.findOne({
+            where: {
+                keuangan_id: req.params.id,
+                masjid_id: req.user.masjid_id
+            }
+        });
 
-    if (!keuangan) return res.status(404).json({ message: "Data keuangan tidak ditemukan" });
+        if (!keuangan) return res.status(404).json({ message: "Data keuangan tidak ditemukan" });
 
-    const oldData = keuangan.toJSON();
+        const oldData = keuangan.toJSON();
 
-    await keuangan.update(req.body);
+        await keuangan.update(req.body);
 
-    await logActivity({
-        req,
-        action: "UPDATE",
-        nama_tabel: "keuangan",
-        data_lama: oldData,
-        data_baru: keuangan,
-        record_id: req.params.id
-    });
+        await logActivity({
+            req,
+            action: "UPDATE",
+            nama_tabel: "keuangan",
+            data_lama: oldData,
+            data_baru: keuangan,
+            record_id: req.params.id
+        });
 
-    res.json({ message: "Keuangan berhasil diupdate" });
+        res.json({ message: "Keuangan berhasil diupdate", data: keuangan });
+    } catch (error) {
+        res.status(500).json({ message: "Gagal mengupdate data", error: error.message });
+    }
 };
 
 exports.delete = async (req, res) => {
-    const oldData = await Keuangan.findOne({
-        where: {
-            keuangan_id: req.params.id,
-            masjid_id: req.user.masjid_id
-        }
-    });
+    try {
+        const oldData = await Keuangan.findOne({
+            where: {
+                keuangan_id: req.params.id,
+                masjid_id: req.user.masjid_id
+            }
+        });
 
-    if (!oldData) return res.status(404).json({ message: "Data keuangan tidak ditemukan" });
+        if (!oldData) return res.status(404).json({ message: "Data keuangan tidak ditemukan" });
 
-    await Keuangan.destroy({
-        where: {
-            keuangan_id: req.params.id,
-            masjid_id: req.user.masjid_id
-        }
-    });
+        await Keuangan.destroy({
+            where: {
+                keuangan_id: req.params.id,
+                masjid_id: req.user.masjid_id
+            }
+        });
 
-    await logActivity({
-        req,
-        action: "DELETE",
-        nama_tabel: "keuangan",
-        data_lama: oldData,
-        record_id: req.params.id
-    });
+        await logActivity({
+            req,
+            action: "DELETE",
+            nama_tabel: "keuangan",
+            data_lama: oldData,
+            record_id: req.params.id
+        });
 
-    res.json({ message: "Keuangan berhasil dihapus" });
+        res.json({ message: "Keuangan berhasil dihapus" });
+    } catch (error) {
+        res.status(500).json({ message: "Gagal menghapus data", error: error.message });
+    }
 };
-
-
 
 const getPeriodeTanggal = (periode) => {
     const now = new Date();
-
-    const today = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate()
-    );
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     let start;
     let end = today;
@@ -137,7 +149,7 @@ const getPeriodeTanggal = (periode) => {
 
 exports.generateReport = async (req, res) => {
     try {
-        const { periode, kategori_id, jenis } = req.query;
+        const { periode, kategori_id } = req.query;
 
         if (!periode) {
             return res.status(400).json({
@@ -170,45 +182,11 @@ exports.generateReport = async (req, res) => {
             });
         }
 
-        let totalPemasukan = 0;
-        let totalPengeluaran = 0;
-
-        data.forEach((d) => {
-            const jumlah = Number(d.jumlah);
-            if (jumlah >= 0) totalPemasukan += jumlah;
-            else totalPengeluaran += Math.abs(jumlah);
-        });
-
-        const takmir = await User.findByPk(req.user.user_id);
-        const masjid = await Masjid.findByPk(req.user.masjid_id);
-
-        let kategori = "Semua";
-        if (kategori_id) {
-            const kat = await Kategori.findByPk(kategori_id);
-            if (kat) kategori = kat.nama_kategori;
-        }
-
-        const label =
-            periode === "harian"
-                ? "Harian"
-                : periode === "mingguan"
-                    ? "Mingguan"
-                    : "Bulanan";
-
-        const file = await ReportService.generateKeuanganPDF({
-            jenis,
-            kategori,
-            periode: `${label} (${startDate} s/d ${endDate})`,
-            data,
-            totalPemasukan,
-            totalPengeluaran,
-            takmir,
-            masjid,
-        });
-
         return res.json({
-            message: "Laporan berhasil dibuat",
-            file,
+            message: "Data laporan berhasil diambil",
+            startDate,
+            endDate,
+            data
         });
     } catch (err) {
         console.error("GENERATE REPORT ERROR:", err);

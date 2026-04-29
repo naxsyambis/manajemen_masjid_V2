@@ -1,7 +1,8 @@
 const router = require("express").Router();
 const auth = require("../middleware/auth.middleware");
-const { superadminOnly, takmirOnly } = require("../middleware/role.middleware");
+const { superadminOnly } = require("../middleware/role.middleware");
 const upload = require("../middleware/upload.middleware");
+
 const masjid = require("../controllers/superadmin/masjid.controller");
 const takmir = require("../controllers/superadmin/takmir.controller");
 const berita = require("../controllers/superadmin/berita.controller");
@@ -12,6 +13,7 @@ const keuangan = require("../controllers/superadmin/keuangan.masjid.controller")
 const inventaris = require("../controllers/superadmin/inventaris.controller");
 const jamaah = require("../controllers/superadmin/jamaah.controller");
 const audit = require("../controllers/superadmin/audit.controller");
+const kategoriProgram = require("../controllers/superadmin/kategoriProgram.controller"); 
 
 router.get("/audit-log", auth, superadminOnly, audit.getAll);
 
@@ -34,17 +36,22 @@ router.get("/berita/:id", auth, superadminOnly, berita.getById);
 router.delete("/berita/:id", auth, superadminOnly, berita.delete);
 router.patch("/berita/:id/status", auth, superadminOnly, berita.updateStatus);
 
-router.post("/program", auth, superadminOnly, program.create);
-router.get("/program", auth, superadminOnly, program.getAll);
-router.get("/program/:id", auth, superadminOnly, program.getById);
-router.put("/program/:id", auth, superadminOnly, program.update);
-router.delete("/program/:id", auth, superadminOnly, program.delete);
+router.post("/kategori-program", auth, superadminOnly, kategoriProgram.createKategoriProgram);
+router.get("/kategori-program", auth, superadminOnly, kategoriProgram.getAllKategoriProgram);
+router.put("/kategori-program/:id", auth, superadminOnly, kategoriProgram.updateKategoriProgram);
+router.delete("/kategori-program/:id", auth, superadminOnly, kategoriProgram.deleteKategoriProgram);
 
-router.post("/kegiatan", auth, superadminOnly, kegiatan.create);
-router.get("/kegiatan", auth, superadminOnly, kegiatan.getAll);
+router.post("/program", auth, superadminOnly, upload.single("gambar"), program.createProgram);
+router.get("/program", auth, superadminOnly, program.getAllProgram);
+router.get("/program/:id", auth, superadminOnly, program.getById);
+router.put("/program/:id", auth, superadminOnly, upload.single("gambar"), program.updateProgram);
+router.delete("/program/:id", auth, superadminOnly, program.deleteProgram);
+
+router.post("/kegiatan", auth, superadminOnly, upload.single("poster"), kegiatan.createKegiatan);
+router.get("/kegiatan", auth, superadminOnly, kegiatan.getAllKegiatan);
 router.get("/kegiatan/:id", auth, superadminOnly, kegiatan.getById);
-router.put("/kegiatan/:id", auth, superadminOnly, kegiatan.update);
-router.delete("/kegiatan/:id", auth, superadminOnly, kegiatan.delete);
+router.put("/kegiatan/:id", auth, superadminOnly, upload.single("poster"), kegiatan.updateKegiatan);
+router.delete("/kegiatan/:id", auth, superadminOnly, kegiatan.deleteKegiatan);
 
 router.post("/kepengurusan", auth, superadminOnly, upload.single("foto_pengurus"), kepengurusan.create);
 router.put("/kepengurusan/:id", auth, superadminOnly, upload.single("foto_pengurus"), kepengurusan.update);
@@ -55,4 +62,5 @@ router.delete("/kepengurusan/:id", auth, superadminOnly, kepengurusan.delete);
 router.get("/keuangan", auth, superadminOnly, keuangan.getAll);
 router.get("/inventaris", auth, superadminOnly, inventaris.getAll);
 router.get("/jamaah", auth, superadminOnly, jamaah.getAll);
+
 module.exports = router;

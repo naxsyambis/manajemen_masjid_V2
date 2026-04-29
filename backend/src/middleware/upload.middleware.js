@@ -8,27 +8,26 @@ const storage = multer.diskStorage({
 
     if (req.baseUrl.includes("auth")) folder = "uploads/ttd";
     else if (req.baseUrl.includes("berita")) folder = "uploads/berita";
-    else if (req.originalUrl.includes("kepengurusan")) folder = "uploads/kepengurusan";
+    else if (req.originalUrl.includes("kepengurusan") || file.fieldname === 'foto_pengurus') folder = "uploads/kepengurusan";
     else if (req.baseUrl.includes("masjid")) folder = "uploads/masjid";
-    if (file.fieldname === 'poster_kegiatan') folder = 'uploads/kegiatan'; 
-    if (file.fieldname === 'gambar_program') folder = 'uploads/program'; 
+    else if (file.fieldname === 'poster_kegiatan') folder = 'uploads/kegiatan'; 
+    else if (file.fieldname === 'gambar_program') folder = 'uploads/program'; 
 
-    if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder, { recursive: true });
+    const dir = path.join(__dirname, `../../${folder}`);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
 
-    cb(null, folder);
+    cb(null, dir);   
   },
-
   filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
     cb(null, uniqueName);
   }
 });
 
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: storage, 
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
