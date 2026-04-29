@@ -15,48 +15,49 @@ const JadwalSholatSection = () => {
   // =========================
   // FETCH DATA BACKEND
   // =========================
-  const fetchPrayerSchedule = async () => {
-    try {
-      setRefreshing(true);
-      setError(null);
+const fetchPrayerSchedule = async () => {
+  try {
+    setRefreshing(true);
+    setError(null);
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/public/jadwal-sholat`
-      );
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/public/jadwal-sholat`
+    );
 
-      // Ambil objek data dari respon API
-      const result = response.data.data; 
+    console.log("FULL RESPONSE:", response.data);
 
-      // Validasi apakah result ada dan memiliki jadwal
-      if (!result || !result.jadwal) {
-        throw new Error("Format data tidak valid");
-      }
+    // ✅ FIX UTAMA DI SINI
+    const result = response.data.data;
 
-      setLokasi(result.lokasi || "Lokasi tidak diketahui");
-
-      // Gunakan 'result.jadwal' untuk mengakses jadwal
-      setPrayerSchedule([
-        { name: "Subuh", time: result.jadwal.subuh, icon: <Sunrise size={32} /> },
-        { name: "Dzuhur", time: result.jadwal.dzuhur, icon: <Sun size={32} /> },
-        { name: "Ashar", time: result.jadwal.ashar, icon: <CloudSun size={32} /> },
-        { name: "Maghrib", time: result.jadwal.maghrib, icon: <Sunset size={32} /> },
-        { name: "Isya", time: result.jadwal.isya, icon: <Moon size={32} /> },
-      ]);
-
-      setNextPrayer({
-        name: result.nextPrayer?.name || "-",
-        time: result.nextPrayer?.time || "-"
-      });
-
-    } catch (err) {
-      console.error('Error fetching prayer schedule:', err);
-      setError('Gagal memuat jadwal sholat.');
-      setPrayerSchedule([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    if (!result || !result.jadwal) {
+      console.error("INVALID DATA:", result);
+      throw new Error("Format data tidak valid");
     }
-  };
+
+    setLokasi(result.lokasi || "Lokasi tidak diketahui");
+
+    setPrayerSchedule([
+      { name: "Subuh", time: result.jadwal.subuh, icon: <Sunrise size={32} /> },
+      { name: "Dzuhur", time: result.jadwal.dzuhur, icon: <Sun size={32} /> },
+      { name: "Ashar", time: result.jadwal.ashar, icon: <CloudSun size={32} /> },
+      { name: "Maghrib", time: result.jadwal.maghrib, icon: <Sunset size={32} /> },
+      { name: "Isya", time: result.jadwal.isya, icon: <Moon size={32} /> },
+    ]);
+
+    setNextPrayer({
+      name: result.nextPrayer?.name || "-",
+      time: result.nextPrayer?.time || "-"
+    });
+
+  } catch (err) {
+    console.error('Error fetching prayer schedule:', err);
+    setError('Gagal memuat jadwal sholat.');
+    setPrayerSchedule([]);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   useEffect(() => {
     fetchPrayerSchedule();
