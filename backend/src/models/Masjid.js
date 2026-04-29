@@ -7,7 +7,11 @@ const Masjid = sequelize.define("masjid", {
     alamat: DataTypes.TEXT,
     no_hp: DataTypes.STRING,
     deskripsi: DataTypes.TEXT,
-    logo_foto: DataTypes.STRING
+    logo_foto: DataTypes.STRING,
+
+    latitude: DataTypes.FLOAT,
+    longitude: DataTypes.FLOAT
+
 }, {
     tableName: "masjid",
     timestamps: false

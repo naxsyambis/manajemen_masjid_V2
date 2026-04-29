@@ -7,6 +7,8 @@ const Kepengurusan = require("../../models/Kepengurusan");
 const Keuangan = require("../../models/Keuangan");      
 const Inventaris = require("../../models/Inventaris"); 
 const prayerService = require("../../services/prayer.service");
+const jadwalService = require("../../services/prayer.service");
+const MasjidService = require("../../services/masjid.service");
 
 exports.listMasjid = async (req, res) => {
   try {
@@ -158,13 +160,52 @@ exports.getInventaris = async (req, res) => {
     }
 };
 
-const jadwalService = require("../../services/prayer.service");
-
 exports.getJadwalSholat = async (req, res) => {
   try {
     const data = await jadwalService.getTodayPrayer();
     res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getNearestMasjid = async (req, res) => {
+  try {
+    const { latitude, longitude } = req.query;
+
+    // VALIDASI INPUT
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude dan Longitude wajib diisi",
+      });
+    }
+
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+
+    // VALIDASI ANGKA
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude dan Longitude harus berupa angka",
+      });
+    }
+
+    // CALL SERVICE
+    const result = await MasjidService.getNearestMasjids(lat, lng);
+
+    return res.json({
+      success: true,
+      message: "Berhasil mendapatkan masjid terdekat",
+      total: result.length,
+      data: result.slice(0, 5), // top 5
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

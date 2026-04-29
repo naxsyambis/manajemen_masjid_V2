@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const publicController = require("../controllers/public/public.controller");
 
+router.get("/masjid/nearest", publicController.getNearestMasjid);
 router.get("/masjid", publicController.listMasjid);
 router.get("/masjid/:id", publicController.detailMasjid);
 
