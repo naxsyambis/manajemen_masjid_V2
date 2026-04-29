@@ -7,8 +7,8 @@ import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
 import GrafikKeuangan from '../../public/masjid/GrafikKeuangan';
 import { 
   MapPin, Phone, FileText, Image as ImageIcon, ArrowLeft, Edit, 
-  Trash2, AlertTriangle, X, Users, Package, History, 
-  FileBarChart, Newspaper, Rocket, ArrowUpCircle, ArrowDownCircle, List
+  Trash2, AlertTriangle, Users, Package, History, 
+  FileBarChart, Newspaper, Rocket, ArrowUpCircle, ArrowDownCircle, List, RefreshCcw
 } from 'lucide-react';
 
 // --- SUB-COMPONENTS ---
@@ -29,44 +29,64 @@ const InfoItem = ({ icon, label, value }) => (
   </div>
 );
 
-const DataTable = ({ title, icon, data, columns, dataKeys, extraHeader }) => (
-  <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-    <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center gap-3">
+const DataTable = ({ title, icon, data, columns, dataKeys, extraHeader, currentLimit, onLimitChange }) => (
+  <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden h-full flex flex-col">
+    <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center gap-4">
       <div className="flex items-center gap-3">
         {icon}
         <h3 className="text-lg font-black uppercase tracking-tight">{title}</h3>
-        <span className="bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-bold text-gray-500">{data.length} Data</span>
+        <span className="bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-bold text-gray-500">{data.length} Total</span>
       </div>
-      <div className="md:ml-auto">
+      
+      <div className="md:ml-auto flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tampilkan:</span>
+          <select 
+            value={currentLimit} 
+            onChange={(e) => onLimitChange(parseInt(e.target.value))}
+            className="bg-transparent text-xs font-bold text-mu-green outline-none cursor-pointer"
+          >
+            {[5, 10, 25, 50].map(num => (
+              <option key={num} value={num}>{num}</option>
+            ))}
+          </select>
+        </div>
         {extraHeader}
       </div>
     </div>
-    <div className="overflow-x-auto">
+
+    <div className="overflow-x-auto flex-1">
       <table className="w-full text-left">
         <thead className="bg-gray-50/50 text-gray-400 uppercase text-[10px] font-black tracking-widest">
           <tr>{columns.map((col, i) => <th key={i} className="px-8 py-5">{col}</th>)}</tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {data.length > 0 ? data.map((item, idx) => (
-            <tr key={idx} className="hover:bg-gray-50 transition-all group">
-              {dataKeys.map((key, i) => (
-                <td key={i} className="px-8 py-5 text-sm font-medium text-gray-600 group-hover:text-gray-900">
-                  {key === 'status' || key === 'kondisi' ? (
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      (item[key] === 'aktif' || item[key] === 'baik') ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                    }`}>
-                      {item[key]}
-                    </span>
-                  ) : key === 'jumlah' ? (
-                    <span className={`font-bold ${parseFloat(item[key]) > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      Rp {Math.abs(item[key]).toLocaleString('id-ID')}
-                    </span>
-                  ) : item[key]}
-                </td>
-              ))}
+          {data.length > 0 ? (
+            data.slice(0, currentLimit).map((item, idx) => (
+              <tr key={idx} className="hover:bg-gray-50 transition-all group">
+                {dataKeys.map((key, i) => (
+                  <td key={i} className="px-8 py-5 text-sm font-medium text-gray-600 group-hover:text-gray-900">
+                    {key === 'status' || key === 'kondisi' ? (
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                        (item[key] === 'aktif' || item[key] === 'baik') ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                      }`}>
+                        {item[key]}
+                      </span>
+                    ) : key === 'jumlah' ? (
+                      <span className={`font-bold ${parseFloat(item[key]) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        Rp {Math.abs(item[key]).toLocaleString('id-ID')}
+                      </span>
+                    ) : item[key]}
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={columns.length} className="text-center py-20 text-gray-300 font-bold italic uppercase tracking-widest text-xs">
+                Data Kosong
+              </td>
             </tr>
-          )) : (
-            <tr><td colSpan={columns.length} className="text-center py-20 text-gray-300 font-bold italic uppercase tracking-widest text-xs">Data Kosong</td></tr>
           )}
         </tbody>
       </table>
@@ -88,7 +108,7 @@ const DetailMasjid = ({ user, onLogout }) => {
 
   const [masjid, setMasjid] = useState(null);
   const [namaTakmir, setNamaTakmir] = useState("Memuat...");
-  const [keuanganRaw, setKeuanganRaw] = useState([]); // Data asli untuk filter
+  const [keuanganRaw, setKeuanganRaw] = useState([]);
   const [keuanganFiltered, setKeuanganFiltered] = useState([]);
   const [filterType, setFilterType] = useState('semua');
   
@@ -98,41 +118,56 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [berita, setBerita] = useState([]);
   const [program, setProgram] = useState([]);
 
+  const [limits, setLimits] = useState({
+    keuangan: 5,
+    berita: 5,
+    program: 5,
+    jamaah: 5,
+    inventaris: 5,
+    riwayat: 5
+  });
+
   const isExpanded = isOpen || isHovered;
 
+  const handleLimitChange = (table, value) => {
+    setLimits(prev => ({ ...prev, [table]: value }));
+  };
+
   const fetchData = async () => {
+    setLoading(true);
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const mRes = await axios.get(`http://localhost:3000/superadmin/masjid/${id}`, { headers });
-      const dataMasjid = mRes.data;
-      setMasjid(dataMasjid);
+      const [mRes, tRes] = await Promise.all([
+        axios.get(`http://localhost:3000/superadmin/masjid/${id}`, { headers }),
+        axios.get(`http://localhost:3000/superadmin/takmir`, { headers })
+      ]);
 
-      if (dataMasjid.user_id) {
-        try {
-          const uRes = await axios.get(`http://localhost:3000/superadmin/takmir`, { headers });
-          const takmirFound = uRes.data.find(u => u.user_id === dataMasjid.user_id || u.id === dataMasjid.user_id);
-          setNamaTakmir(takmirFound?.nama || "User Tidak Ditemukan");
-        } catch (e) { setNamaTakmir("Gagal memuat nama"); }
+      setMasjid(mRes.data);
+      const daftarTakmir = tRes.data;
+      if (daftarTakmir && Array.isArray(daftarTakmir)) {
+        const pengelola = daftarTakmir.find(t => 
+          String(t.masjid_id) === String(id) || 
+          String(t.masjid?.masjid_id) === String(id)
+        );
+        setNamaTakmir(pengelola ? (pengelola.user?.nama || pengelola.nama || "Tanpa Nama") : "Belum Ada Takmir");
       }
 
       const [kRes, jRes, iRes, hRes, bRes, pRes] = await Promise.all([
         axios.get(`http://localhost:3000/superadmin/keuangan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/jamaah?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/inventaris?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
-        axios.get(`http://localhost:3000/superadmin/kegiatan?masjid_id=${id}`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`http://localhost:3000/superadmin/kegiatan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/berita?masjid_id=${id}`, { headers }).catch(() => ({ data: [] })),
         axios.get(`http://localhost:3000/superadmin/program?masjid_id=${id}`, { headers }).catch(() => ({ data: [] }))
       ]);
 
-      const rawKeuangan = kRes.data.data || [];
-      setKeuanganRaw(rawKeuangan);
-      setKeuanganFiltered(rawKeuangan);
+      setKeuanganRaw(kRes.data.data || []);
+      setKeuanganFiltered(kRes.data.data || []);
       setJamaah(jRes.data.data || []);
       setInventaris(iRes.data.data || []);
       setRiwayat(hRes.data.data || hRes.data || []);
       setBerita(bRes.data || []);
       setProgram(pRes.data || []);
-      
     } catch (err) {
       console.error("Fetch Error:", err);
     } finally {
@@ -142,7 +177,6 @@ const DetailMasjid = ({ user, onLogout }) => {
 
   useEffect(() => { fetchData(); }, [id]);
 
-  // Handle Filter Keuangan
   useEffect(() => {
     if (filterType === 'masuk') {
       setKeuanganFiltered(keuanganRaw.filter(item => parseFloat(item.jumlah) > 0));
@@ -167,15 +201,19 @@ const DetailMasjid = ({ user, onLogout }) => {
 
   const handleDeleteMasjid = async () => {
     try {
-      const currentToken = localStorage.getItem('token') || '';
       await axios.delete(`http://localhost:3000/superadmin/masjid/${id}`, {
-        headers: { Authorization: `Bearer ${currentToken}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       navigate('/superadmin/masjid');
     } catch (err) { console.error("Gagal hapus masjid:", err); }
   };
 
-  if (loading) return <div className="h-screen w-full flex items-center justify-center font-bold">Memuat Data Masjid...</div>;
+  if (loading) return (
+    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 bg-gray-50">
+      <RefreshCcw className="animate-spin text-mu-green" size={40} />
+      <p className="font-black text-gray-400 uppercase tracking-widest text-xs">Memuat Data Masjid...</p>
+    </div>
+  );
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-800">
@@ -203,7 +241,7 @@ const DetailMasjid = ({ user, onLogout }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InfoItem icon={<MapPin size={18}/>} label="Alamat" value={masjid?.alamat} />
                 <InfoItem icon={<Phone size={18}/>} label="Kontak" value={masjid?.no_hp} />
-                <InfoItem icon={<Users size={18}/>} label={`Takmir (User ID: ${masjid?.user_id || '-'})`} value={namaTakmir} />
+                <InfoItem icon={<Users size={18}/>} label="Takmir" value={namaTakmir} />
                 <InfoItem icon={<FileText size={18}/>} label="Deskripsi" value={masjid?.deskripsi || "Tidak ada deskripsi"} />
               </div>
               
@@ -220,13 +258,15 @@ const DetailMasjid = ({ user, onLogout }) => {
              <GrafikKeuangan chartData={processKeuanganForChart(keuanganRaw)} />
           </div>
 
-          {/* Tabel Transaksi Keuangan dengan Filter */}
+          {/* Riwayat Transaksi */}
           <DataTable 
             title="Riwayat Transaksi" 
             icon={<History className="text-mu-green" size={24}/>} 
             data={keuanganFiltered} 
             columns={['Keterangan', 'Tanggal', 'Jumlah']} 
             dataKeys={['keterangan', 'tanggal', 'jumlah']}
+            currentLimit={limits.keuangan}
+            onLimitChange={(val) => handleLimitChange('keuangan', val)}
             extraHeader={
               <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
                 {[
@@ -248,17 +288,55 @@ const DetailMasjid = ({ user, onLogout }) => {
             }
           />
 
-          {/* Tabel Berita & Program */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <DataTable title="Berita Masjid" icon={<Newspaper className="text-blue-500" size={24}/>} data={berita} columns={['Judul', 'Tanggal']} dataKeys={['judul', 'tanggal']} />
-            <DataTable title="Program Kerja" icon={<Rocket className="text-purple-500" size={24}/>} data={program} columns={['Nama Program', 'Status']} dataKeys={['nama_program', 'status']} />
+            <DataTable 
+                title="Berita Masjid" 
+                icon={<Newspaper className="text-blue-500" size={24}/>} 
+                data={berita} 
+                columns={['Judul', 'Tanggal']} 
+                dataKeys={['judul', 'tanggal']}
+                currentLimit={limits.berita}
+                onLimitChange={(val) => handleLimitChange('berita', val)}
+            />
+            <DataTable 
+                title="Program Kerja" 
+                icon={<Rocket className="text-purple-500" size={24}/>} 
+                data={program} 
+                columns={['Nama Program', 'Status']} 
+                dataKeys={['nama_program', 'status']}
+                currentLimit={limits.program}
+                onLimitChange={(val) => handleLimitChange('program', val)}
+            />
           </div>
 
-          {/* Tabel Jamaah, Inventaris, Riwayat */}
           <div className="space-y-8 pb-10">
-            <DataTable title="Daftar Jamaah" icon={<Users className="text-blue-500" size={24}/>} data={jamaah} columns={['Nama', 'Status', 'Alamat']} dataKeys={['nama', 'status', 'alamat']} />
-            <DataTable title="Daftar Inventaris" icon={<Package className="text-orange-500" size={24}/>} data={inventaris} columns={['Nama Barang', 'Jumlah', 'Kondisi']} dataKeys={['nama_barang', 'jumlah', 'kondisi']} />
-            <DataTable title="Riwayat Kegiatan" icon={<History className="text-purple-500" size={24}/>} data={riwayat} columns={['Nama Kegiatan', 'Tanggal', 'Tempat']} dataKeys={['nama_kegiatan', 'tanggal', 'tempat']} />
+            <DataTable 
+                title="Daftar Jamaah" 
+                icon={<Users className="text-blue-500" size={24}/>} 
+                data={jamaah} 
+                columns={['Nama', 'Status', 'Alamat']} 
+                dataKeys={['nama', 'status', 'alamat']}
+                currentLimit={limits.jamaah}
+                onLimitChange={(val) => handleLimitChange('jamaah', val)}
+            />
+            <DataTable 
+                title="Daftar Inventaris" 
+                icon={<Package className="text-orange-500" size={24}/>} 
+                data={inventaris} 
+                columns={['Nama Barang', 'Jumlah', 'Kondisi']} 
+                dataKeys={['nama_barang', 'jumlah', 'kondisi']}
+                currentLimit={limits.inventaris}
+                onLimitChange={(val) => handleLimitChange('inventaris', val)}
+            />
+            <DataTable 
+                title="Riwayat Kegiatan" 
+                icon={<History className="text-purple-500" size={24}/>} 
+                data={riwayat} 
+                columns={['Nama Kegiatan', 'Tanggal', 'Tempat']} 
+                dataKeys={['nama_kegiatan', 'tanggal', 'tempat']}
+                currentLimit={limits.riwayat}
+                onLimitChange={(val) => handleLimitChange('riwayat', val)}
+            />
           </div>
         </main>
       </div>
@@ -266,7 +344,7 @@ const DetailMasjid = ({ user, onLogout }) => {
       {/* Modal Hapus */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white p-8 rounded-[2.5rem] max-w-sm w-full text-center shadow-2xl">
+          <div className="bg-white p-8 rounded-[2.5rem] max-w-sm w-full text-center shadow-2xl animate-in zoom-in duration-200">
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
               <AlertTriangle size={40} />
             </div>
