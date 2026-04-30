@@ -10,6 +10,7 @@ import DetailBerita from './pages/public/berita/DetailBerita';
 import Masjid from './pages/public/masjid/Masjid'; // detail masjid
 import Kepengurusan from './pages/public/kepengurusan/Kepengurusan';
 import MapMasjid from './pages/public/lokasi/MapMasjid'; // map
+import IsiKegiatan from './pages/public/kegiatan/IsiKegiatan'; 
 
 const PublicApp = () => {
   const routes = useRoutes([
@@ -27,6 +28,7 @@ const PublicApp = () => {
     { path: '/masjid/:id', element: <Masjid /> },
 
     { path: '/kepengurusan', element: <Kepengurusan /> },
+    { path: '/kegiatan/:id', element: <IsiKegiatan /> },  // Detail kegiatan
 
     // 404
     {
