@@ -125,12 +125,13 @@ const DetailBerita = () => {
       {/* CARD */}
       <div className="bg-white rounded-2xl shadow border p-6 space-y-6">
 
-        {/* 🔥 GAMBAR UTAMA */}
+      {/* 🔥 GAMBAR UTAMA */}
         {selectedImage ? (
           <div className="flex justify-center">
             <img
-              src={`http://localhost:3000${selectedImage}`}
-              className="max-h-[400px] w-auto object-contain rounded-xl"
+              src={`http://localhost:3000/uploads/berita/${selectedImage}`}
+              className="max-h-[400px] w-auto object-contain rounded-xl shadow-lg"
+              onError={(e) => e.target.src = 'https://via.placeholder.com/800x400?text=No+Image'}
             />
           </div>
         ) : (
@@ -141,18 +142,19 @@ const DetailBerita = () => {
 
         {/* 🔥 GALLERY */}
         {uniqueImages.length > 1 && (
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-3 flex-wrap mt-6">
 
             {uniqueImages.map((img, index) => (
               <img
                 key={index}
-                src={`http://localhost:3000${img}`}
+                src={`http://localhost:3000/uploads/berita/${img}`}
                 onClick={() => setSelectedImage(img)}
                 className={`w-24 h-16 object-cover rounded-lg cursor-pointer border transition
                   ${selectedImage === img
-                    ? "border-mu-green"
+                    ? "border-mu-green ring-2 ring-mu-green"
                     : "border-gray-200"}
                 `}
+                onError={(e) => e.target.style.display = 'none'}
               />
             ))}
 

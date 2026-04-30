@@ -186,10 +186,12 @@ const DetailBerita = ({ user, onLogout }) => {
             {berita.gambar && (
               <div className="mb-8">
                 <div className="relative group">
+                  {/* ✅ PERBAIKAN PATH GAMBAR UTAMA: */}
                   <img 
-                    src={`http://localhost:3000${berita.gambar}`} 
+                    src={`http://localhost:3000/uploads/berita/${berita.gambar}`} 
                     alt={berita.judul} 
                     className="w-full h-80 lg:h-[500px] object-cover rounded-2xl shadow-2xl transition-transform duration-500 group-hover:scale-105" 
+                    onError={(e) => e.target.src = 'https://via.placeholder.com/800x400?text=No+Image'}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Sunrise, Sun, CloudSun, Sunset, Moon, RefreshCcw, AlertCircle } from 'lucide-react';
+// PERBAIKAN: Tambahkan icon Clock (untuk Imsak) dan CloudMoon (untuk Subuh)
+import { Sunrise, Sun, CloudSun, Sunset, Moon, RefreshCcw, AlertCircle, Clock, CloudMoon } from 'lucide-react';
 
 const JadwalSholatSection = () => {
   const [currentTime, setCurrentTime] = useState('');
@@ -8,7 +9,7 @@ const JadwalSholatSection = () => {
   const [prayerSchedule, setPrayerSchedule] = useState([]);
   const [lokasi, setLokasi] = useState('Yogyakarta & Sekitarnya');
   const [nextPrayer, setNextPrayer] = useState(null);
-  const [ramadhanInfo, setRamadhanInfo] = useState(null); // State untuk data ramadhan
+  const [ramadhanInfo, setRamadhanInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -33,12 +34,13 @@ const JadwalSholatSection = () => {
       }
 
       setLokasi(result.lokasi || "Lokasi tidak diketahui");
-      
-      // Simpan data ramadhan dari backend
       setRamadhanInfo(result.ramadhan || null);
 
+      // PERBAIKAN: Masukkan imsak dan terbit ke array untuk di mapping
       setPrayerSchedule([
-        { name: "Subuh", time: result.jadwal.subuh, icon: <Sunrise size={32} /> },
+        { name: "Imsak", time: result.jadwal.imsak, icon: <Clock size={32} /> },
+        { name: "Subuh", time: result.jadwal.subuh, icon: <CloudMoon size={32} /> },
+        { name: "Terbit", time: result.jadwal.terbit, icon: <Sunrise size={32} /> },
         { name: "Dzuhur", time: result.jadwal.dzuhur, icon: <Sun size={32} /> },
         { name: "Ashar", time: result.jadwal.ashar, icon: <CloudSun size={32} /> },
         { name: "Maghrib", time: result.jadwal.maghrib, icon: <Sunset size={32} /> },
@@ -70,9 +72,7 @@ const JadwalSholatSection = () => {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-
       setCurrentTime(now.toLocaleTimeString("id-ID"));
-
       setCurrentDate(now.toLocaleDateString("id-ID", {
         weekday: "long",
         year: "numeric",
@@ -83,7 +83,6 @@ const JadwalSholatSection = () => {
 
     updateTime();
     const interval = setInterval(updateTime, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -115,7 +114,7 @@ const JadwalSholatSection = () => {
   return (
     <section className="relative z-10 mt-10">
       <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
 
           {/* HEADER */}
           <div className="bg-gradient-to-r from-mu-green to-mu-green text-white p-6 md:p-8">
@@ -130,14 +129,12 @@ const JadwalSholatSection = () => {
                   <h2 className="text-2xl md:text-3xl font-bold">
                     Jadwal Sholat
                   </h2>
-
                   <p className="text-white/80 text-sm mt-1">
                     {lokasi}
                   </p>
-
                   {nextPrayer && (
-                    <p className="text-white/90 text-sm mt-1">
-                      Sholat berikutnya: {nextPrayer.name} - {nextPrayer.time}
+                    <p className="text-white/90 text-sm mt-1 font-medium bg-white/10 px-2 py-1 rounded inline-block">
+                      Waktu berikutnya: {nextPrayer.name} - {nextPrayer.time}
                     </p>
                   )}
                 </div>
@@ -186,33 +183,25 @@ const JadwalSholatSection = () => {
                     {ramadhanInfo.bulanHijriyah} - {ramadhanInfo.tanggalHijriyah}
                   </p>
                 </div>
-                <div className="flex gap-6 text-center">
-                  <div>
-                    <p className="text-xs text-amber-600 uppercase font-bold">Imsak</p>
-                    <p className="text-lg font-bold text-amber-800">{ramadhanInfo.imsak}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-amber-600 uppercase font-bold">Terbit</p>
-                    <p className="text-lg font-bold text-amber-800">{ramadhanInfo.terbit}</p>
-                  </div>
-                </div>
               </div>
             )}
 
+            {/* JADWAL SHOLAT GRID */}
             {prayerSchedule.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              // PERBAIKAN: Ubah grid menjadi 7 kolom di layar besar (lg:grid-cols-7)
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
                 {prayerSchedule.map((prayer, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 rounded-2xl p-5 text-center shadow hover:scale-105 transition"
+                    className="bg-gray-50 rounded-2xl p-4 text-center shadow hover:shadow-md hover:scale-105 transition border border-gray-100"
                   >
                     <div className="text-mu-green mb-3 flex justify-center">
                       {prayer.icon}
                     </div>
-                    <h4 className="font-semibold text-lg">
+                    <h4 className="font-semibold text-sm md:text-base text-gray-700">
                       {prayer.name}
                     </h4>
-                    <p className="text-2xl font-bold">
+                    <p className="text-xl md:text-2xl font-bold text-gray-900 mt-1">
                       {prayer.time}
                     </p>
                   </div>

@@ -41,7 +41,7 @@ const EditBerita = () => {
         data.gambar_list.forEach((img, i) => {
           if (i < 5) {
             newPreview[i] = {
-              url: `http://localhost:3000${img.path_gambar}`,
+              url: `http://localhost:3000/uploads/berita/${img.path_gambar}`,
               id: img.gambar_id
             };
           }

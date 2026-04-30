@@ -35,25 +35,24 @@ exports.getTodayPrayer = async () => {
   const hijri = data.date.hijri;
 
   const jadwal = {
+    imsak: cleanTime(timings.Imsak),
     subuh: cleanTime(timings.Fajr),
+    terbit: cleanTime(timings.Sunrise),
     dzuhur: cleanTime(timings.Dhuhr),
     ashar: cleanTime(timings.Asr),
     maghrib: cleanTime(timings.Maghrib),
     isya: cleanTime(timings.Isha)
   };
 
-  //  NEXT PRAYER (format frontend)
   const nextPrayer = getNextPrayer(jadwal);
 
   return {
     lokasi: "Kabupaten Bantul",
     tanggal: data.date.gregorian.date,
-
     jadwal,          
     nextPrayer,      
-
     ramadhan: {
-      isRamadhan: hijri.month.number === 9, //tambahkan true nanti ya
+      isRamadhan: hijri.month.number === 9,
       bulanHijriyah: hijri.month.en,
       tanggalHijriyah: hijri.date,
       hariKe: hijri.month.number === 9 ? Number(hijri.day) : null,
@@ -63,10 +62,6 @@ exports.getTodayPrayer = async () => {
   };
 };
 
-// =============================
-// HELPER
-// =============================
-
 function cleanTime(timeString) {
   return timeString.split(" ")[0];
 }
@@ -75,7 +70,9 @@ function getNextPrayer(jadwal) {
   const now = dayjs();
 
   const prayers = [
+    { name: "Imsak", time: jadwal.imsak },
     { name: "Subuh", time: jadwal.subuh },
+    { name: "Terbit", time: jadwal.terbit },
     { name: "Dzuhur", time: jadwal.dzuhur },
     { name: "Ashar", time: jadwal.ashar },
     { name: "Maghrib", time: jadwal.maghrib },
@@ -93,9 +90,8 @@ function getNextPrayer(jadwal) {
     }
   }
 
-  // fallback besok
   return {
-    name: "Subuh",
-    time: jadwal.subuh
+    name: "Imsak",
+    time: jadwal.imsak
   };
 }

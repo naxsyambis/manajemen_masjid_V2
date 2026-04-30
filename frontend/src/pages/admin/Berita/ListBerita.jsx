@@ -32,17 +32,20 @@ const ListBerita = () => {
   }, []);
 
   const fetchBeritas = async () => {
-    try {
-      const res = await axios.get("http://localhost:3000/takmir/berita", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setBeritas(res.data);
-    } catch {
-      alert("Gagal ambil data berita");
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        const res = await axios.get("http://localhost:3000/takmir/berita", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const dataAsli = res.data.data ? res.data.data : res.data;
+        
+        setBeritas(dataAsli); 
+      } catch {
+        alert("Gagal ambil data berita");
+      } finally {
+        setLoading(false);
+      }
+    };
 
   useEffect(() => {
     const filtered = beritas.filter((b) =>
@@ -164,9 +167,16 @@ const ListBerita = () => {
 
                   <td className="p-8 text-center">
                     {b.gambar ? (
-                      <img src={`http://localhost:3000${b.gambar}`} className="w-16 h-16 rounded-xl object-cover mx-auto" />
+                      <img 
+                        src={`http://localhost:3000/uploads/berita/${b.gambar}`} 
+                        className="w-16 h-16 rounded-xl object-cover mx-auto" 
+                        alt="Thumbnail"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
                     ) : (
-                      <ImageIcon />
+                      <div className="flex justify-center text-gray-400">
+                        <ImageIcon size={24} />
+                      </div>
                     )}
                   </td>
 

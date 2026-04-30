@@ -116,7 +116,7 @@ const DataBerita = ({ user, onLogout }) => {
     );
   }
 
-  return (
+return (
     <div className="data-berita h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
       
@@ -178,7 +178,6 @@ const DataBerita = ({ user, onLogout }) => {
                   </p>
                 </div>
 
-                {/* Dropdown Filter Baris Data[cite: 5] */}
                 <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Show:</span>
                   <select 
@@ -196,7 +195,6 @@ const DataBerita = ({ user, onLogout }) => {
                 </div>
               </div>
               
-              {/* Input Search yang Bisa Diketik[cite: 5] */}
               <div className="relative w-full sm:w-64">
                 <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
@@ -224,12 +222,11 @@ const DataBerita = ({ user, onLogout }) => {
                   {currentItems.map((berita, index) => (
                     <tr key={berita.berita_id} className={`border-t border-gray-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all duration-300 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
                       <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-sm">
+                        <div className="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
                           {berita.gambar ? (
-                            <img src={`http://localhost:3000${berita.gambar}`} alt="Gambar" className="w-10 h-10 object-cover rounded-full" />
-                          ) : (
-                            <ImageIcon size={24} className="text-gray-400" />
-                          )}
+                            <img src={`http://localhost:3000/uploads/berita/${berita.gambar}`} alt="Gambar" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                          ) : null}
+                          <ImageIcon size={24} className="text-gray-400" style={{ display: berita.gambar ? 'none' : 'block' }}/>
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">

@@ -36,11 +36,17 @@ exports.createBerita = async (req, res) => {
     try {
         const { judul, isi, masjid_id, youtube_url } = req.body;
 
+        let gambarUtama = null;
+        if (req.files && req.files.length > 0) {
+            gambarUtama = req.files[0].filename; 
+        }
+
         const newBerita = await Berita.create({
             judul,
             isi,
             masjid_id,
             youtube_url: youtube_url || null, 
+            gambar: gambarUtama, 
             user_id: req.user.user_id,
         });
 
@@ -72,6 +78,11 @@ exports.updateBerita = async (req, res) => {
         berita.judul = judul || berita.judul;
         berita.isi = isi || berita.isi;
         berita.youtube_url = youtube_url !== undefined ? youtube_url : berita.youtube_url;
+        
+        if (req.files && req.files.length > 0) {
+            berita.gambar = req.files[0].filename;
+        }
+
         await berita.save();
 
         if (req.files && req.files.length > 0) {

@@ -1,6 +1,5 @@
 const { Op } = require("sequelize");
-const Keuangan = require("../../models/Keuangan");
-const Kategori = require("../../models/Kategori_Keuangan");
+const { Keuangan, KategoriKeuangan } = require("../../models"); 
 const { logActivity } = require("../../services/auditLog.service");
 
 exports.create = async (req, res) => {
@@ -9,6 +8,7 @@ exports.create = async (req, res) => {
             jumlah: req.body.jumlah,
             tanggal: req.body.tanggal,
             deskripsi: req.body.deskripsi,
+            nama_donatur: req.body.nama_donatur || 'Hamba Allah', 
             kategori_id: req.body.kategori_id,
             user_id: req.user.user_id,
             masjid_id: req.user.masjid_id
@@ -22,7 +22,7 @@ exports.create = async (req, res) => {
             record_id: data.keuangan_id
         });
 
-        res.status(201).json(data);
+        res.status(201).json({ message: "Data keuangan berhasil ditambahkan", data });
     } catch (error) {
         res.status(500).json({ message: "Gagal menambahkan data keuangan", error: error.message });
     }
@@ -32,10 +32,13 @@ exports.getAll = async (req, res) => {
     try {
         const data = await Keuangan.findAll({
             where: { masjid_id: req.user.masjid_id },
-            include: [{ model: Kategori, as: 'kategori_keuangan' }] 
+            include: [{ model: KategoriKeuangan, as: 'kategori_keuangan' }],
+            order: [['tanggal', 'DESC']]
         });
-        res.json(data);
+        
+        res.status(200).json({ data }); 
     } catch (error) {
+        console.error("GET ALL KEUANGAN ERROR:", error);
         res.status(500).json({ message: "Gagal mengambil data keuangan", error: error.message });
     }
 };
@@ -50,7 +53,7 @@ exports.getById = async (req, res) => {
         });
 
         if (!data) return res.status(404).json({ message: "Data keuangan tidak ditemukan" });
-        res.json(data);
+        res.json({ data });
     } catch (error) {
         res.status(500).json({ message: "Gagal mengambil data keuangan", error: error.message });
     }
@@ -69,7 +72,13 @@ exports.update = async (req, res) => {
 
         const oldData = keuangan.toJSON();
 
-        await keuangan.update(req.body);
+        await keuangan.update({
+            jumlah: req.body.jumlah || keuangan.jumlah,
+            tanggal: req.body.tanggal || keuangan.tanggal,
+            deskripsi: req.body.deskripsi || keuangan.deskripsi,
+            nama_donatur: req.body.nama_donatur !== undefined ? req.body.nama_donatur : keuangan.nama_donatur,
+            kategori_id: req.body.kategori_id || keuangan.kategori_id
+        });
 
         await logActivity({
             req,

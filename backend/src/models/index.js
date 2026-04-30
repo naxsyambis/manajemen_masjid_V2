@@ -1,4 +1,3 @@
-// backend/src/models/index.js
 const User = require("./User");
 const Masjid = require("./Masjid");
 const MasjidTakmir = require("./masjid_takmir");
@@ -39,6 +38,9 @@ KategoriProgram.belongsTo(Masjid, { foreignKey: "masjid_id", as: "masjid" });
 
 Masjid.hasMany(StrukturOrganisasi, { foreignKey: "masjid_id", as: "struktur_organisasi", onDelete: "CASCADE" });
 StrukturOrganisasi.belongsTo(Masjid, { foreignKey: "masjid_id", as: "masjid" });
+
+Keuangan.belongsTo(KategoriKeuangan, { foreignKey: "kategori_id", as: "kategori_keuangan" });
+KategoriKeuangan.hasMany(Keuangan, { foreignKey: "kategori_id", as: "keuangan_list" });
 
 module.exports = {
     User,

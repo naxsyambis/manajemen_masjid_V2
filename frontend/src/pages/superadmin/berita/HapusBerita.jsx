@@ -78,12 +78,13 @@ const HapusBerita = ({ user, onLogout }) => {
             <div className="bg-gradient-to-r from-red-500 to-red-600 p-10 text-white">
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
                 <div className="flex items-center space-x-6 mb-6 lg:mb-0">
-                  <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm overflow-hidden">
                     {berita.gambar ? (
-                      <img src={`http://localhost:3000${berita.gambar}`} alt="Gambar" className="w-16 h-16 object-cover rounded-xl" />
-                    ) : (
-                      <ImageIcon size={40} className="text-white/80" />
-                    )}
+                      // ✅ PERBAIKAN PATH GAMBAR:
+                      <img src={`http://localhost:3000/uploads/berita/${berita.gambar}`} alt="Gambar" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                    ) : null}
+                    {/* Fallback */}
+                    <ImageIcon size={40} className="text-white/80" style={{ display: berita.gambar ? 'none' : 'block' }}/>
                   </div>
                   <div>
                     <h1 className="text-4xl font-bold mb-2">{berita.judul}</h1>

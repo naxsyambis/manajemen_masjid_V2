@@ -36,7 +36,7 @@ const Riwayat = () => {
 
   const token = localStorage.getItem('token');
 
-  const fetchData = async () => {
+const fetchData = async () => {
     try {
       setLoading(true);
       const resCat = await axios.get('http://localhost:3000/takmir/kategori-keuangan', {
@@ -48,7 +48,10 @@ const Riwayat = () => {
       });
 
       setCategories(resCat.data);
-      const data = resTrans.data.reverse();
+      
+      const rawData = resTrans.data.data ? resTrans.data.data : resTrans.data;
+      const data = [...rawData].reverse(); 
+      
       setTransaksi(data);
       setFilteredTransaksi(data);
     } catch (err) {
@@ -174,7 +177,7 @@ const Riwayat = () => {
       {/* TABLE SECTION - DIOPTIMALKAN AGAR TIDAK TERLALU JAUH */}
 <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden transition-all">
   <div className="overflow-x-auto">
-    <table className="w-full text-left border-collapse table-fixed min-w-[1100px]"> {/* min-w diturunkan agar lebih compact */}
+    <table className="w-full text-left border-collapse table-fixed min-w-[1100px]">
       <thead>
         <tr className="bg-gray-50/50 border-b border-gray-100 text-[10px] uppercase tracking-[0.2em] text-gray-900 font-black">
           <th className="p-6 w-[60px] text-center">#</th>
@@ -183,15 +186,18 @@ const Riwayat = () => {
           <th className="p-6 w-[100px] text-center">Jenis</th>
           <th className="p-6 w-[160px]">Nama Donatur</th>
           <th className="p-6 w-[160px]">Arus Kas</th>
-          <th className="p-6 w-[180px]">Deskripsi</th> {/* LEBAR DIKUNCI DI 180PX */}
-          <th className="p-6 w-[100px] text-center">Aksi</th> {/* AKSI SEKARANG LEBIH DEKAT */}
+          <th className="p-6 w-[180px]">Deskripsi</th>
+          <th className="p-6 w-[100px] text-center">Aksi</th>
         </tr>
       </thead>
-
       <tbody className="divide-y divide-gray-50 text-gray-700 font-bold">
         {loading ? (
-          <tr><td colSpan="8" className="p-10 text-center uppercase text-[10px] tracking-widest text-gray-400">Memproses Data...</td></tr>
-        ) : filteredTransaksi.map(item => {
+          <tr>
+            <td colSpan="8" className="p-10 text-center uppercase text-[10px] tracking-widest text-gray-400">
+              Memproses Data...
+            </td>
+          </tr>
+        ) : filteredTransaksi.map((item) => {
           const isMasuk = item.jumlah > 0;
           const catName = categories.find(c => c.kategori_id === item.kategori_id)?.nama_kategori || 'Umum';
 
@@ -208,20 +214,17 @@ const Riwayat = () => {
             <tr key={item.keuangan_id} className="group hover:bg-mu-green/[0.02] transition-colors">
               <td className="p-6 text-center text-[10px] font-mono text-gray-400">#{item.keuangan_id}</td>
               <td className="p-6 italic text-sm">{formatTanggal(item.tanggal)}</td>
-              
               <td className="p-6">
                 <div className="flex items-center gap-2 text-mu-green">
                   <Tag size={12} className="opacity-50 shrink-0" />
                   <span className="text-[10px] font-black uppercase tracking-tight truncate">{catName}</span>
                 </div>
               </td>
-
               <td className="p-6 text-center">
                 <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isMasuk ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
                   {isMasuk ? 'Masuk' : 'Keluar'}
                 </span>
               </td>
-
               <td className="p-6">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-mu-green shrink-0">
@@ -232,16 +235,12 @@ const Riwayat = () => {
                   </span>
                 </div>
               </td>
-
               <td className={`p-6 font-black text-base ${isMasuk ? 'text-mu-green' : 'text-red-600'}`}>
                 {formatRupiah(Math.abs(item.jumlah))}
               </td>
-
-              {/* DESKRIPSI DENGAN TRUNCATE AGAR TIDAK TERLALU LEBAR */}
               <td className="p-6 text-xs italic text-gray-500">
                 <p className="truncate max-w-[150px]" title={descDisplay}>{descDisplay || '-'}</p>
               </td>
-
               <td className="p-6 text-center">
                 <div className="flex justify-center gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
                   <button 
