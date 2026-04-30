@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import NavbarPublic from '../../../components/NavbarPublic'; // Mengimpor NavbarPublic
-import FooterPublic from '../../../components/FooterPublic'; // Mengimpor FooterPublic
+import NavbarPublic from '../../../components/NavbarPublic';
+import FooterPublic from '../../../components/FooterPublic';
 
 const IsiKegiatan = () => {
   const { id } = useParams();
@@ -13,9 +13,7 @@ const IsiKegiatan = () => {
     const fetchKegiatan = async () => {
       try {
         const response = await fetch(`http://localhost:3000/public/kegiatan/${id}`);
-        if (!response.ok) {
-          throw new Error('Kegiatan tidak ditemukan');
-        }
+        if (!response.ok) throw new Error('Kegiatan tidak ditemukan');
         const data = await response.json();
         setKegiatan(data);
       } catch (err) {
@@ -54,17 +52,20 @@ const IsiKegiatan = () => {
 
   return (
     <>
-      {/* Navbar */}
       <NavbarPublic />
 
-      {/* Isi Kegiatan */}
       <section id="kegiatan" className="py-20">
         <div className="container mx-auto px-6">
-          {/* Header Kegiatan dengan jarak antara judul dan navbar */}
-          <div className="mb-12 text-center mt-8">
-            <h1 className="text-4xl font-bold text-[#006227] mb-4">{kegiatan.nama_kegiatan}</h1>
+
+          {/* HEADER */}
+          <div className="mb-12 text-center mt-10">
+            <h1 className="text-4xl font-bold text-[#006227] mb-4 break-words">
+              {kegiatan.nama_kegiatan}
+            </h1>
+
             <p className="text-gray-600 text-lg">
-              <strong>Waktu:</strong> {new Date(kegiatan.waktu_kegiatan).toLocaleDateString('id-ID', {
+              <strong>Waktu:</strong>{" "}
+              {new Date(kegiatan.waktu_kegiatan).toLocaleDateString('id-ID', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -73,30 +74,36 @@ const IsiKegiatan = () => {
                 minute: '2-digit',
               })}
             </p>
+
             <p className="text-gray-600 text-lg">
               <strong>Lokasi:</strong> {kegiatan.lokasi}
             </p>
           </div>
 
-          {/* Gambar Poster Kegiatan */}
-          {kegiatan.poster && (
-            <div className="mb-8 flex justify-center">
-              <img
-                src={`http://localhost:3000/uploads/kegiatan/${kegiatan.poster}`}
-                alt={kegiatan.nama_kegiatan}
-                className="w-full max-w-4xl mx-auto rounded-lg shadow-lg"
-              />
-            </div>
-          )}
+          {/* 🔥 FIX LAYOUT DI SINI */}
+          <div className="flex flex-col md:flex-row justify-center items-start gap-8 max-w-5xl mx-auto mb-12">
 
-          {/* Deskripsi Kegiatan */}
-          <div className="max-w-full mx-auto text-justify leading-relaxed mb-12">
-            <div className="whitespace-pre-wrap break-words">
-              {kegiatan.deskripsi || 'Deskripsi kegiatan belum tersedia.'}
+            {/* POSTER */}
+            {kegiatan.poster && (
+              <div className="md:w-[320px] flex-shrink-0">
+                <img
+                  src={`http://localhost:3000/uploads/kegiatan/${kegiatan.poster}`}
+                  alt={kegiatan.nama_kegiatan}
+                  className="w-full rounded-lg shadow-md object-contain"
+                />
+              </div>
+            )}
+
+            {/* DESKRIPSI */}
+            <div className="flex-1 text-justify leading-relaxed text-[#1e293b] max-w-2xl">
+              <div className="whitespace-pre-wrap break-words">
+                {kegiatan.deskripsi || 'Deskripsi kegiatan belum tersedia.'}
+              </div>
             </div>
+
           </div>
 
-          {/* Tombol Kembali */}
+          {/* BUTTON */}
           <div className="text-center mt-10">
             <a
               href="/kegiatan"
@@ -105,10 +112,10 @@ const IsiKegiatan = () => {
               Kembali ke Semua Kegiatan
             </a>
           </div>
+
         </div>
       </section>
 
-      {/* Footer */}
       <FooterPublic />
     </>
   );

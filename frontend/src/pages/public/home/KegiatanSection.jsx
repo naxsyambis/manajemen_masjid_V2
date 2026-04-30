@@ -1,34 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom'; // Asumsikan menggunakan React Router
+import { Link } from 'react-router-dom';
 
 const KegiatanSection = () => {
   const [kegiatan, setKegiatan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedCards, setExpandedCards] = useState([]); // State untuk kartu yang expanded
-  const hasFetched = useRef(false); // Flag untuk mencegah fetch ganda
 
-  // Fungsi untuk fetch kegiatan dari backend
+  const hasFetched = useRef(false);
+
   useEffect(() => {
-    if (hasFetched.current) return; // Jika sudah fetch, skip
+    if (hasFetched.current) return;
     hasFetched.current = true;
 
     const fetchKegiatan = async () => {
       try {
-        console.log('Fetching kegiatan from: http://localhost:3000/public/kegiatan'); // Logging URL untuk debugging
-        const response = await fetch('http://localhost:3000/public/kegiatan'); // Pastikan URL backend benar dan server berjalan
-        console.log('Response status for kegiatan:', response.status); // Logging status HTTP
-        if (!response.ok) {
-          throw new Error(`Gagal mengambil data kegiatan: ${response.status} ${response.statusText}`);
-        }
+        const response = await fetch('http://localhost:3000/public/kegiatan');
+        if (!response.ok) throw new Error('Gagal mengambil data kegiatan');
+
         const data = await response.json();
-        console.log('Data kegiatan received:', data); // Logging data yang diterima
-        // Sort berdasarkan waktu_kegiatan descending (terbaru dulu)
-        const sortedData = data.sort((a, b) => new Date(b.waktu_kegiatan) - new Date(a.waktu_kegiatan));
+
+        const sortedData = data.sort(
+          (a, b) => new Date(b.waktu_kegiatan) - new Date(a.waktu_kegiatan)
+        );
+
         setKegiatan(sortedData);
       } catch (err) {
-        console.error('Error fetching kegiatan:', err); // Logging error detail
-        setError(err.message || 'Gagal mengambil data kegiatan. Periksa koneksi atau endpoint.');
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -37,12 +34,6 @@ const KegiatanSection = () => {
     fetchKegiatan();
   }, []);
 
-  // Fungsi untuk memotong deskripsi (excerpt)
-  const getExcerpt = (text, maxLength = 120) => {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-  };
-
-  // Fungsi untuk format waktu_kegiatan
   const formatWaktu = (waktu) => {
     if (!waktu) return 'Waktu belum ditentukan';
     return new Date(waktu).toLocaleDateString('id-ID', {
@@ -50,140 +41,95 @@ const KegiatanSection = () => {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
   };
-
-  // Fungsi untuk toggle expand kartu
-  const toggleExpand = (index) => {
-    setExpandedCards((prev) => {
-      const newExpanded = [...prev];
-      newExpanded[index] = !newExpanded[index];
-      return newExpanded;
-    });
-  };
-
-  // Array ikon SVG (sesuai urutan kegiatan; bisa diganti jika ada field di backend)
-  const icons = [
-    <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4a4 4 0 014-4h4a4 4 0 014 4v4M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.85M8 11a4 4 0 100-8 4 4 0 000 8z" />
-    </svg>, // Masjid/komunitas
-    <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>, // Kalender
-    <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>, // Orang
-    <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-    </svg> // Pesta/bintang
-  ];
 
   if (loading) {
     return (
-      <section id="kegiatan" className="kegiatan-section animate-fadeIn relative py-20">
-        <div className="container mx-auto px-6 text-center">
-          <div className="animate-pulse text-2xl text-[#1e293b]">Memuat kegiatan...</div>
-        </div>
+      <section className="py-20 text-center">
+        <div className="text-xl">Memuat kegiatan...</div>
       </section>
     );
   }
 
   if (error) {
     return (
-      <section id="kegiatan" className="kegiatan-section animate-fadeIn relative py-20">
-        <div className="container mx-auto px-6 text-center">
-          <div className="text-2xl text-red-500">Error: {error}</div>
-          <p className="text-sm text-[#1e293b] mt-2">Periksa console browser untuk detail lebih lanjut.</p>
-        </div>
+      <section className="py-20 text-center">
+        <div className="text-red-500">{error}</div>
       </section>
     );
   }
 
-  // Ambil hanya 3 kegiatan terbaru
   const kegiatanTerbaru = kegiatan.slice(0, 3);
 
   return (
-    <section id="kegiatan" className="kegiatan-section animate-fadeIn relative py-20 overflow-hidden">
+    <section id="kegiatan" className="py-20">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-16 relative z-10">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight">Kegiatan Ranting</h2>
-          <p className="text-lg md:text-xl text-[#1e293b] max-w-3xl mx-auto leading-relaxed">
-            Daftar kegiatan yang diselenggarakan oleh Ranting Masjid Muhammadiyah untuk kemajuan umat dan masyarakat.
+
+        {/* HEADER */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4">
+            Kegiatan Ranting
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Daftar kegiatan yang diselenggarakan oleh ranting masjid.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center relative z-10">
+        {/* GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {kegiatanTerbaru.length > 0 ? (
-            kegiatanTerbaru.map((item, index) => (
+            kegiatanTerbaru.map((item) => (
               <div
                 key={item.kegiatan_id}
-                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 stat-card-hover w-full max-w-sm min-h-[400px] flex flex-col"
+                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col h-full"
               >
-                <div className="p-6 flex-grow flex flex-col">
-                  {/* Ikon di atas */}
-                  <div className="w-20 h-20 bg-gradient-to-br from-[#006227] to-[#004a1e] rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500">
-                    {icons[index] || (
-                      <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    )}
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-[#006227] mb-4 group-hover:text-[#004a1e] transition-colors line-clamp-2 leading-tight">
-                    {item.nama_kegiatan}
-                  </h3>
-                  <div className="text-sm text-gray-500 space-y-2 mb-6">
-                    <p className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span><strong>Waktu:</strong> {formatWaktu(item.waktu_kegiatan)}</span>
-                    </p>
-                    <p className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span><strong>Lokasi:</strong> {item.lokasi || 'Lokasi belum ditentukan'}</span>
-                    </p>
-                  </div>
-                  <p
-                    className={`text-[#1e293b] leading-relaxed mb-6 flex-grow break-words whitespace-normal ${
-                      expandedCards[index] ? '' : 'line-clamp-3'
-                    }`}
-                  >
-                    {item.deskripsi || 'Tidak ada deskripsi'}
+                {/* JUDUL */}
+                <h3 className="text-xl font-bold text-[#006227] mb-3 leading-snug break-words min-h-[60px]">
+                  {item.nama_kegiatan}
+                </h3>
+
+                {/* INFO */}
+                <div className="text-sm text-gray-500 mb-3 space-y-2">
+                  <p>
+                    <strong>Waktu:</strong> {formatWaktu(item.waktu_kegiatan)}
                   </p>
-                  <div className="flex justify-end mt-auto">
-                    <Link
-                      to={`/kegiatan/${item.kegiatan_id}`}
-                      className="text-[#006227] hover:text-[#004a1e] font-semibold transition-colors"
-                    >
-                      Baca Selengkapnya
-                    </Link>
-                  </div>
+                  <p>
+                    <strong>Lokasi:</strong> {item.lokasi || 'Lokasi belum ditentukan'}
+                  </p>
                 </div>
+
+                {/* DESKRIPSI */}
+                <p className="text-gray-700 mb-4 line-clamp-3 min-h-[72px] leading-relaxed">
+                  {item.deskripsi || 'Tidak ada deskripsi'}
+                </p>
+
+                {/* BUTTON */}
+                <Link
+                  to={`/kegiatan/${item.kegiatan_id}`}
+                  className="text-[#006227] font-semibold text-right hover:underline mt-auto"
+                >
+                  Baca Selengkapnya →
+                </Link>
               </div>
             ))
           ) : (
-            <div className="col-span-full text-center text-[#1e293b] py-12">
-              <p className="text-lg">Tidak ada kegiatan tersedia.</p>
+            <div className="col-span-full text-center py-12">
+              Tidak ada kegiatan tersedia.
             </div>
           )}
         </div>
 
-        {/* Button Kegiatan Lainnya */}
-        <div className="text-center mt-12 relative z-10">
+        {/* BUTTON KEGIATAN LAINNYA */}
+        <div className="text-center mt-12">
           <Link
             to="/kegiatan"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-[#006227] text-white rounded-xl font-semibold shadow-lg hover:bg-[#004a1e] transform hover:-translate-y-1 transition-all duration-300 hover:shadow-xl"
+            className="px-8 py-4 bg-[#006227] text-white rounded-xl font-semibold hover:bg-[#004a1e] transition"
           >
-            <span>Kegiatan Lainnya</span>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            Kegiatan Lainnya
           </Link>
         </div>
+
       </div>
     </section>
   );
