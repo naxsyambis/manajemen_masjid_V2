@@ -143,7 +143,7 @@ const DetailBerita = () => {
                 {berita.gambar_list.map((item, index) => (
                   <img
                     key={item.gambar_id}
-                    src={`http://localhost:3000${item.path_gambar}`}
+                    src={`http://localhost:3000/uploads/berita/${berita.gambar}`}
                     alt={`${berita.judul}-${index}`}
                     className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-lg"
                     onError={(e) => {

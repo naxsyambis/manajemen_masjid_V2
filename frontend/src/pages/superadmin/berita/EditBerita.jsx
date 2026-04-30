@@ -214,7 +214,7 @@ const EditBerita = ({ user, onLogout }) => {
                 {existingImages.map((img) => (
                   <div key={img.gambar_id} className="relative">
                     <img
-                      src={`http://localhost:3000${img.path_gambar}`}
+                      src={`http://localhost:3000/${img.path_gambar.replace(/^\/?/, '')}`}
                       className="w-full h-32 object-cover rounded-xl"
                     />
                     <button

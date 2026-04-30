@@ -15,7 +15,7 @@ exports.create = async (req, res) => {
       const filename = `pengurus_${Date.now()}.webp`;
       const filepath = path.join(dir, filename);
 
-      await sharp(req.file.buffer)
+      await sharp(req.file.path)
         .rotate()
         .resize(800)
         .toFormat("webp", { quality: 70 })
@@ -25,9 +25,11 @@ exports.create = async (req, res) => {
     }
 
     const data = await Kepengurusan.create({
-      ...req.body,
-      foto_pengurus: fotoPath,
-      masjid_id: req.user.role === 'super admin' ? null : req.user.masjid_id  // Super admin bisa set null jika tidak ada masjid_id
+      nama_lengkap: req.body.nama_lengkap,
+      jabatan: req.body.jabatan,
+      periode_mulai: req.body.periode_mulai,
+      periode_selesai: req.body.periode_selesai,
+      foto_pengurus: fotoPath
     });
 
     await logActivity({
@@ -41,7 +43,7 @@ exports.create = async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error("CREATE KEPENGURUSAN ERROR:", error);
-    res.status(500).json({ message: "Gagal tambah pengurus" });
+    res.status(500).json({ message: error.message }); 
   }
 };
 
@@ -68,7 +70,7 @@ exports.update = async (req, res) => {
       const filename = `pengurus_${Date.now()}.webp`;
       const filepath = path.join(dir, filename);
 
-      await sharp(req.file.buffer)
+      await sharp(req.file.path)
         .resize(800)
         .toFormat("webp", { quality: 70 })
         .toFile(filepath);

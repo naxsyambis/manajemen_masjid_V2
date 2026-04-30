@@ -1,6 +1,7 @@
 // frontend/src/pages/admin/StrukturOrganisasi/TambahStruktur.jsx
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,8 +10,87 @@ import {
   User,
   Calendar,
   RefreshCcw,
-  AlertCircle
+  AlertCircle,
+  X,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Info
 } from 'lucide-react';
+
+const AlertPopup = ({ alertData, onClose }) => {
+  if (!alertData.show) return null;
+
+  const isSuccess = alertData.type === 'success';
+  const isError = alertData.type === 'error';
+  const isWarning = alertData.type === 'warning';
+
+  const Icon = isSuccess
+    ? CheckCircle2
+    : isError
+      ? XCircle
+      : isWarning
+        ? AlertTriangle
+        : Info;
+
+  const iconClass = isSuccess
+    ? 'bg-green-100 text-green-600'
+    : isError
+      ? 'bg-red-100 text-red-600'
+      : isWarning
+        ? 'bg-yellow-100 text-yellow-600'
+        : 'bg-blue-100 text-blue-600';
+
+  const buttonClass = isSuccess
+    ? 'bg-green-600 hover:bg-green-700 text-white'
+    : isError
+      ? 'bg-red-600 hover:bg-red-700 text-white'
+      : isWarning
+        ? 'bg-mu-yellow hover:bg-yellow-400 text-mu-green'
+        : 'bg-mu-green hover:bg-green-700 text-white';
+
+  return createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="p-8 text-center">
+          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}>
+            <Icon size={42} strokeWidth={2.5} />
+          </div>
+
+          <h3 className="text-2xl font-black text-gray-800 leading-tight">
+            {alertData.title}
+          </h3>
+
+          <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">
+            {alertData.message}
+          </p>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+          >
+            {alertData.confirmText || 'Mengerti'}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const TambahStruktur = () => {
   const [formData, setFormData] = useState({
@@ -26,9 +106,70 @@ const TambahStruktur = () => {
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
 
+  const [alertData, setAlertData] = useState({
+    show: false,
+    type: 'info',
+    title: '',
+    message: '',
+    confirmText: '',
+    onConfirm: null
+  });
+
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const masjidId = localStorage.getItem('masjid_id');
+
+  const showPopup = ({
+    type = 'info',
+    title = 'Informasi',
+    message = '',
+    confirmText = '',
+    onConfirm = null
+  }) => {
+    setAlertData({
+      show: true,
+      type,
+      title,
+      message,
+      confirmText,
+      onConfirm
+    });
+  };
+
+  const closePopup = () => {
+    const callback = alertData.onConfirm;
+
+    setAlertData({
+      show: false,
+      type: 'info',
+      title: '',
+      message: '',
+      confirmText: '',
+      onConfirm: null
+    });
+
+    if (callback) {
+      setTimeout(callback, 100);
+    }
+  };
+
+  const handleAuthError = (err) => {
+    if (err.response && err.response.status === 401) {
+      showPopup({
+        type: 'error',
+        title: 'Sesi Berakhir',
+        message: err.response.data.message || 'Sesi Anda telah berakhir.',
+        confirmText: 'Login Ulang',
+        onConfirm: () => {
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
+      });
+      return true;
+    }
+
+    return false;
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -38,44 +179,96 @@ const TambahStruktur = () => {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
 
-    if (selectedFile && selectedFile.size > 3 * 1024 * 1024) {
-      alert('Ukuran file maksimal 3MB.');
+    if (!selectedFile) return;
+
+    if (!selectedFile.type.startsWith('image/')) {
+      showPopup({
+        type: 'warning',
+        title: 'File Tidak Valid',
+        message: 'File harus berupa gambar.'
+      });
+      e.target.value = '';
+      return;
+    }
+
+    if (selectedFile.size > 3 * 1024 * 1024) {
+      showPopup({
+        type: 'warning',
+        title: 'Ukuran Terlalu Besar',
+        message: 'Ukuran file maksimal 3MB.'
+      });
+      e.target.value = '';
       return;
     }
 
     setFile(selectedFile);
+    setPreviewUrl(URL.createObjectURL(selectedFile));
+  };
 
-    if (selectedFile) {
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-    } else {
-      setPreviewUrl(null);
+  const validateForm = () => {
+    if (!formData.nama.trim()) {
+      showPopup({
+        type: 'warning',
+        title: 'Nama Kosong',
+        message: 'Nama wajib diisi.'
+      });
+      return false;
     }
+
+    if (formData.nama.trim().length < 3) {
+      showPopup({
+        type: 'warning',
+        title: 'Nama Terlalu Pendek',
+        message: 'Nama minimal 3 karakter.'
+      });
+      return false;
+    }
+
+    if (!formData.jabatan.trim()) {
+      showPopup({
+        type: 'warning',
+        title: 'Jabatan Kosong',
+        message: 'Jabatan wajib diisi.'
+      });
+      return false;
+    }
+
+    if (!masjidId) {
+      showPopup({
+        type: 'warning',
+        title: 'Masjid ID Tidak Ada',
+        message: 'Silakan logout lalu login ulang.'
+      });
+      return false;
+    }
+
+    if (
+      formData.periode_mulai &&
+      formData.periode_selesai &&
+      new Date(formData.periode_mulai) > new Date(formData.periode_selesai)
+    ) {
+      showPopup({
+        type: 'warning',
+        title: 'Periode Tidak Valid',
+        message: 'Periode mulai tidak boleh lebih besar dari periode selesai.'
+      });
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.nama || !formData.jabatan) {
-      alert('Nama dan jabatan wajib diisi.');
-      return;
-    }
-
-    if (!masjidId) {
-      alert('Masjid ID tidak ditemukan. Silakan logout lalu login ulang.');
-      return;
-    }
-
-    if (file && file.size > 3 * 1024 * 1024) {
-      alert('Ukuran file maksimal 3MB.');
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
     setError(null);
 
     const data = new FormData();
-    data.append('nama', formData.nama);
-    data.append('jabatan', formData.jabatan);
+    data.append('nama', formData.nama.trim());
+    data.append('jabatan', formData.jabatan.trim());
     data.append('masjid_id', masjidId);
     data.append('periode_mulai', formData.periode_mulai);
     data.append('periode_selesai', formData.periode_selesai);
@@ -91,7 +284,12 @@ const TambahStruktur = () => {
         }
       });
 
-      alert('Data struktur organisasi berhasil ditambahkan');
+      showPopup({
+        type: 'success',
+        title: 'Data Tersimpan',
+        message: 'Data struktur organisasi berhasil ditambahkan.',
+        onConfirm: () => navigate('/admin/struktur-organisasi')
+      });
 
       setFormData({
         nama: '',
@@ -102,11 +300,19 @@ const TambahStruktur = () => {
 
       setFile(null);
       setPreviewUrl(null);
-
-      navigate('/admin/struktur-organisasi');
     } catch (err) {
+      if (handleAuthError(err)) return;
+
       console.error('Error adding struktur organisasi:', err);
-      setError(err.response?.data?.message || 'Gagal menambahkan data struktur organisasi. Silakan coba lagi.');
+
+      const msg = err.response?.data?.message || 'Gagal menambahkan data struktur organisasi.';
+      setError(msg);
+
+      showPopup({
+        type: 'error',
+        title: 'Gagal Menyimpan',
+        message: msg
+      });
     } finally {
       setLoading(false);
     }
@@ -118,6 +324,8 @@ const TambahStruktur = () => {
 
   return (
     <div className="tambah-struktur min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 animate-fadeIn">
+      <AlertPopup alertData={alertData} onClose={closePopup} />
+
       <div className="main-content p-8 h-full overflow-y-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -253,7 +461,6 @@ const TambahStruktur = () => {
                           onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
                           className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
                           placeholder="Masukkan nama"
-                          required
                         />
                       </div>
                     </div>
@@ -268,7 +475,6 @@ const TambahStruktur = () => {
                         onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
                         className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
                         placeholder="Contoh: Ketua DKM, Sekretaris, Bendahara"
-                        required
                       />
                     </div>
 
