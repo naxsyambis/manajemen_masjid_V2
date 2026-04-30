@@ -6,15 +6,13 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let folder = "uploads/other";
 
-    const url = req.originalUrl;
-
-    if (url.includes("/auth")) folder = "uploads/ttd";
-    else if (url.includes("/berita")) folder = "uploads/berita";
-    else if (url.includes("/kepengurusan")) folder = "uploads/kepengurusan";
-    else if (url.includes("/struktur-organisasi")) folder = "uploads/kepengurusan"; // ← penting!
-    else if (url.includes("/masjid")) folder = "uploads/masjid";
-    else if (file.fieldname === "poster" || file.fieldname === "poster_kegiatan") folder = "uploads/kegiatan";
-    else if (file.fieldname === "gambar_program" || file.fieldname === "gambar") folder = "uploads/program";
+    if (req.originalUrl.includes("auth")) folder = "uploads/ttd";
+    else if (req.originalUrl.includes("berita")) folder = "uploads/berita";
+    else if (req.originalUrl.includes("kepengurusan")) folder = "uploads/kepengurusan";
+    else if (req.originalUrl.includes("struktur-organisasi")) folder = "uploads/kepengurusan";
+    else if (req.originalUrl.includes("masjid")) folder = "uploads/masjid";
+    else if (file.fieldname === 'poster_kegiatan') folder = 'uploads/kegiatan'; 
+    else if (file.fieldname === 'gambar_program') folder = 'uploads/program';
 
     const dir = path.join(__dirname, `../../${folder}`);
     if (!fs.existsSync(dir)) {
