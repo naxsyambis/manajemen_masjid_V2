@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import axios from 'axios';
 import { 
   Users, 
@@ -10,21 +11,141 @@ import {
   UserMinus, 
   Pencil, 
   Trash2, 
-  Shield,
-  VenetianMask 
+  VenetianMask,
+  X,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Info
 } from 'lucide-react'; 
 import Button from '../../../components/Button';
 import StatCard from '../../../components/StatCard';
 import ModalJamaah from './ModalJamaah';
 
-const handleAuthError = (err) => { 
+const handleAuthError = (err, showPopup) => { 
   if (err.response && err.response.status === 401) {
-    alert(err.response.data.message || "Sesi Anda telah berakhir");
-    localStorage.removeItem("token");
-    window.location.href = "/login";
+    const message = err.response.data.message || "Sesi Anda telah berakhir";
+
+    if (showPopup) {
+      showPopup({
+        type: "error",
+        title: "Sesi Berakhir",
+        message,
+        confirmText: "Login Ulang",
+        onConfirm: () => {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }
+      });
+    } else {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+
     return true;
   }
+
   return false;
+};
+
+const AlertPopup = ({ alertData, onClose }) => {
+  if (!alertData.show) return null;
+
+  const isSuccess = alertData.type === "success";
+  const isError = alertData.type === "error";
+  const isWarning = alertData.type === "warning";
+  const isConfirm = alertData.type === "confirm";
+
+  const Icon = isSuccess
+    ? CheckCircle2
+    : isError
+      ? XCircle
+      : isWarning || isConfirm
+        ? AlertTriangle
+        : Info;
+
+  const iconClass = isSuccess
+    ? "bg-green-100 text-green-600"
+    : isError
+      ? "bg-red-100 text-red-600"
+      : isWarning || isConfirm
+        ? "bg-yellow-100 text-yellow-600"
+        : "bg-blue-100 text-blue-600";
+
+  const buttonClass = isSuccess
+    ? "bg-green-600 hover:bg-green-700 text-white"
+    : isError
+      ? "bg-red-600 hover:bg-red-700 text-white"
+      : isWarning
+        ? "bg-mu-yellow hover:bg-yellow-400 text-mu-green"
+        : isConfirm
+          ? "bg-red-600 hover:bg-red-700 text-white"
+          : "bg-mu-green hover:bg-green-700 text-white";
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="p-8 text-center">
+          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}>
+            <Icon size={42} strokeWidth={2.5} />
+          </div>
+
+          <h3 className="text-2xl font-black text-gray-800 leading-tight">
+            {alertData.title}
+          </h3>
+
+          <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">
+            {alertData.message}
+          </p>
+
+          {isConfirm ? (
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-4 rounded-2xl bg-gray-100 text-gray-500 text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (alertData.onConfirm) alertData.onConfirm();
+                  onClose();
+                }}
+                className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+              >
+                {alertData.confirmText || "Ya, Lanjut"}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+            >
+              {alertData.confirmText || "Mengerti"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
 };
 
 const DataJamaah = () => {
@@ -35,6 +156,15 @@ const DataJamaah = () => {
   const [selected, setSelected] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('semua');
+
+  const [alertData, setAlertData] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+    confirmText: "",
+    onConfirm: null
+  });
 
   const [form, setForm] = useState({ 
     nama: '', 
@@ -47,16 +177,54 @@ const DataJamaah = () => {
 
   const token = localStorage.getItem('token');
 
+  const showPopup = ({
+    type = "info",
+    title = "Informasi",
+    message = "",
+    confirmText = "",
+    onConfirm = null
+  }) => {
+    setAlertData({
+      show: true,
+      type,
+      title,
+      message,
+      confirmText,
+      onConfirm
+    });
+  };
+
+  const closePopup = () => {
+    setAlertData({
+      show: false,
+      type: "info",
+      title: "",
+      message: "",
+      confirmText: "",
+      onConfirm: null
+    });
+  };
+
   const fetchJamaah = async () => {
     try {
       setLoading(true);
+
       const res = await axios.get('http://localhost:3000/takmir/jamaah', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setJamaah(res.data);
+
+      const dataJamaah = Array.isArray(res.data) ? res.data : res.data.data || [];
+      setJamaah(dataJamaah);
     } catch (err) {
-      if (handleAuthError(err)) return;
-      console.error("Gagal ambil data jamaah");
+      if (handleAuthError(err, showPopup)) return;
+
+      console.error("Gagal ambil data jamaah", err);
+
+      showPopup({
+        type: "error",
+        title: "Gagal Memuat Data",
+        message: "Data jamaah tidak berhasil dimuat."
+      });
     } finally {
       setLoading(false);
     }
@@ -67,14 +235,22 @@ const DataJamaah = () => {
   }, [token]);
 
   const filteredJamaah = jamaah.filter(j => {
-    const matchSearch = j.nama.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = j.nama?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = filterStatus === 'semua' || j.status === filterStatus;
     return matchSearch && matchStatus;
   });
 
   const openTambah = () => {
     setIsEdit(false);
-    setForm({ nama: '', alamat: '', no_hp: '', jenis_kelamin: 'Laki-laki', peran: '', status: 'aktif' });
+    setSelected(null);
+    setForm({
+      nama: '',
+      alamat: '',
+      no_hp: '',
+      jenis_kelamin: 'Laki-laki',
+      peran: '',
+      status: 'aktif'
+    });
     setShowForm(true);
   };
 
@@ -82,52 +258,196 @@ const DataJamaah = () => {
     setIsEdit(true);
     setSelected(j);
     setForm({
-      nama: j.nama,
+      nama: j.nama || '',
       alamat: j.alamat || '',
-      no_hp: j.no_hp,
-      jenis_kelamin: j.jenis_kelamin,
+      no_hp: j.no_hp || '',
+      jenis_kelamin: j.jenis_kelamin || 'Laki-laki',
       peran: j.peran || '',
       status: j.status || 'aktif'
     });
     setShowForm(true);
   };
 
+  const validateForm = () => {
+    const nama = form.nama.trim();
+    const alamat = form.alamat.trim();
+    const noHp = form.no_hp.trim();
+    const peran = form.peran.trim();
+
+    if (!nama) {
+      showPopup({
+        type: "warning",
+        title: "Nama Kosong",
+        message: "Nama lengkap jamaah wajib diisi."
+      });
+      return false;
+    }
+
+    if (nama.length < 3) {
+      showPopup({
+        type: "warning",
+        title: "Nama Terlalu Pendek",
+        message: "Nama jamaah minimal 3 karakter."
+      });
+      return false;
+    }
+
+    if (!alamat) {
+      showPopup({
+        type: "warning",
+        title: "Alamat Kosong",
+        message: "Alamat jamaah wajib diisi."
+      });
+      return false;
+    }
+
+    if (!noHp) {
+      showPopup({
+        type: "warning",
+        title: "Nomor HP Kosong",
+        message: "Nomor HP jamaah wajib diisi."
+      });
+      return false;
+    }
+
+    if (!/^[0-9]+$/.test(noHp)) {
+      showPopup({
+        type: "warning",
+        title: "Nomor HP Tidak Valid",
+        message: "Nomor HP hanya boleh berisi angka.\nContoh: 081234567890"
+      });
+      return false;
+    }
+
+    if (noHp.length < 10 || noHp.length > 15) {
+      showPopup({
+        type: "warning",
+        title: "Nomor HP Tidak Valid",
+        message: "Nomor HP harus 10 sampai 15 digit."
+      });
+      return false;
+    }
+
+    if (!form.jenis_kelamin) {
+      showPopup({
+        type: "warning",
+        title: "Gender Kosong",
+        message: "Jenis kelamin jamaah wajib dipilih."
+      });
+      return false;
+    }
+
+    if (!peran) {
+      showPopup({
+        type: "warning",
+        title: "Peran Kosong",
+        message: "Peran jamaah wajib diisi.\nContoh: jamaah, imam, muadzin, marbot."
+      });
+      return false;
+    }
+
+    if (!form.status) {
+      showPopup({
+        type: "warning",
+        title: "Status Kosong",
+        message: "Status jamaah wajib dipilih."
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const payload = {
+      nama: form.nama.trim(),
+      alamat: form.alamat.trim(),
+      no_hp: form.no_hp.trim(),
+      jenis_kelamin: form.jenis_kelamin,
+      peran: form.peran.trim(),
+      status: form.status
+    };
+
     try {
       if (isEdit) {
-        await axios.put(`http://localhost:3000/takmir/jamaah/${selected.jamaah_id}`, form, {
+        await axios.put(`http://localhost:3000/takmir/jamaah/${selected.jamaah_id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
+        });
+
+        showPopup({
+          type: "success",
+          title: "Data Diperbarui",
+          message: "Data jamaah berhasil diperbarui."
         });
       } else {
-        await axios.post('http://localhost:3000/takmir/jamaah', form, {
+        await axios.post('http://localhost:3000/takmir/jamaah', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
+
+        showPopup({
+          type: "success",
+          title: "Data Tersimpan",
+          message: "Data jamaah berhasil ditambahkan."
+        });
       }
+
       setShowForm(false);
       fetchJamaah();
     } catch (err) {
-      if (handleAuthError(err)) return;
-      alert("Gagal menyimpan data.");
+      if (handleAuthError(err, showPopup)) return;
+
+      console.error("Gagal menyimpan data jamaah", err);
+
+      showPopup({
+        type: "error",
+        title: "Gagal Menyimpan",
+        message: err.response?.data?.message || "Data jamaah gagal disimpan."
+      });
     }
   };
 
   const handleHapus = async (id) => {
-    if (window.confirm("Hapus data jamaah ini?")) {
-      try {
-        await axios.delete(`http://localhost:3000/takmir/jamaah/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        fetchJamaah();
-      } catch (err) {
-        if (handleAuthError(err)) return;
-        alert("Gagal hapus data.");
+    showPopup({
+      type: "confirm",
+      title: "Hapus Data Jamaah?",
+      message: "Data yang dihapus tidak dapat dikembalikan.",
+      confirmText: "Hapus",
+      onConfirm: async () => {
+        try {
+          await axios.delete(`http://localhost:3000/takmir/jamaah/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          showPopup({
+            type: "success",
+            title: "Data Dihapus",
+            message: "Data jamaah berhasil dihapus."
+          });
+
+          fetchJamaah();
+        } catch (err) {
+          if (handleAuthError(err, showPopup)) return;
+
+          console.error("Gagal hapus data jamaah", err);
+
+          showPopup({
+            type: "error",
+            title: "Gagal Menghapus",
+            message: err.response?.data?.message || "Data jamaah gagal dihapus."
+          });
+        }
       }
-    }
+    });
   };
 
   return (
     <div className="p-4 space-y-10 animate-fadeIn bg-[#fdfdfd]">
+      <AlertPopup alertData={alertData} onClose={closePopup} />
+
       <ModalJamaah 
         show={showForm} 
         onClose={() => setShowForm(false)} 
@@ -137,7 +457,6 @@ const DataJamaah = () => {
         isEdit={isEdit}
       />
 
-      {}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-gray-100 pb-8">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -148,15 +467,17 @@ const DataJamaah = () => {
                 Jamaah
              </h2>
           </div>
-          <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.3em] ml-1">Database Umat & Masyarakat</p>
+          <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.3em] ml-1">
+            Database Umat & Masyarakat
+          </p>
         </div>
         
         <Button onClick={openTambah} className="text-white !rounded-2xl !py-5 !px-10 !bg-mu-green shadow-xl shadow-green-200 hover:translate-y-[-4px] transition-all flex items-center">
-          <UserPlus size={22} className="mr-2" strokeWidth={3} /> Registrasi Jamaah
+          <UserPlus size={22} className="mr-2" strokeWidth={3} />
+          Registrasi Jamaah
         </Button>
       </div>
 
-      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <StatCard 
           title="Total Jamaah" 
@@ -178,7 +499,6 @@ const DataJamaah = () => {
         />
       </div>
 
-      {}
       <div className="bg-white rounded-[3rem] shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden transition-all">
         <div className="p-8 border-b border-gray-50 bg-white/50 backdrop-blur-sm flex flex-col md:flex-row gap-6 justify-between items-center">
            <div className="relative w-full md:w-96 group">
@@ -207,7 +527,6 @@ const DataJamaah = () => {
            </div>
         </div>
 
-        {}
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -222,47 +541,54 @@ const DataJamaah = () => {
                 <th className="p-8 text-center">Opsi</th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan="8" className="p-32 text-center"><div className="animate-bounce inline-block p-4 bg-green-50 rounded-full text-mu-green font-black tracking-widest uppercase italic">Memuat Data...</div></td></tr>
+                <tr>
+                  <td colSpan="8" className="p-32 text-center">
+                    <div className="animate-bounce inline-block p-4 bg-green-50 rounded-full text-mu-green font-black tracking-widest uppercase italic">
+                      Memuat Data...
+                    </div>
+                  </td>
+                </tr>
               ) : filteredJamaah.map((j, index) => (
                 <tr key={j.jamaah_id} className="group hover:bg-mu-green/[0.03] transition-all duration-300 cursor-default font-black text-[10px] uppercase">
-                  {}
-                  <td className="p-8 text-center text-gray-900 font-black">{index + 1}</td>
+                  <td className="p-8 text-center text-gray-900 font-black">
+                    {index + 1}
+                  </td>
                   
                   <td className="p-8">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-mu-green text-white flex items-center justify-center shadow-lg shadow-green-100 transition-all duration-300 font-black text-lg">
-                        {j.nama.charAt(0).toUpperCase()}
+                        {j.nama?.charAt(0).toUpperCase() || '?'}
                       </div>
-                      {}
-                      <span className="text-sm font-black text-gray-900 uppercase tracking-tighter group-hover:text-mu-green transition-colors">{j.nama}</span>
+                      <span className="text-sm font-black text-gray-900 uppercase tracking-tighter group-hover:text-mu-green transition-colors">
+                        {j.nama}
+                      </span>
                     </div>
                   </td>
 
                   <td className="p-8">
-                    {}
                     <div className="flex items-center gap-2 text-gray-900 font-black lowercase italic">
-                      <MapPin size={12} className="text-mu-green shrink-0" /> {j.alamat || '-'}
+                      <MapPin size={12} className="text-mu-green shrink-0" />
+                      {j.alamat || '-'}
                     </div>
                   </td>
 
                   <td className="p-8">
-                    {}
                     <div className="flex items-center gap-2 font-mono text-gray-900 font-black">
-                      <Phone size={12} className="text-mu-green shrink-0" /> {j.no_hp}
+                      <Phone size={12} className="text-mu-green shrink-0" />
+                      {j.no_hp}
                     </div>
                   </td>
 
                   <td className="p-8 text-center">
-                    {}
                     <span className="text-gray-900 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-300 font-black">
                       {j.jenis_kelamin}
                     </span>
                   </td>
 
                   <td className="p-8">
-                    {}
                     <div className="flex items-center gap-2 text-mu-green font-black tracking-tight">
                       {j.peran || 'jamaah'}
                     </div>
@@ -279,10 +605,17 @@ const DataJamaah = () => {
 
                   <td className="p-8 text-center">
                     <div className="flex justify-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(j)} className="p-4 bg-white border border-gray-200 text-yellow-600 rounded-2xl shadow-sm hover:bg-yellow-500 hover:text-white hover:border-yellow-500 transition-all transform hover:-translate-y-1">
+                      <button
+                        onClick={() => handleEdit(j)}
+                        className="p-4 bg-white border border-gray-200 text-yellow-600 rounded-2xl shadow-sm hover:bg-yellow-500 hover:text-white hover:border-yellow-500 transition-all transform hover:-translate-y-1"
+                      >
                         <Pencil size={18} strokeWidth={2.5} />
                       </button>
-                      <button onClick={() => handleHapus(j.jamaah_id)} className="p-4 bg-white border border-gray-200 text-red-600 rounded-2xl shadow-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all transform hover:-translate-y-1">
+
+                      <button
+                        onClick={() => handleHapus(j.jamaah_id)}
+                        className="p-4 bg-white border border-gray-200 text-red-600 rounded-2xl shadow-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all transform hover:-translate-y-1"
+                      >
                         <Trash2 size={18} strokeWidth={2.5} />
                       </button>
                     </div>
@@ -299,8 +632,12 @@ const DataJamaah = () => {
                <VenetianMask size={48} />
             </div>
             <div className="space-y-1">
-               <p className="text-gray-900 font-black uppercase tracking-widest">Data Tidak Ditemukan</p>
-               <p className="text-[10px] text-gray-500 italic">Coba periksa kembali kata kunci atau filter Anda.</p>
+               <p className="text-gray-900 font-black uppercase tracking-widest">
+                Data Tidak Ditemukan
+               </p>
+               <p className="text-[10px] text-gray-500 italic">
+                Coba periksa kembali kata kunci atau filter Anda.
+               </p>
             </div>
           </div>
         )}

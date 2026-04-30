@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import axios from 'axios';
 import { 
   Package, 
@@ -10,20 +11,140 @@ import {
   Search,
   Box,
   ArrowUpDown,
-  Archive
+  Archive,
+  X,
+  AlertTriangle,
+  XCircle,
+  Info
 } from 'lucide-react'; 
 import Button from '../../../components/Button';
 import StatCard from '../../../components/StatCard';
 import ModalInventaris from './ModalInventaris';
 
-const handleAuthError = (err) => { 
+const handleAuthError = (err, showPopup) => { 
   if (err.response && err.response.status === 401) {
-    alert(err.response.data.message || "Sesi Anda telah berakhir");
-    localStorage.removeItem("token");
-    window.location.href = "/login";
+    const message = err.response.data.message || "Sesi Anda telah berakhir";
+
+    if (showPopup) {
+      showPopup({
+        type: "error",
+        title: "Sesi Berakhir",
+        message,
+        confirmText: "Login Ulang",
+        onConfirm: () => {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }
+      });
+    } else {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+
     return true;
   }
+
   return false;
+};
+
+const AlertPopup = ({ alertData, onClose }) => {
+  if (!alertData.show) return null;
+
+  const isSuccess = alertData.type === "success";
+  const isError = alertData.type === "error";
+  const isWarning = alertData.type === "warning";
+  const isConfirm = alertData.type === "confirm";
+
+  const Icon = isSuccess
+    ? CheckCircle2
+    : isError
+      ? XCircle
+      : isWarning || isConfirm
+        ? AlertTriangle
+        : Info;
+
+  const iconClass = isSuccess
+    ? "bg-green-100 text-green-600"
+    : isError
+      ? "bg-red-100 text-red-600"
+      : isWarning || isConfirm
+        ? "bg-yellow-100 text-yellow-600"
+        : "bg-blue-100 text-blue-600";
+
+  const buttonClass = isSuccess
+    ? "bg-green-600 hover:bg-green-700 text-white"
+    : isError
+      ? "bg-red-600 hover:bg-red-700 text-white"
+      : isWarning
+        ? "bg-mu-yellow hover:bg-yellow-400 text-mu-green"
+        : isConfirm
+          ? "bg-red-600 hover:bg-red-700 text-white"
+          : "bg-mu-green hover:bg-green-700 text-white";
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="p-8 text-center">
+          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}>
+            <Icon size={42} strokeWidth={2.5} />
+          </div>
+
+          <h3 className="text-2xl font-black text-gray-800 leading-tight">
+            {alertData.title}
+          </h3>
+
+          <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">
+            {alertData.message}
+          </p>
+
+          {isConfirm ? (
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-4 rounded-2xl bg-gray-100 text-gray-500 text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (alertData.onConfirm) alertData.onConfirm();
+                  onClose();
+                }}
+                className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+              >
+                {alertData.confirmText || "Ya"}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+            >
+              {alertData.confirmText || "Mengerti"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
 };
 
 const DataInventaris = () => {
@@ -35,6 +156,15 @@ const DataInventaris = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterKondisi, setFilterKondisi] = useState('semua');
 
+  const [alertData, setAlertData] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+    confirmText: "",
+    onConfirm: null
+  });
+
   const token = localStorage.getItem('token');
 
   const [form, setForm] = useState({ 
@@ -44,17 +174,53 @@ const DataInventaris = () => {
     keterangan: '' 
   });
 
+  const showPopup = ({
+    type = "info",
+    title = "Informasi",
+    message = "",
+    confirmText = "",
+    onConfirm = null
+  }) => {
+    setAlertData({
+      show: true,
+      type,
+      title,
+      message,
+      confirmText,
+      onConfirm
+    });
+  };
+
+  const closePopup = () => {
+    setAlertData({
+      show: false,
+      type: "info",
+      title: "",
+      message: "",
+      confirmText: "",
+      onConfirm: null
+    });
+  };
+
   const fetchInventaris = async () => {
     try {
       setLoading(true);
+
       const res = await axios.get('http://localhost:3000/takmir/inventaris', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       setItems(Array.isArray(res.data) ? res.data : res.data.data || []);
     } catch (err) {
-      if (handleAuthError(err)) return;
+      if (handleAuthError(err, showPopup)) return;
+
       console.error("Gagal load database inventaris", err);
+
+      showPopup({
+        type: "error",
+        title: "Gagal Memuat Data",
+        message: "Data inventaris tidak berhasil dimuat."
+      });
     } finally {
       setLoading(false);
     }
@@ -86,32 +252,97 @@ const DataInventaris = () => {
     setIsEdit(true);
     setSelectedId(item.inventaris_id);
     setForm({
-      nama_barang: item.nama_barang,
+      nama_barang: item.nama_barang || '',
       jumlah: item.jumlah && Number(item.jumlah) > 0 ? String(item.jumlah) : '1',
-      kondisi: item.kondisi,
+      kondisi: item.kondisi || 'baik',
       keterangan: item.keterangan || ''
     });
     setShowForm(true);
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const validateForm = () => {
+    const namaBarang = form.nama_barang.trim();
+    const jumlahText = String(form.jumlah || '').trim();
+    const jumlahNumber = Number(jumlahText);
 
-    const jumlahNumber = Number(form.jumlah);
+    if (!namaBarang) {
+      showPopup({
+        type: "warning",
+        title: "Nama Barang Kosong",
+        message: "Nama barang inventaris wajib diisi."
+      });
+      return false;
+    }
 
-    if (!form.nama_barang.trim()) {
-      alert("Nama barang wajib diisi.");
-      return;
+    if (namaBarang.length < 3) {
+      showPopup({
+        type: "warning",
+        title: "Nama Terlalu Pendek",
+        message: "Nama barang minimal 3 karakter."
+      });
+      return false;
+    }
+
+    if (!jumlahText) {
+      showPopup({
+        type: "warning",
+        title: "Kuantitas Kosong",
+        message: "Kuantitas barang wajib diisi."
+      });
+      return false;
+    }
+
+    if (!/^[0-9]+$/.test(jumlahText)) {
+      showPopup({
+        type: "warning",
+        title: "Kuantitas Tidak Valid",
+        message: "Kuantitas hanya boleh angka.\nMinimal kuantitas adalah 1."
+      });
+      return false;
     }
 
     if (!Number.isInteger(jumlahNumber) || jumlahNumber < 1) {
-      alert("Kuantitas minimal harus 1 dan tidak boleh 0 atau minus.");
-      return;
+      showPopup({
+        type: "warning",
+        title: "Kuantitas Tidak Valid",
+        message: "Kuantitas minimal 1 dan tidak boleh 0 atau minus."
+      });
+      return false;
     }
 
+    if (!form.kondisi) {
+      showPopup({
+        type: "warning",
+        title: "Kondisi Kosong",
+        message: "Kondisi barang wajib dipilih."
+      });
+      return false;
+    }
+
+    if (!['baik', 'rusak', 'hilang'].includes(form.kondisi)) {
+      showPopup({
+        type: "warning",
+        title: "Kondisi Tidak Valid",
+        message: "Kondisi barang harus baik, rusak, atau hilang."
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const jumlahNumber = Number(form.jumlah);
+
     const payload = {
-      ...form,
-      jumlah: jumlahNumber
+      nama_barang: form.nama_barang.trim(),
+      jumlah: jumlahNumber,
+      kondisi: form.kondisi,
+      keterangan: form.keterangan.trim()
     };
 
     try {
@@ -119,36 +350,77 @@ const DataInventaris = () => {
         await axios.put(`http://localhost:3000/takmir/inventaris/${selectedId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
+
+        showPopup({
+          type: "success",
+          title: "Data Diperbarui",
+          message: "Data inventaris berhasil diperbarui."
+        });
       } else {
         await axios.post('http://localhost:3000/takmir/inventaris', payload, {
           headers: { Authorization: `Bearer ${token}` }
+        });
+
+        showPopup({
+          type: "success",
+          title: "Data Tersimpan",
+          message: "Data inventaris berhasil ditambahkan."
         });
       }
 
       setShowForm(false);
       fetchInventaris();
     } catch (err) {
-      if (handleAuthError(err)) return;
-      alert("Gagal simpan ke database.");
+      if (handleAuthError(err, showPopup)) return;
+
+      console.error("Gagal simpan ke database", err);
+
+      showPopup({
+        type: "error",
+        title: "Gagal Menyimpan",
+        message: err.response?.data?.message || "Data inventaris gagal disimpan."
+      });
     }
   };
 
   const handleHapus = async (id) => {
-    if (window.confirm("Hapus barang dari database?")) {
-      try {
-        await axios.delete(`http://localhost:3000/takmir/inventaris/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        fetchInventaris();
-      } catch (err) {
-        if (handleAuthError(err)) return;
-        alert("Gagal hapus data.");
+    showPopup({
+      type: "confirm",
+      title: "Hapus Inventaris?",
+      message: "Data barang yang dihapus tidak dapat dikembalikan.",
+      confirmText: "Hapus",
+      onConfirm: async () => {
+        try {
+          await axios.delete(`http://localhost:3000/takmir/inventaris/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          showPopup({
+            type: "success",
+            title: "Data Dihapus",
+            message: "Data inventaris berhasil dihapus."
+          });
+
+          fetchInventaris();
+        } catch (err) {
+          if (handleAuthError(err, showPopup)) return;
+
+          console.error("Gagal hapus data inventaris", err);
+
+          showPopup({
+            type: "error",
+            title: "Gagal Menghapus",
+            message: err.response?.data?.message || "Data inventaris gagal dihapus."
+          });
+        }
       }
-    }
+    });
   };
 
   return (
     <div className="p-4 space-y-10 animate-fadeIn bg-[#fdfdfd]">
+      <AlertPopup alertData={alertData} onClose={closePopup} />
+
       <ModalInventaris 
         show={showForm} 
         onClose={() => setShowForm(false)} 

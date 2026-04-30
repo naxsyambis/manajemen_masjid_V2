@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import axios from "axios";
 import { formatRupiah } from "./formatCurrency";
 import { formatTanggal } from "./formatDate";
 import logoKop from "../assets/kop-surat.jpeg"; 
@@ -31,12 +32,109 @@ const imageUrlToBase64 = async (url) => {
   return canvas.toDataURL("image/png");
 };
 
+// =================================
+// HELPER: AMBIL KETUA & BENDAHARA
+// DARI STRUKTUR ORGANISASI
+// =================================
+const getStrukturPenandatangan = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const masjidId = localStorage.getItem("masjid_id");
+
+    if (!token || !masjidId) {
+      return {
+        ketua: "-",
+        bendahara: "-"
+      };
+    }
+
+    const res = await axios.get("http://localhost:3000/takmir/struktur-organisasi", {
+      params: {
+        masjid_id: masjidId
+      },
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const struktur = Array.isArray(res.data.data) ? res.data.data : [];
+
+    const ketua = struktur.find((item) =>
+      item.jabatan?.toLowerCase().includes("ketua")
+    );
+
+    const bendahara = struktur.find((item) =>
+      item.jabatan?.toLowerCase().includes("bendahara")
+    );
+
+    return {
+      ketua: ketua?.nama || "-",
+      bendahara: bendahara?.nama || "-"
+    };
+  } catch (error) {
+    console.error("Gagal mengambil struktur organisasi:", error);
+
+    return {
+      ketua: "-",
+      bendahara: "-"
+    };
+  }
+};
+
+// =================================
+// HELPER: AMBIL REKENING MASJID
+// DARI SETTINGS / REKENING MASJID
+// =================================
+const getRekeningMasjid = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const masjidId = localStorage.getItem("masjid_id");
+
+    if (!token || !masjidId) {
+      return "-";
+    }
+
+    const res = await axios.get("http://localhost:3000/takmir/rekening-masjid", {
+      params: {
+        masjid_id: masjidId
+      },
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const rekening = Array.isArray(res.data.data) ? res.data.data : [];
+
+    if (rekening.length === 0) {
+      return "-";
+    }
+
+    return rekening
+      .map((item) => {
+        const namaBank = item.nama_bank || "-";
+        const noRekening = item.no_rekening || "-";
+        const atasNama = item.atas_nama || "-";
+
+        return `${namaBank} ${noRekening} a.n ${atasNama}`;
+      })
+      .join("\n");
+  } catch (error) {
+    console.error("Gagal mengambil rekening masjid:", error);
+    return "-";
+  }
+};
+
 export const generateKwitansiPDF = async (data, savedTtd) => {
   const doc = new jsPDF("p", "mm", "a4");
 
-  // Ambil Nama Masjid dan Nama Takmir dari LocalStorage
-  const namaMasjid = localStorage.getItem('namaMasjid') || "MASJID MUHAMMADIYAH";
-  const namaTakmir = localStorage.getItem('userName') || "Takmir Masjid";
+  // Ambil Nama Masjid dari LocalStorage
+  const namaMasjid = localStorage.getItem("namaMasjid") || "MASJID MUHAMMADIYAH";
+
+  // Ambil nama ketua dan bendahara dari struktur organisasi
+  const { ketua, bendahara } = await getStrukturPenandatangan();
+
+  // Ambil rekening masjid dari Settings
+  const rekeningMasjid = await getRekeningMasjid();
 
   // Fungsi untuk memasang Background Kop (Header & Footer)
   const addPageTemplate = () => {
@@ -48,6 +146,14 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
   };
 
   addPageTemplate();
+
+  // ==========================================
+  // NAMA MASJID
+  // ==========================================
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(0, 98, 39);
+  doc.text(namaMasjid.toUpperCase(), 105, 48, { align: "center" });
 
   // ==========================================
   // JUDUL KWITANSI
@@ -122,39 +228,64 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
   doc.text(formatRupiah(Math.abs(data.nominal)), startX + 145, startY + 3, { align: "right" });
 
   // ==========================================
-  // TANDA TANGAN (INTEGRASI OTOMATIS)
+  // TANDA TANGAN 2 KOLOM
+  // KIRI: KETUA
+  // KANAN: BENDAHARA
   // ==========================================
   const signY = 190;
-  const signX = 150;
+  const ketuaX = 60;
+  const bendaharaX = 150;
 
   doc.setFontSize(10);
   doc.setTextColor(0);
   doc.setFont("helvetica", "normal");
-  doc.text("Yogyakarta, " + data.tanggal, signX, signY, { align: "center" });
-  doc.text("Takmir,", signX, signY + 7, { align: "center" });
 
-  // Render TTD jika ada di database/localStorage
-  if (savedTtd) {
-  try {
-    const ttdUrl = `http://localhost:3000${savedTtd}`;
-    const ttdBase64 = await imageUrlToBase64(ttdUrl);
-    doc.addImage(ttdBase64, "PNG", signX - 15, signY + 10, 30, 20);
-  } catch (e) {
-    console.error("Gagal merender TTD pada kwitansi", e);
-  }
-}
+  // Tanggal di atas tanda tangan
+  doc.text("Yogyakarta, " + data.tanggal, bendaharaX, signY, { align: "center" });
 
+  // Label jabatan tetap
+  doc.text("Ketua,", ketuaX, signY + 12, { align: "center" });
+  doc.text("Bendahara,", bendaharaX, signY + 12, { align: "center" });
+
+  // Area kosong untuk tanda tangan
   doc.setFont("helvetica", "bold");
-  doc.text(namaTakmir.toUpperCase(), signX, signY + 35, { align: "center" });
-  doc.setFontSize(8);
-  doc.text(namaMasjid, signX, signY + 39, { align: "center" });
-  doc.line(signX - 25, signY + 36, signX + 25, signY + 36);
 
-  // Note kecil di bawah
+  // Garis tanda tangan Ketua
+  doc.line(ketuaX - 28, signY + 42, ketuaX + 28, signY + 42);
+
+  // Garis tanda tangan Bendahara
+  doc.line(bendaharaX - 28, signY + 42, bendaharaX + 28, signY + 42);
+
+  // Nama Ketua dan Bendahara dari struktur organisasi
+  // Jika belum ada, tampil "-"
+  doc.text(ketua.toUpperCase(), ketuaX, signY + 48, { align: "center" });
+  doc.text(bendahara.toUpperCase(), bendaharaX, signY + 48, { align: "center" });
+
+  doc.setFontSize(8);
+  doc.text(namaMasjid, ketuaX, signY + 53, { align: "center" });
+  doc.text(namaMasjid, bendaharaX, signY + 53, { align: "center" });
+
+  // ==========================================
+  // FOOTER: REKENING KIRI + CATATAN KANAN
+  // ==========================================
+  doc.setTextColor(80);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.text("Rekening Masjid:", 20, 260);
+
+  doc.setFont("helvetica", "normal");
+  const splitRekening = doc.splitTextToSize(rekeningMasjid, 95);
+  doc.text(splitRekening.slice(0, 4), 20, 265);
+
   doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(150);
-  doc.text("*Bukti ini sah sebagai dokumen internal masjid.", 20, 270);
+  doc.text(
+    "*Bukti ini sah sebagai dokumen internal masjid.",
+    190,
+    270,
+    { align: "right" }
+  );
 
   // Save PDF
   doc.save(`Kwitansi_${data.id}_${data.donatur}.pdf`);
