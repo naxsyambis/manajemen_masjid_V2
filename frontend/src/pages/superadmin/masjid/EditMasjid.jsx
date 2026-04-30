@@ -11,11 +11,13 @@ const EditMasjid = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [formData, setFormData] = useState({
-    nama_masjid: '',
-    alamat: '',
-    no_hp: '',
-    deskripsi: ''
-  });
+  nama_masjid: '',
+  alamat: '',
+  no_hp: '',
+  deskripsi: '',
+  latitude: '',
+  longitude: ''
+});
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -47,7 +49,9 @@ const EditMasjid = ({ user, onLogout }) => {
         nama_masjid: res.data.nama_masjid,
         alamat: res.data.alamat,
         no_hp: res.data.no_hp,
-        deskripsi: res.data.deskripsi
+        deskripsi: res.data.deskripsi,
+        latitude: res.data.latitude,   
+        longitude: res.data.longitude
       });
     } catch (err) {
       console.error('Error fetching masjid:', err);
@@ -67,6 +71,8 @@ const EditMasjid = ({ user, onLogout }) => {
     data.append('alamat', formData.alamat);
     data.append('no_hp', formData.no_hp);
     data.append('deskripsi', formData.deskripsi);
+    data.append('latitude', formData.latitude);
+    data.append('longitude', formData.longitude);
     if (file) data.append('logo_foto', file);
 
     try {
@@ -251,6 +257,45 @@ const EditMasjid = ({ user, onLogout }) => {
                         />
                         <p className="text-sm text-gray-500">Berikan penjelasan singkat</p>
                       </div>
+                       {/* LATITUDE */}
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
+                          Latitude
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={formData.latitude}
+                          onChange={(e) =>
+                            setFormData({ ...formData, latitude: e.target.value })
+                          }
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                          placeholder="Contoh: -7.123456"
+                        />
+                        <p className="text-sm text-gray-500">
+                          Koordinat lintang (latitude)
+                        </p>
+                      </div>
+
+                      {/* LONGITUDE */}
+                        <div className="space-y-3">
+                          <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
+                            Longitude
+                          </label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.longitude}
+                            onChange={(e) =>
+                              setFormData({ ...formData, longitude: e.target.value })
+                            }
+                            className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                            placeholder="Contoh: 110.123456"
+                          />
+                          <p className="text-sm text-gray-500">
+                            Koordinat bujur (longitude)
+                          </p>
+                        </div>
                     </div>
                   </div>
                 </div>

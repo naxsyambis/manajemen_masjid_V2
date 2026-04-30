@@ -152,6 +152,17 @@ const HapusMasjid = ({ user, onLogout }) => {
               <p className="text-gray-600 leading-relaxed">{masjid.deskripsi || 'Tidak ada deskripsi yang tersedia untuk masjid ini.'}</p>
             </div>
           </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                <Navigation size={24} className="text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800">Koordinat</h3>
+            </div>
+            <p className="text-gray-600">Lat: {masjid.latitude}</p>
+            <p className="text-gray-600">Lng: {masjid.longitude}</p>
+          </div>
           
           {/* Tombol Aksi */}
           <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">

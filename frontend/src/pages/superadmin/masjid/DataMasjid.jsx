@@ -5,7 +5,11 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { Plus, Edit, Trash2, Eye, AlertTriangle, X, MapPin, Phone, FileText, Image as ImageIcon, Search, Calendar, RefreshCcw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  Plus, Edit, Trash2, Eye, AlertTriangle, MapPin, 
+  Phone, Navigation, Image as ImageIcon, Search, 
+  Calendar, RefreshCcw, ChevronLeft, ChevronRight 
+} from 'lucide-react';
 
 const DataMasjid = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +25,6 @@ const DataMasjid = ({ user, onLogout }) => {
   const [time, setTime] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
   
-  // State untuk Pagination dan Filter Baris
   const [entriesPerPage, setEntriesPerPage] = useState(5); 
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -29,26 +32,28 @@ const DataMasjid = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
+  // Clock Effect
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
+  // Fetch Data Effect
   useEffect(() => {
     fetchMasjids();
   }, []);
 
+  // Search & Filter Effect
   useEffect(() => {
-    // Filter masjids berdasarkan search term (bisa diketik)
     const filtered = masjids.filter(masjid =>
       masjid.nama_masjid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       masjid.alamat?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredMasjids(filtered);
-    setCurrentPage(1); // Reset ke halaman 1 setiap kali mencari
+    setCurrentPage(1);
   }, [masjids, searchTerm]);
 
-  // Logika Kalkulasi Pagination[cite: 1]
+  // Pagination Logic
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
   const currentItems = filteredMasjids.slice(indexOfFirstItem, indexOfLastItem);
@@ -64,7 +69,7 @@ const DataMasjid = ({ user, onLogout }) => {
       setMasjids(res.data);
     } catch (err) {
       console.error('Error fetching masjids:', err);
-      setError('Gagal memuat data masjid. Silakan coba lagi.');
+      setError('Gagal memuat data masjid.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -78,13 +83,10 @@ const DataMasjid = ({ user, onLogout }) => {
       await axios.delete(`http://localhost:3000/superadmin/masjid/${selectedMasjid.masjid_id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Masjid berhasil dihapus');
       fetchMasjids();
-      setShowDeleteModal(false);
-      setSelectedMasjid(null);
+      closeDeleteModal();
     } catch (err) {
       console.error('Error deleting masjid:', err);
-      alert('Gagal menghapus masjid');
     } finally {
       setDeleting(false);
     }
@@ -100,170 +102,171 @@ const DataMasjid = ({ user, onLogout }) => {
     setSelectedMasjid(null);
   };
 
-  const handleRefresh = () => {
-    fetchMasjids();
-  };
-
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-mu-green border-t-transparent rounded-full animate-spin shadow-lg"></div>
-          <p className="text-sm font-bold text-mu-green uppercase tracking-wider">Memuat Data Masjid...</p>
+          <div className="w-12 h-12 border-4 border-mu-green border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs font-bold text-mu-green uppercase tracking-widest">Memuat...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="data-masjid h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
-      <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
+    <div className="data-masjid h-screen bg-gray-50 flex overflow-hidden">
+      <SuperAdminSidebar 
+        isOpen={isOpen} 
+        setIsOpen={setIsOpen} 
+        onLogout={onLogout} 
+        user={user} 
+        setIsHovered={setIsHovered} 
+        isExpanded={isExpanded} 
+      />
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
-        <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="main-content p-4 md:p-8 h-full overflow-y-auto space-y-6 md:space-y-8">
+          
+          {/* Header Section */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
+              <h1 className="text-3xl md:text-4xl font-black text-gray-800 uppercase tracking-tighter">
                 Data <span className="text-mu-green">Masjid</span>
               </h1>
-              <div className="flex items-center gap-2 mt-2 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
+              <div className="flex items-center gap-2 mt-2 text-gray-400 font-bold text-[9px] md:text-[10px] uppercase tracking-widest">
                 <Calendar size={12} className="text-mu-green" />
                 <span>{time.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                <span className="mx-2">•</span>
-                <span className="text-mu-green">{time.toLocaleTimeString('id-ID')}</span>
+                <span className="text-mu-green font-black">{time.toLocaleTimeString('id-ID')}</span>
               </div>
             </div>
             
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3">
               <button 
-                onClick={handleRefresh}
+                onClick={fetchMasjids}
                 disabled={refreshing}
-                className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-white border border-gray-100 px-4 py-3 rounded-xl text-[10px] font-black uppercase text-gray-500 hover:text-mu-green transition-all shadow-sm disabled:opacity-50"
               >
                 <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
-                {refreshing ? 'Memuat...' : 'Refresh Data'}
+                Refresh
               </button>
               <button
                 onClick={() => navigate('/superadmin/masjid/tambah')}
-                className="flex items-center gap-2 bg-mu-green text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-mu-green text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-green-700 shadow-md transition-all active:scale-95"
               >
                 <Plus size={14} />
-                Tambah Masjid
+                Tambah
               </button>
             </div>
           </div>
           
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
-              <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
-              <div>
-                <p className="text-red-700 font-medium">Error</p>
-                <p className="text-red-600 text-sm mt-1">{error}</p>
-              </div>
-            </div>
-          )}
-          
-          {/* Tabel Modern */}
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-              <div className="flex items-center gap-6">
-                <div>
-                  <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">Daftar Masjid</h3>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                    Total: {filteredMasjids.length} Masjid
-                  </p>
+          {/* Table Container */}
+          <div className="bg-white p-4 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
+            
+            {/* Toolbar */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="hidden sm:block">
+                  <h3 className="text-lg font-black text-gray-800 uppercase tracking-tighter">Daftar</h3>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Total: {filteredMasjids.length}</p>
                 </div>
-
-                {/* Dropdown Filter Jumlah Data */}
-                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Show:</span>
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl">
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Show:</span>
                   <select 
                     value={entriesPerPage}
-                    onChange={(e) => {
-                      setEntriesPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="bg-transparent text-sm font-bold text-mu-green focus:outline-none cursor-pointer"
+                    onChange={(e) => {setEntriesPerPage(Number(e.target.value)); setCurrentPage(1);}}
+                    className="bg-transparent text-xs font-bold text-mu-green focus:outline-none cursor-pointer"
                   >
-                    {[5, 10, 25, 50, 100].map(num => (
-                      <option key={num} value={num}>{num}</option>
-                    ))}
+                    {[5, 10, 25].map(num => <option key={num} value={num}>{num}</option>)}
                   </select>
                 </div>
               </div>
               
-              {/* Search Bar (Bisa Diketik) */}
-              <div className="relative w-full sm:w-64">
-                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <div className="relative w-full md:w-64">
+                <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Cari masjid..."
+                  placeholder="Cari masjid atau alamat..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm w-full"
+                  className="pl-10 pr-4 py-2.5 border border-gray-100 rounded-xl focus:ring-2 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 text-sm w-full"
                 />
               </div>
             </div>
             
-            <div className="overflow-x-auto rounded-2xl shadow-inner">
-              <table className="w-full table-auto">
+            {/* Table */}
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="min-w-full border-separate border-spacing-0">
                 <thead>
-                  <tr className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-2xl">
-                    <th className="px-8 py-6 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Logo</th>
-                    <th className="px-8 py-6 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Nama Masjid</th>
-                    <th className="px-8 py-6 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Alamat</th>
-                    <th className="px-8 py-6 text-left text-sm font-black text-gray-700 uppercase tracking-wider">No HP</th>
-                    <th className="px-8 py-6 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Deskripsi</th>
-                    <th className="px-8 py-6 text-center text-sm font-black text-gray-700 uppercase tracking-wider">Aksi</th>
+                  <tr className="bg-gray-50">
+                    <th className="sticky left-0 bg-gray-50 z-10 px-4 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Logo</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Info Masjid</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Lokasi & Kontak</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Koordinat</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {currentItems.map((masjid, index) => (
-                    <tr key={masjid.masjid_id} className={`border-t border-gray-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all duration-300 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-sm">
+                  {currentItems.map((masjid) => (
+                    <tr key={masjid.masjid_id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="sticky left-0 bg-white group-hover:bg-gray-50 z-10 px-4 py-4 border-b border-gray-50">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-100 rounded-full overflow-hidden shadow-inner flex items-center justify-center border border-gray-200">
                           {masjid.logo_foto ? (
-                            <img src={`http://localhost:3000${masjid.logo_foto}`} alt="Logo" className="w-10 h-10 object-cover rounded-full" />
+                            <img src={`http://localhost:3000${masjid.logo_foto}`} alt="Logo" className="w-full h-full object-cover" />
                           ) : (
-                            <ImageIcon size={24} className="text-gray-400" />
+                            <ImageIcon size={20} className="text-gray-300" />
                           )}
                         </div>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900 max-w-[150px] truncate" title={masjid.nama_masjid}>{masjid.nama_masjid}</div>
-                        <div className="text-xs text-gray-500">ID: {masjid.masjid_id}</div>
+                      <td className="px-6 py-4 border-b border-gray-50">
+                        <div className="text-sm font-bold text-gray-800">{masjid.nama_masjid}</div>
+                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">ID: {masjid.masjid_id}</div>
                       </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-start space-x-2">
-                          <MapPin size={16} className="text-mu-green mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-gray-900 max-w-[150px] truncate" title={masjid.alamat}>{masjid.alamat}</div>
+                      <td className="px-6 py-4 border-b border-gray-50">
+                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
+                          <MapPin size={12} className="text-mu-green flex-shrink-0" />
+                          <span className="truncate max-w-[200px]">{masjid.alamat}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
+                          <Phone size={12} className="text-mu-green flex-shrink-0" />
+                          <span>{masjid.no_hp}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <Phone size={16} className="text-mu-green" />
-                          <span className="text-sm text-gray-900">{masjid.no_hp}</span>
+                      <td className="px-6 py-4 border-b border-gray-50">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
+                            <Navigation size={10} className="text-mu-green" />
+                            <span>Lat: {masjid.latitude}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
+                            <Navigation size={10} className="text-mu-green" />
+                            <span>Lng: {masjid.longitude}</span>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-start space-x-2">
-                          <FileText size={16} className="text-mu-green mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-gray-900 max-w-[150px] truncate" title={masjid.deskripsi || 'Tidak ada deskripsi'}>{masjid.deskripsi || 'Tidak ada deskripsi'}</div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 whitespace-nowrap text-center">
-                        <div className="flex justify-center space-x-2">
-                          <button onClick={() => navigate(`/superadmin/masjid/detail/${masjid.masjid_id}`)} className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors shadow-sm" title="Detail">
-                            <Eye size={18} />
+                      <td className="px-6 py-4 border-b border-gray-50 text-center">
+                        <div className="flex justify-center items-center gap-2">
+                          <button 
+                            onClick={() => navigate(`/superadmin/masjid/detail/${masjid.masjid_id}`)} 
+                            className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+                            title="Detail"
+                          >
+                            <Eye size={16} />
                           </button>
-                          <button onClick={() => navigate(`/superadmin/masjid/edit/${masjid.masjid_id}`)} className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors shadow-sm" title="Edit">
-                            <Edit size={18} />
+                          <button 
+                            onClick={() => navigate(`/superadmin/masjid/edit/${masjid.masjid_id}`)} 
+                            className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
                           </button>
-                          <button onClick={() => openDeleteModal(masjid)} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors shadow-sm" title="Hapus">
-                            <Trash2 size={18} />
+                          <button 
+                            onClick={() => openDeleteModal(masjid)} 
+                            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                            title="Hapus"
+                          >
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
@@ -273,77 +276,63 @@ const DataMasjid = ({ user, onLogout }) => {
               </table>
             </div>
 
-            {/* Pagination Info & Controls */}
-            {filteredMasjids.length > 0 && (
-              <div className="flex flex-col sm:flex-row justify-between items-center mt-10 gap-4 px-2">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredMasjids.length)} dari {filteredMasjids.length} data
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="p-3 rounded-xl border border-gray-100 bg-white text-gray-500 hover:text-mu-green disabled:opacity-30 disabled:cursor-not-allowed shadow-sm transition-all"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <div className="flex gap-1">
-                    {[...Array(totalPages)].map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${currentPage === i + 1 ? 'bg-mu-green text-white shadow-lg' : 'bg-white text-gray-400 hover:bg-gray-50 border border-gray-100'}`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="p-3 rounded-xl border border-gray-100 bg-white text-gray-500 hover:text-mu-green disabled:opacity-30 disabled:cursor-not-allowed shadow-sm transition-all"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
+            {/* Pagination */}
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredMasjids.length)} dari {filteredMasjids.length} data
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg bg-gray-50 text-gray-400 disabled:opacity-30 hover:text-mu-green transition-all"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="flex gap-1">
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`min-w-[32px] h-8 rounded-lg text-[10px] font-bold transition-all ${currentPage === i + 1 ? 'bg-mu-green text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 hover:bg-gray-50'}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
                 </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg bg-gray-50 text-gray-400 disabled:opacity-30 hover:text-mu-green transition-all"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
-            )}
-            
-            {filteredMasjids.length === 0 && (
-              <div className="text-center py-16">
-                <div className="w-24 h-24 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <Search size={48} className="text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">Data tidak ditemukan</h3>
-                <p className="text-gray-500">Coba kata kunci lain atau pastikan data sudah tersedia.</p>
-              </div>
-            )}
+            </div>
           </div>
           
-          <div className="flex justify-center items-center gap-4 text-gray-300 py-4">
-            <div className="h-[1px] w-12 bg-gray-100"></div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em]">Integrated Database System v3.0</p>
-            <div className="h-[1px] w-12 bg-gray-100"></div>
+          <div className="flex flex-col items-center gap-2 text-gray-300 py-4">
+            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em]">Integrated Database System v3.0</p>
           </div>
         </div>
       </div>
 
-      {/* Modal Hapus */}
+      {/* Delete Modal */}
       {showDeleteModal && selectedMasjid && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform animate-scale-in">
-            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-t-2xl flex items-center">
-              <AlertTriangle size={32} className="mr-4 animate-pulse" />
-              <h1 className="text-2xl font-bold">Konfirmasi Hapus</h1>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-red-500 p-6 flex justify-center text-white">
+              <AlertTriangle size={48} className="animate-bounce" />
             </div>
-            <div className="p-6">
-              <p className="text-gray-700 mb-6 leading-relaxed">Apakah Anda yakin ingin menghapus masjid <strong>{selectedMasjid.nama_masjid}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
-              <div className="flex justify-end space-x-4">
-                <button onClick={closeDeleteModal} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-medium flex items-center">
-                  <X size={20} className="mr-2" /> Batal
+            <div className="p-6 text-center">
+              <h1 className="text-xl font-black text-gray-800 uppercase tracking-tight mb-2">Hapus Data?</h1>
+              <p className="text-sm text-gray-500 mb-6">Yakin ingin menghapus <strong>{selectedMasjid.nama_masjid}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
+              <div className="flex gap-3">
+                <button onClick={closeDeleteModal} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition-all">
+                  Batal
                 </button>
-                <button onClick={handleDelete} disabled={deleting} className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 transition-all font-medium flex items-center disabled:opacity-50">
-                  <Trash2 size={20} className="mr-2" /> {deleting ? 'Menghapus...' : 'Hapus Masjid'}
+                <button onClick={handleDelete} disabled={deleting} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-600 shadow-lg shadow-red-200 transition-all flex items-center justify-center">
+                  {deleting ? <RefreshCcw size={14} className="animate-spin" /> : 'Hapus'}
                 </button>
               </div>
             </div>
