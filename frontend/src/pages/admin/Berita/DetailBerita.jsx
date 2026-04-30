@@ -1,7 +1,138 @@
 import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { CalendarDays, Image as ImageIcon, Newspaper } from "lucide-react";
+import {
+  CalendarDays,
+  Image as ImageIcon,
+  Newspaper,
+  X,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Info
+} from "lucide-react";
+
+const handleAuthError = (err, showPopup) => {
+  if (err.response && err.response.status === 401) {
+    const message = err.response.data.message || "Sesi Anda telah berakhir";
+
+    showPopup({
+      type: "error",
+      title: "Sesi Berakhir",
+      message,
+      confirmText: "Login Ulang",
+      onConfirm: () => {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+    });
+
+    return true;
+  }
+
+  return false;
+};
+
+const AlertPopup = ({ alertData, onClose }) => {
+  if (!alertData.show) return null;
+
+  const isSuccess = alertData.type === "success";
+  const isError = alertData.type === "error";
+  const isWarning = alertData.type === "warning";
+  const isConfirm = alertData.type === "confirm";
+
+  const Icon = isSuccess
+    ? CheckCircle2
+    : isError
+      ? XCircle
+      : isWarning || isConfirm
+        ? AlertTriangle
+        : Info;
+
+  const iconClass = isSuccess
+    ? "bg-green-100 text-green-600"
+    : isError
+      ? "bg-red-100 text-red-600"
+      : isWarning || isConfirm
+        ? "bg-yellow-100 text-yellow-600"
+        : "bg-blue-100 text-blue-600";
+
+  const buttonClass = isConfirm
+    ? "bg-red-600 hover:bg-red-700 text-white"
+    : isSuccess
+      ? "bg-green-600 hover:bg-green-700 text-white"
+      : isError
+        ? "bg-red-600 hover:bg-red-700 text-white"
+        : isWarning
+          ? "bg-mu-yellow hover:bg-yellow-400 text-mu-green"
+          : "bg-mu-green hover:bg-green-700 text-white";
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="p-8 text-center">
+          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}>
+            <Icon size={42} strokeWidth={2.5} />
+          </div>
+
+          <h3 className="text-2xl font-black text-gray-800 leading-tight">
+            {alertData.title}
+          </h3>
+
+          <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">
+            {alertData.message}
+          </p>
+
+          {isConfirm ? (
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-4 rounded-2xl bg-gray-100 text-gray-500 text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (alertData.onConfirm) alertData.onConfirm();
+                  onClose();
+                }}
+                className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+              >
+                {alertData.confirmText || "Hapus"}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+            >
+              {alertData.confirmText || "Mengerti"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const DetailBerita = () => {
   const { id } = useParams();
@@ -11,10 +142,50 @@ const DetailBerita = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // 🔥 DELETE MODAL
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [alertData, setAlertData] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+    confirmText: "",
+    onConfirm: null
+  });
 
   const token = localStorage.getItem("token");
+
+  const showPopup = ({
+    type = "info",
+    title = "Informasi",
+    message = "",
+    confirmText = "",
+    onConfirm = null
+  }) => {
+    setAlertData({
+      show: true,
+      type,
+      title,
+      message,
+      confirmText,
+      onConfirm
+    });
+  };
+
+  const closePopup = () => {
+    const callback = alertData.onConfirm;
+
+    setAlertData({
+      show: false,
+      type: "info",
+      title: "",
+      message: "",
+      confirmText: "",
+      onConfirm: null
+    });
+
+    if (callback) {
+      setTimeout(callback, 100);
+    }
+  };
 
   useEffect(() => {
     fetchDetail();
@@ -34,13 +205,30 @@ const DetailBerita = () => {
       if (res.data.gambar) {
         setSelectedImage(res.data.gambar);
       }
-
     } catch (err) {
+      if (handleAuthError(err, showPopup)) return;
+
       console.error(err);
-      alert("Gagal ambil detail berita");
+
+      showPopup({
+        type: "error",
+        title: "Gagal Memuat",
+        message: "Detail berita gagal dimuat.",
+        onConfirm: () => navigate("/admin/berita")
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const confirmDelete = () => {
+    showPopup({
+      type: "confirm",
+      title: "Hapus Berita?",
+      message: "Data berita yang dihapus tidak dapat dikembalikan.",
+      confirmText: "Hapus",
+      onConfirm: handleDelete
+    });
   };
 
   const handleDelete = async () => {
@@ -52,12 +240,22 @@ const DetailBerita = () => {
         }
       );
 
-      alert("Berita berhasil dihapus");
-      navigate("/admin/berita");
-
+      showPopup({
+        type: "success",
+        title: "Berita Dihapus",
+        message: "Berita berhasil dihapus.",
+        onConfirm: () => navigate("/admin/berita")
+      });
     } catch (err) {
+      if (handleAuthError(err, showPopup)) return;
+
       console.error(err);
-      alert("Gagal hapus berita");
+
+      showPopup({
+        type: "error",
+        title: "Gagal Menghapus",
+        message: err.response?.data?.message || "Berita gagal dihapus."
+      });
     }
   };
 
@@ -71,8 +269,8 @@ const DetailBerita = () => {
     };
 
     return (
-      <span className={`px-4 py-1 rounded-lg text-xs font-bold uppercase ${map[status]}`}>
-        {status}
+      <span className={`px-4 py-1 rounded-lg text-xs font-bold uppercase ${map[status] || "bg-gray-100 text-gray-600"}`}>
+        {status || "-"}
       </span>
     );
   };
@@ -89,7 +287,6 @@ const DetailBerita = () => {
 
   if (!data) return null;
 
-  // 🔥 GABUNG + UNIQUE
   const allImages = [
     ...(data.gambar ? [data.gambar] : []),
     ...(data.gambar_list?.map((img) => img.path_gambar) || [])
@@ -99,8 +296,8 @@ const DetailBerita = () => {
 
   return (
     <div className="p-6 bg-[#fdfdfd]">
+      <AlertPopup alertData={alertData} onClose={closePopup} />
 
-      {/* HEADER */}
       <div className="flex items-end gap-4 border-b pb-6 mb-8">
         <div className="p-3 bg-gradient-to-tr from-mu-green to-green-500 rounded-xl text-white">
           <Newspaper size={24} />
@@ -116,22 +313,22 @@ const DetailBerita = () => {
 
             <div className="flex items-center gap-1 text-gray-400 text-sm">
               <CalendarDays size={14} />
-              {new Date(data.tanggal).toLocaleDateString("id-ID")}
+              {data.tanggal ? new Date(data.tanggal).toLocaleDateString("id-ID") : "-"}
             </div>
           </div>
         </div>
       </div>
 
-      {/* CARD */}
       <div className="bg-white rounded-2xl shadow border p-6 space-y-6">
-
-      {/* 🔥 GAMBAR UTAMA */}
         {selectedImage ? (
           <div className="flex justify-center">
             <img
               src={`http://localhost:3000/uploads/berita/${selectedImage}`}
+              alt={data.judul}
               className="max-h-[400px] w-auto object-contain rounded-xl shadow-lg"
-              onError={(e) => e.target.src = 'https://via.placeholder.com/800x400?text=No+Image'}
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/800x400?text=No+Image";
+              }}
             />
           </div>
         ) : (
@@ -140,28 +337,27 @@ const DetailBerita = () => {
           </div>
         )}
 
-        {/* 🔥 GALLERY */}
         {uniqueImages.length > 1 && (
           <div className="flex gap-3 flex-wrap mt-6">
-
             {uniqueImages.map((img, index) => (
               <img
                 key={index}
                 src={`http://localhost:3000/uploads/berita/${img}`}
+                alt={`Gambar ${index + 1}`}
                 onClick={() => setSelectedImage(img)}
-                className={`w-24 h-16 object-cover rounded-lg cursor-pointer border transition
-                  ${selectedImage === img
+                className={`w-24 h-16 object-cover rounded-lg cursor-pointer border transition ${
+                  selectedImage === img
                     ? "border-mu-green ring-2 ring-mu-green"
-                    : "border-gray-200"}
-                `}
-                onError={(e) => e.target.style.display = 'none'}
+                    : "border-gray-200"
+                }`}
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
               />
             ))}
-
           </div>
         )}
 
-        {/* 🔥 ISI */}
         <div className="space-y-3">
           <h2 className="text-lg font-bold">Isi Berita</h2>
 
@@ -170,9 +366,7 @@ const DetailBerita = () => {
           </p>
         </div>
 
-        {/* 🔥 ACTION BUTTON */}
         <div className="flex justify-end gap-3 pt-4 border-t">
-
           <button
             onClick={() => navigate(`/admin/berita/edit/${id}`)}
             className="px-4 py-2 bg-yellow-500 text-white rounded-lg font-semibold hover:scale-105 transition"
@@ -181,46 +375,13 @@ const DetailBerita = () => {
           </button>
 
           <button
-            onClick={() => setShowDeleteModal(true)}
+            onClick={confirmDelete}
             className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:scale-105 transition"
           >
             Hapus
           </button>
-
         </div>
-
       </div>
-
-      {/* 🔥 MODAL DELETE */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-xl text-center space-y-4 w-[300px]">
-
-            <h2 className="font-bold text-lg">Hapus Berita?</h2>
-            <p className="text-sm text-gray-500">
-              Data tidak bisa dikembalikan
-            </p>
-
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-200 rounded-lg"
-              >
-                Batal
-              </button>
-
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg"
-              >
-                Ya, Hapus
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };

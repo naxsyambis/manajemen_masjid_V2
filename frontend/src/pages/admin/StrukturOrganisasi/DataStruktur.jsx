@@ -17,14 +17,116 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  Network
+  Network,
+  CheckCircle2,
+  XCircle,
+  Info
 } from 'lucide-react';
+
+const AlertPopup = ({ alertData, onClose }) => {
+  if (!alertData.show) return null;
+
+  const isSuccess = alertData.type === 'success';
+  const isError = alertData.type === 'error';
+  const isWarning = alertData.type === 'warning';
+  const isConfirm = alertData.type === 'confirm';
+
+  const Icon = isSuccess
+    ? CheckCircle2
+    : isError
+      ? XCircle
+      : isWarning || isConfirm
+        ? AlertTriangle
+        : Info;
+
+  const iconClass = isSuccess
+    ? 'bg-green-100 text-green-600'
+    : isError
+      ? 'bg-red-100 text-red-600'
+      : isWarning || isConfirm
+        ? 'bg-yellow-100 text-yellow-600'
+        : 'bg-blue-100 text-blue-600';
+
+  const buttonClass = isConfirm
+    ? 'bg-red-600 hover:bg-red-700 text-white'
+    : isSuccess
+      ? 'bg-green-600 hover:bg-green-700 text-white'
+      : isError
+        ? 'bg-red-600 hover:bg-red-700 text-white'
+        : isWarning
+          ? 'bg-mu-yellow hover:bg-yellow-400 text-mu-green'
+          : 'bg-mu-green hover:bg-green-700 text-white';
+
+  return createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="p-8 text-center">
+          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}>
+            <Icon size={42} strokeWidth={2.5} />
+          </div>
+
+          <h3 className="text-2xl font-black text-gray-800 leading-tight">
+            {alertData.title}
+          </h3>
+
+          <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">
+            {alertData.message}
+          </p>
+
+          {isConfirm ? (
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-4 rounded-2xl bg-gray-100 text-gray-500 text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (alertData.onConfirm) alertData.onConfirm();
+                  onClose();
+                }}
+                className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+              >
+                {alertData.confirmText || 'Hapus'}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+            >
+              {alertData.confirmText || 'Mengerti'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const DataStruktur = () => {
   const [struktur, setStruktur] = useState([]);
   const [filteredStruktur, setFilteredStruktur] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedStruktur, setSelectedStruktur] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,15 +137,70 @@ const DataStruktur = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [alertData, setAlertData] = useState({
+    show: false,
+    type: 'info',
+    title: '',
+    message: '',
+    confirmText: '',
+    onConfirm: null
+  });
+
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const masjidId = localStorage.getItem('masjid_id');
+
+  const showPopup = ({
+    type = 'info',
+    title = 'Informasi',
+    message = '',
+    confirmText = '',
+    onConfirm = null
+  }) => {
+    setAlertData({
+      show: true,
+      type,
+      title,
+      message,
+      confirmText,
+      onConfirm
+    });
+  };
+
+  const closePopup = () => {
+    setAlertData({
+      show: false,
+      type: 'info',
+      title: '',
+      message: '',
+      confirmText: '',
+      onConfirm: null
+    });
+  };
+
+  const handleAuthError = (err) => {
+    if (err.response && err.response.status === 401) {
+      showPopup({
+        type: 'error',
+        title: 'Sesi Berakhir',
+        message: err.response.data.message || 'Sesi Anda telah berakhir.',
+        confirmText: 'Login Ulang',
+        onConfirm: () => {
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
+      });
+      return true;
+    }
+
+    return false;
+  };
 
   const getFotoUrl = (foto) => {
     if (!foto) return null;
     if (foto.startsWith('http')) return foto;
     if (foto.startsWith('/uploads')) return `http://localhost:3000${foto}`;
-    return `http://localhost:3000/uploads/kepengurusan/${foto}`;
+    return `http://localhost:3000/uploads/struktur-organisasi/${foto}`;
   };
 
   useEffect(() => {
@@ -78,22 +235,41 @@ const DataStruktur = () => {
       if (!masjidId) {
         setError('Masjid ID tidak ditemukan. Silakan logout lalu login ulang.');
         setStruktur([]);
+        showPopup({
+          type: 'warning',
+          title: 'Masjid ID Tidak Ada',
+          message: 'Silakan logout lalu login ulang.'
+        });
         return;
       }
 
       const res = await axios.get('http://localhost:3000/takmir/struktur-organisasi', {
-        params: {
-          masjid_id: masjidId
-        },
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        params: { masjid_id: masjidId },
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      setStruktur(Array.isArray(res.data.data) ? res.data.data : []);
+      const data = Array.isArray(res.data.data) ? res.data.data : [];
+      setStruktur(data);
+
+      if (data.length === 0) {
+        showPopup({
+          type: 'info',
+          title: 'Data Kosong',
+          message: 'Belum ada data struktur organisasi.'
+        });
+      }
     } catch (err) {
+      if (handleAuthError(err)) return;
+
       console.error('Error fetching struktur organisasi:', err);
-      setError(err.response?.data?.message || 'Gagal memuat data struktur organisasi. Silakan coba lagi.');
+      const msg = err.response?.data?.message || 'Gagal memuat data struktur organisasi.';
+      setError(msg);
+
+      showPopup({
+        type: 'error',
+        title: 'Gagal Memuat',
+        message: msg
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -102,35 +278,47 @@ const DataStruktur = () => {
 
   const openDeleteModal = (item) => {
     setSelectedStruktur(item);
-    setShowDeleteModal(true);
+
+    showPopup({
+      type: 'confirm',
+      title: 'Hapus Data?',
+      message: `Yakin ingin menghapus ${item.nama}? Data tidak bisa dikembalikan.`,
+      confirmText: 'Hapus',
+      onConfirm: () => handleDelete(item)
+    });
   };
 
-  const closeDeleteModal = () => {
-    setShowDeleteModal(false);
-    setSelectedStruktur(null);
-  };
-
-  const handleDelete = async () => {
-    if (!selectedStruktur) return;
+  const handleDelete = async (item) => {
+    if (!item) return;
 
     setDeleting(true);
 
     try {
       await axios.delete(
-        `http://localhost:3000/takmir/struktur-organisasi/${selectedStruktur.struktur_id}`,
+        `http://localhost:3000/takmir/struktur-organisasi/${item.struktur_id}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
-      alert('Data struktur organisasi berhasil dihapus');
+      showPopup({
+        type: 'success',
+        title: 'Data Dihapus',
+        message: 'Data struktur organisasi berhasil dihapus.'
+      });
+
       fetchStruktur();
-      closeDeleteModal();
+      setSelectedStruktur(null);
     } catch (err) {
+      if (handleAuthError(err)) return;
+
       console.error('Error deleting struktur organisasi:', err);
-      alert(err.response?.data?.message || 'Gagal menghapus data struktur organisasi');
+
+      showPopup({
+        type: 'error',
+        title: 'Gagal Menghapus',
+        message: err.response?.data?.message || 'Gagal menghapus data struktur organisasi.'
+      });
     } finally {
       setDeleting(false);
     }
@@ -161,6 +349,8 @@ const DataStruktur = () => {
 
   return (
     <div className="data-struktur min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 animate-fadeIn">
+      <AlertPopup alertData={alertData} onClose={closePopup} />
+
       <div className="main-content p-8 h-full overflow-y-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -294,18 +484,21 @@ const DataStruktur = () => {
                     }`}
                   >
                     <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
-                            {item.foto ? (
-                            <img
-                                src={`http://localhost:3000/uploads/kepengurusan/${item.foto}`}
-                                alt={item.nama}
-                                className="w-10 h-10 object-cover rounded-full"
-                            />
-                            ) : (
-                            <User size={24} className="text-gray-400" />
-                            )}
-                        </div>
-                        </td>
+                      <div className="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
+                        {item.foto ? (
+                          <img
+                            src={getFotoUrl(item.foto)}
+                            alt={item.nama}
+                            className="w-10 h-10 object-cover rounded-full"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <User size={24} className="text-gray-400" />
+                        )}
+                      </div>
+                    </td>
 
                     <td className="px-8 py-6 whitespace-nowrap">
                       <div className="text-sm font-semibold text-gray-900">
@@ -343,7 +536,8 @@ const DataStruktur = () => {
 
                         <button
                           onClick={() => openDeleteModal(item)}
-                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors shadow-sm"
+                          disabled={deleting}
+                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors shadow-sm disabled:opacity-50"
                           title="Hapus"
                         >
                           <Trash2 size={18} />
@@ -413,47 +607,6 @@ const DataStruktur = () => {
           )}
         </div>
       </div>
-
-        {/* Modal Hapus */}
-        {showDeleteModal && selectedStruktur &&
-        createPortal(
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-                <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 flex items-center">
-                <AlertTriangle size={32} className="mr-4 animate-pulse" />
-                <h1 className="text-2xl font-bold">Konfirmasi Hapus</h1>
-                </div>
-
-                <div className="p-6">
-                <p className="text-gray-700 mb-6 leading-relaxed">
-                    Apakah Anda yakin ingin menghapus data struktur organisasi{' '}
-                    <strong>{selectedStruktur.nama}</strong>? Tindakan ini tidak dapat dibatalkan.
-                </p>
-
-                <div className="flex justify-end space-x-4">
-                    <button
-                    onClick={closeDeleteModal}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-medium flex items-center"
-                    >
-                    <X size={20} className="mr-2" />
-                    Batal
-                    </button>
-
-                    <button
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 transition-all font-medium flex items-center disabled:opacity-50"
-                    >
-                    <Trash2 size={20} className="mr-2" />
-                    {deleting ? 'Menghapus...' : 'Hapus Data'}
-                    </button>
-                </div>
-                </div>
-            </div>
-            </div>,
-            document.body
-        )
-        }
     </div>
   );
 };
