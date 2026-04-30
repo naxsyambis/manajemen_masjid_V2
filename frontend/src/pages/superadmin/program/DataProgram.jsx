@@ -1,329 +1,285 @@
-// frontend/src/pages/superadmin/program/DataProgram.jsx
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { Plus, Edit, Trash2, Eye, AlertTriangle, X, Calendar, FileText, Search, RefreshCcw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Edit, Trash2, Search, Plus, Image as ImageIcon, Eye
+} from 'lucide-react';
+
+const BASE_URL = "http://localhost:3000";
 
 const DataProgram = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
   const [programs, setPrograms] = useState([]);
   const [filteredPrograms, setFilteredPrograms] = useState([]);
+
+  const [kategoriList, setKategoriList] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [kategoriBaru, setKategoriBaru] = useState('');
+  const [selectedKategori, setSelectedKategori] = useState(null);
+
   const [loading, setLoading] = useState(true);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState(null);
-  const [deleting, setDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState(null);
-  const [time, setTime] = useState(new Date());
-  const [refreshing, setRefreshing] = useState(false);
-  
-  // State Baru untuk Pagination dan Filter Baris[cite: 4]
-  const [entriesPerPage, setEntriesPerPage] = useState(5); 
-  const [currentPage, setCurrentPage] = useState(1);
 
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
-
   const isExpanded = isOpen || isHovered;
 
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    fetchPrograms();
-  }, []);
-
-  useEffect(() => {
-    // Fungsi search yang berjalan saat searchTerm diketik[cite: 4]
-    const filtered = programs.filter(program =>
-      program.nama_program?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      program.jadwal_rutin?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredPrograms(filtered);
-    setCurrentPage(1); // Reset ke halaman 1 saat mencari[cite: 4]
-  }, [programs, searchTerm]);
-
-  // Kalkulasi data untuk pagination[cite: 4]
-  const indexOfLastItem = currentPage * entriesPerPage;
-  const indexOfFirstItem = indexOfLastItem - entriesPerPage;
-  const currentItems = filteredPrograms.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredPrograms.length / entriesPerPage);
-
+  // ================= FETCH =================
   const fetchPrograms = async () => {
     try {
-      setRefreshing(true);
-      setError(null);
-      const res = await axios.get('http://localhost:3000/superadmin/program', {
+      const res = await axios.get(`${BASE_URL}/superadmin/program`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setPrograms(res.data);
-    } catch (err) {
-      console.error('Error fetching programs:', err);
-      setError('Gagal memuat data program. Silakan coba lagi.');
+      setPrograms(res.data.data || []);
+    } catch {
+      setPrograms([]);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedProgram) return;
-    setDeleting(true);
+  const fetchKategori = async () => {
     try {
-      await axios.delete(`http://localhost:3000/superadmin/program/${selectedProgram.program_id}`, {
+      const res = await axios.get(`${BASE_URL}/superadmin/kategori-program`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Program berhasil dihapus');
-      fetchPrograms();
-      setShowDeleteModal(false);
-      setSelectedProgram(null);
-    } catch (err) {
-      console.error('Error deleting program:', err);
-      alert('Gagal menghapus program');
-    } finally {
-      setDeleting(false);
+      setKategoriList(res.data.data || []);
+    } catch {
+      setKategoriList([]);
     }
   };
 
-  const openDeleteModal = (program) => {
-    setSelectedProgram(program);
-    setShowDeleteModal(true);
-  };
+  useEffect(() => {
+    fetchPrograms();
+    fetchKategori();
+  }, []);
 
-  const closeDeleteModal = () => {
-    setShowDeleteModal(false);
-    setSelectedProgram(null);
-  };
+  // ================= SEARCH =================
+  useEffect(() => {
+    const filtered = programs.filter(p =>
+      (p.nama_program || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredPrograms(filtered);
+  }, [programs, searchTerm]);
 
-  const handleRefresh = () => {
+  // ================= DELETE PROGRAM =================
+  const handleDeleteProgram = async (id) => {
+    if (!window.confirm("Hapus program?")) return;
+
+    await axios.delete(`${BASE_URL}/superadmin/program/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
     fetchPrograms();
   };
 
-  if (loading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-mu-green border-t-transparent rounded-full animate-spin shadow-lg"></div>
-          <p className="text-sm font-bold text-mu-green uppercase tracking-wider">Memuat Data Program...</p>
-        </div>
-      </div>
-    );
-  }
+  // ================= TAMBAH / EDIT KATEGORI =================
+  const handleSaveKategori = async () => {
+    if (!kategoriBaru.trim()) return alert("Isi nama kategori");
+
+    try {
+      if (selectedKategori) {
+        // UPDATE
+        await axios.put(
+          `${BASE_URL}/superadmin/kategori-program/${selectedKategori.kategori_id}`,
+          { nama_kategori: kategoriBaru },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        // CREATE
+        await axios.post(
+          `${BASE_URL}/superadmin/kategori-program`,
+          {
+            nama_kategori: kategoriBaru,
+            masjid_id: user?.masjid_id || 1
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      setKategoriBaru('');
+      setSelectedKategori(null);
+      setShowModal(false);
+      fetchKategori();
+
+    } catch {
+      alert("Gagal simpan kategori");
+    }
+  };
+
+  if (loading) return <div className="p-10 text-center">Loading...</div>;
 
   return (
-    <div className="data-program h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
-      <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
-      
+    <div className="h-screen flex bg-gray-50">
+
+      <SuperAdminSidebar
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        user={user}
+        onLogout={onLogout}
+        setIsHovered={setIsHovered}
+        isExpanded={isExpanded}
+      />
+
       <div className="flex-1 flex flex-col">
-        <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
-        
-        <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
-                Data <span className="text-mu-green">Program</span>
-              </h1>
-              <div className="flex items-center gap-2 mt-2 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
-                <Calendar size={12} className="text-mu-green" />
-                <span>{time.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                <span className="mx-2">•</span>
-                <span className="text-mu-green">{time.toLocaleTimeString('id-ID')}</span>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <button 
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 disabled:opacity-50"
-              >
-                <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
-                {refreshing ? 'Memuat...' : 'Refresh Data'}
-              </button>
-              <button
-                onClick={() => navigate('/superadmin/program/tambah')}
-                className="flex items-center gap-2 bg-mu-green text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                <Plus size={14} />
-                Tambah Program
-              </button>
-            </div>
+        <SuperAdminNavbar user={user} setIsOpen={setIsOpen} />
+
+        <div className="p-8 space-y-8">
+
+          {/* HEADER */}
+          <div className="flex justify-between items-center">
+            <h1 className="text-4xl font-black">
+              Data <span className="text-mu-green">Program</span>
+            </h1>
+
+            <button
+              onClick={() => navigate('/superadmin/program/tambah')}
+              className="bg-mu-green text-white px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow"
+            >
+              <Plus size={16}/> Program
+            </button>
           </div>
-          
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
-              <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
-              <div>
-                <p className="text-red-700 font-medium">Error</p>
-                <p className="text-red-600 text-sm mt-1">{error}</p>
-              </div>
-            </div>
-          )}
-          
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-              <div className="flex items-center gap-6">
-                <div>
-                  <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter">Daftar Program</h3>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                    Total: {filteredPrograms.length} Program
-                  </p>
-                </div>
 
-                {/* Dropdown Filter Data: 5, 10, 25, 50, 100[cite: 4] */}
-                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Show:</span>
-                  <select 
-                    value={entriesPerPage}
-                    onChange={(e) => {
-                      setEntriesPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="bg-transparent text-sm font-bold text-mu-green focus:outline-none cursor-pointer"
-                  >
-                    {[5, 10, 25, 50, 100].map(num => (
-                      <option key={num} value={num}>{num}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              
-              {/* Input Pencarian[cite: 4] */}
-              <div className="relative w-full sm:w-64">
-                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Cari program..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm w-full"
-                />
-              </div>
-            </div>
-            
-            <div className="overflow-x-auto rounded-2xl shadow-inner">
-              <table className="w-full table-auto">
-                <thead>
-                  <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
-                    <th className="px-8 py-6 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Nama Program</th>
-                    <th className="px-8 py-6 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Jadwal Rutin</th>
-                    <th className="px-8 py-6 text-left text-sm font-black text-gray-700 uppercase tracking-wider">Deskripsi</th>
-                    <th className="px-8 py-6 text-center text-sm font-black text-gray-700 uppercase tracking-wider">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentItems.map((program, index) => (
-                    <tr key={program.program_id} className={`border-t border-gray-100 hover:bg-gray-50/50 transition-all ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">{program.nama_program}</div>
-                        <div className="text-xs text-gray-500">ID: {program.program_id}</div>
-                      </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <Calendar size={16} className="text-mu-green" />
-                          <span className="text-sm text-gray-900">{program.jadwal_rutin}</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-start space-x-2">
-                          <FileText size={16} className="text-mu-green mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-gray-900 max-w-xs truncate">{program.deskripsi || 'Tidak ada deskripsi'}</div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 whitespace-nowrap text-center">
-                        <div className="flex justify-center space-x-2">
-                          <button onClick={() => navigate(`/superadmin/program/detail/${program.program_id}`)} className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors shadow-sm" title="Detail"><Eye size={18} /></button>
-                          <button onClick={() => navigate(`/superadmin/program/edit/${program.program_id}`)} className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors shadow-sm" title="Edit"><Edit size={18} /></button>
-                          <button onClick={() => openDeleteModal(program)} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors shadow-sm" title="Hapus"><Trash2 size={18} /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* SEARCH */}
+          <div className="relative">
+            <Search className="absolute left-3 top-3 text-gray-400"/>
+            <input
+              placeholder="Cari program..."
+              className="pl-10 pr-4 py-3 w-full rounded-xl border bg-white shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* ================= PROGRAM ================= */}
+          <div className="bg-white rounded-3xl shadow p-6">
+
+            <div className="grid grid-cols-5 font-bold text-gray-500 mb-4">
+              <div>Gambar</div>
+              <div>Nama</div>
+              <div>Jadwal</div>
+              <div>Kategori</div>
+              <div>Aksi</div>
             </div>
 
-            {/* Pagination Controls[cite: 4] */}
-            {filteredPrograms.length > 0 && (
-              <div className="flex flex-col sm:flex-row justify-between items-center mt-10 gap-4 px-2">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredPrograms.length)} dari {filteredPrograms.length} data
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="p-3 rounded-xl border border-gray-100 bg-white text-gray-500 hover:text-mu-green disabled:opacity-30 shadow-sm transition-all"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <div className="flex gap-1">
-                    {[...Array(totalPages)].map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${currentPage === i + 1 ? 'bg-mu-green text-white shadow-lg' : 'bg-white text-gray-400 border border-gray-100'}`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="p-3 rounded-xl border border-gray-100 bg-white text-gray-500 hover:text-mu-green disabled:opacity-30 shadow-sm transition-all"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
-              </div>
-            )}
-            
             {filteredPrograms.length === 0 && (
-              <div className="text-center py-16">
-                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <Search size={48} className="text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-600">Tidak ada data ditemukan</h3>
+              <div className="text-center text-gray-400 py-10">
+                Data tidak ditemukan
               </div>
             )}
+
+            {filteredPrograms.map(p => (
+              <div
+                key={p.program_id}
+                className="grid grid-cols-5 items-center py-4 border-t hover:bg-gray-50 rounded-xl transition"
+              >
+                <div>
+                  {p.gambar ? (
+                    <img
+                      src={`${BASE_URL}/uploads/program/${p.gambar}`}
+                      className="w-14 h-14 object-cover rounded-lg"
+                      onError={(e)=> e.target.src="https://via.placeholder.com/60"}
+                    />
+                  ) : <ImageIcon />}
+                </div>
+
+                <div className="font-semibold">{p.nama_program}</div>
+                <div>{p.jadwal_rutin}</div>
+                <div>{p.kategori_program?.nama_kategori || '-'}</div>
+
+                <div className="flex gap-3">
+                  <button onClick={() => navigate(`/superadmin/program/detail/${p.program_id}`)}>
+                    <Eye size={18}/>
+                  </button>
+                  <button onClick={() => navigate(`/superadmin/program/edit/${p.program_id}`)}>
+                    <Edit size={18}/>
+                  </button>
+                  <button onClick={() => handleDeleteProgram(p.program_id)}>
+                    <Trash2 size={18}/>
+                  </button>
+                </div>
+              </div>
+            ))}
+
           </div>
-          
-          <div className="flex justify-center items-center gap-4 text-gray-300 py-4">
-            <div className="h-[1px] w-12 bg-gray-100"></div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em]">Integrated Database System v3.0</p>
-            <div className="h-[1px] w-12 bg-gray-100"></div>
+
+          {/* ================= KATEGORI ================= */}
+          <div className="bg-white rounded-3xl shadow p-6">
+
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-black">Kategori Program</h2>
+
+              <button
+                onClick={() => {
+                  setSelectedKategori(null);
+                  setKategoriBaru('');
+                  setShowModal(true);
+                }}
+                className="bg-mu-green text-white px-4 py-2 rounded-xl"
+              >
+                + Kategori
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
+              {kategoriList.map(k => (
+                <div
+                  key={k.kategori_id}
+                  className="flex justify-between items-center bg-gray-50 border rounded-xl px-4 py-3 hover:shadow"
+                >
+                  <span className="font-semibold truncate">
+                    {k.nama_kategori}
+                  </span>
+
+                  <button
+                    onClick={() => {
+                      setKategoriBaru(k.nama_kategori);
+                      setSelectedKategori(k);
+                      setShowModal(true);
+                    }}
+                    className="text-blue-500"
+                  >
+                    <Edit size={18}/>
+                  </button>
+                </div>
+              ))}
+
+            </div>
+
           </div>
+
         </div>
       </div>
 
-      {showDeleteModal && selectedProgram && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform animate-scale-in">
-            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-t-2xl flex items-center">
-              <AlertTriangle size={32} className="mr-4" />
-              <h1 className="text-2xl font-bold">Konfirmasi Hapus</h1>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-700 mb-6 leading-relaxed">Hapus program <strong>{selectedProgram.nama_program}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
-              <div className="flex justify-end space-x-4">
-                <button onClick={closeDeleteModal} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-medium flex items-center">
-                  <X size={20} className="mr-2" /> Batal
-                </button>
-                <button onClick={handleDelete} disabled={deleting} className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 transition-all font-medium flex items-center disabled:opacity-50 shadow-lg">
-                  <Trash2 size={20} className="mr-2" /> {deleting ? 'Menghapus...' : 'Hapus Program'}
-                </button>
-              </div>
-            </div>
+      {/* MODAL */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-2xl w-80">
+            <h2 className="font-bold mb-3">
+              {selectedKategori ? "Edit Kategori" : "Tambah Kategori"}
+            </h2>
+
+            <input
+              value={kategoriBaru}
+              onChange={(e)=>setKategoriBaru(e.target.value)}
+              className="border p-2 w-full rounded"
+            />
+
+            <button
+              onClick={handleSaveKategori}
+              className="bg-mu-green text-white w-full mt-3 py-2 rounded"
+            >
+              Simpan
+            </button>
           </div>
         </div>
       )}
+
     </div>
   );
 };
