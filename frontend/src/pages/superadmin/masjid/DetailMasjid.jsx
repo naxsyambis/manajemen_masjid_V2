@@ -8,7 +8,8 @@ import GrafikKeuangan from '../../public/masjid/GrafikKeuangan';
 import { 
   MapPin, Phone, FileText, Image as ImageIcon, ArrowLeft, Edit, 
   Trash2, AlertTriangle, Users, Package, History, 
-  FileBarChart, Newspaper, Rocket, ArrowUpCircle, ArrowDownCircle, List, RefreshCcw
+  FileBarChart, Newspaper, Rocket, ArrowUpCircle, ArrowDownCircle, List, RefreshCcw,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 // --- SUB-COMPONENTS ---
@@ -29,13 +30,16 @@ const InfoItem = ({ icon, label, value }) => (
   </div>
 );
 
-const DataTable = ({ title, icon, data, columns, dataKeys, extraHeader, currentLimit, onLimitChange }) => (
+const DataTable = ({ 
+  title, icon, data, columns, dataKeys, extraHeader, 
+  currentLimit, onLimitChange, currentPage, totalPages, onPageChange 
+}) => (
   <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden h-full flex flex-col">
     <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center gap-4">
       <div className="flex items-center gap-3">
         {icon}
         <h3 className="text-lg font-black uppercase tracking-tight">{title}</h3>
-        <span className="bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-bold text-gray-500">{data.length} Total</span>
+        <span className="bg-gray-100 px-3 py-1 rounded-lg text-[10px] font-bold text-gray-500">{data ? data.length : 0} Total</span>
       </div>
       
       <div className="md:ml-auto flex flex-wrap items-center gap-3">
@@ -61,8 +65,8 @@ const DataTable = ({ title, icon, data, columns, dataKeys, extraHeader, currentL
           <tr>{columns.map((col, i) => <th key={i} className="px-8 py-5">{col}</th>)}</tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {data.length > 0 ? (
-            data.slice(0, currentLimit).map((item, idx) => (
+          {data && data.length > 0 ? (
+            data.map((item, idx) => (
               <tr key={idx} className="hover:bg-gray-50 transition-all group">
                 {dataKeys.map((key, i) => (
                   <td key={i} className="px-8 py-5 text-sm font-medium text-gray-600 group-hover:text-gray-900">
@@ -91,6 +95,30 @@ const DataTable = ({ title, icon, data, columns, dataKeys, extraHeader, currentL
         </tbody>
       </table>
     </div>
+
+    {totalPages > 1 && (
+      <div className="p-6 bg-gray-50/50 border-t border-gray-50 flex items-center justify-between">
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+          Halaman {currentPage} dari {totalPages}
+        </p>
+        <div className="flex gap-2">
+          <button 
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            className="p-2 bg-white rounded-lg border border-gray-100 text-gray-400 disabled:opacity-30 hover:text-mu-green transition-all"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button 
+            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+            className="p-2 bg-white rounded-lg border border-gray-100 text-gray-400 disabled:opacity-30 hover:text-mu-green transition-all"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+    )}
   </div>
 );
 
@@ -118,20 +146,43 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [berita, setBerita] = useState([]);
   const [program, setProgram] = useState([]);
 
-  const [limits, setLimits] = useState({
-    keuangan: 5,
-    berita: 5,
-    program: 5,
-    jamaah: 5,
-    inventaris: 5,
-    riwayat: 5
+  const [pagination, setPagination] = useState({
+    keuangan: { page: 1, limit: 5 },
+    berita: { page: 1, limit: 5 },
+    program: { page: 1, limit: 5 },
+    jamaah: { page: 1, limit: 5 },
+    inventaris: { page: 1, limit: 5 },
+    riwayat: { page: 1, limit: 5 }
   });
 
-  const isExpanded = isOpen || isHovered;
+  // PERBAIKAN: Tambahkan pengecekan Array agar tidak error .slice
+  const paginateData = (data, page, limit) => {
+    if (!Array.isArray(data)) return [];
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    return data.slice(start, end);
+  };
+
+  const getTotalPages = (data, limit) => {
+    if (!Array.isArray(data) || data.length === 0) return 1;
+    return Math.ceil(data.length / limit);
+  };
 
   const handleLimitChange = (table, value) => {
-    setLimits(prev => ({ ...prev, [table]: value }));
+    setPagination(prev => ({ 
+        ...prev, 
+        [table]: { ...prev[table], limit: value, page: 1 } 
+    }));
   };
+
+  const handlePageChange = (table, value) => {
+    setPagination(prev => ({ 
+        ...prev, 
+        [table]: { ...prev[table], page: value } 
+    }));
+  };
+
+  const isExpanded = isOpen || isHovered;
 
   const fetchData = async () => {
     setLoading(true);
@@ -185,9 +236,11 @@ const DetailMasjid = ({ user, onLogout }) => {
     } else {
       setKeuanganFiltered(keuanganRaw);
     }
+    handlePageChange('keuangan', 1);
   }, [filterType, keuanganRaw]);
 
   const processKeuanganForChart = (data) => {
+    if (!Array.isArray(data)) return [];
     const monthly = {};
     data.forEach(item => {
       const monthYear = new Date(item.tanggal).toLocaleString('id-ID', { month: 'short', year: 'numeric' });
@@ -252,21 +305,22 @@ const DetailMasjid = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* Grafik Keuangan */}
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
              <h3 className="text-xl font-black mb-6 flex items-center gap-2"><FileBarChart className="text-mu-green" size={24}/> Grafik Arus Kas</h3>
              <GrafikKeuangan chartData={processKeuanganForChart(keuanganRaw)} />
           </div>
 
-          {/* Riwayat Transaksi */}
           <DataTable 
             title="Riwayat Transaksi" 
             icon={<History className="text-mu-green" size={24}/>} 
-            data={keuanganFiltered} 
-            columns={['Keterangan', 'Tanggal', 'Jumlah']} 
-            dataKeys={['keterangan', 'tanggal', 'jumlah']}
-            currentLimit={limits.keuangan}
+            data={paginateData(keuanganFiltered, pagination.keuangan.page, pagination.keuangan.limit)} 
+            columns={['jumlah', 'tanggal', 'deskripsi', 'nama donatur', 'user', 'kategori']} 
+            dataKeys={['jumlah', 'tanggal', 'deskripsi', 'nama_donatur', 'user_id', 'kategori_id']} 
+            currentLimit={pagination.keuangan.limit}
             onLimitChange={(val) => handleLimitChange('keuangan', val)}
+            currentPage={pagination.keuangan.page}
+            totalPages={getTotalPages(keuanganFiltered, pagination.keuangan.limit)}
+            onPageChange={(val) => handlePageChange('keuangan', val)}
             extraHeader={
               <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
                 {[
@@ -292,20 +346,26 @@ const DetailMasjid = ({ user, onLogout }) => {
             <DataTable 
                 title="Berita Masjid" 
                 icon={<Newspaper className="text-blue-500" size={24}/>} 
-                data={berita} 
-                columns={['Judul', 'Tanggal']} 
-                dataKeys={['judul', 'tanggal']}
-                currentLimit={limits.berita}
+                data={paginateData(berita, pagination.berita.page, pagination.berita.limit)} 
+                columns={['gambar', 'judul', 'isi', 'tanggal', 'youtube url', 'status', 'approved by', 'approved at', 'published at']} 
+                dataKeys={['gambar', 'judul', 'isi', 'tanggal', 'youtube_url', 'status', 'approved_by', 'approved_at', 'published_at']}
+                currentLimit={pagination.berita.limit}
                 onLimitChange={(val) => handleLimitChange('berita', val)}
+                currentPage={pagination.berita.page}
+                totalPages={getTotalPages(berita, pagination.berita.limit)}
+                onPageChange={(val) => handlePageChange('berita', val)}
             />
             <DataTable 
                 title="Program Kerja" 
                 icon={<Rocket className="text-purple-500" size={24}/>} 
-                data={program} 
+                data={paginateData(program, pagination.program.page, pagination.program.limit)} 
                 columns={['Nama Program', 'Status']} 
                 dataKeys={['nama_program', 'status']}
-                currentLimit={limits.program}
+                currentLimit={pagination.program.limit}
                 onLimitChange={(val) => handleLimitChange('program', val)}
+                currentPage={pagination.program.page}
+                totalPages={getTotalPages(program, pagination.program.limit)}
+                onPageChange={(val) => handlePageChange('program', val)}
             />
           </div>
 
@@ -313,29 +373,38 @@ const DetailMasjid = ({ user, onLogout }) => {
             <DataTable 
                 title="Daftar Jamaah" 
                 icon={<Users className="text-blue-500" size={24}/>} 
-                data={jamaah} 
+                data={paginateData(jamaah, pagination.jamaah.page, pagination.jamaah.limit)} 
                 columns={['Nama', 'Status', 'Alamat']} 
                 dataKeys={['nama', 'status', 'alamat']}
-                currentLimit={limits.jamaah}
+                currentLimit={pagination.jamaah.limit}
                 onLimitChange={(val) => handleLimitChange('jamaah', val)}
+                currentPage={pagination.jamaah.page}
+                totalPages={getTotalPages(jamaah, pagination.jamaah.limit)}
+                onPageChange={(val) => handlePageChange('jamaah', val)}
             />
             <DataTable 
                 title="Daftar Inventaris" 
                 icon={<Package className="text-orange-500" size={24}/>} 
-                data={inventaris} 
+                data={paginateData(inventaris, pagination.inventaris.page, pagination.inventaris.limit)} 
                 columns={['Nama Barang', 'Jumlah', 'Kondisi']} 
                 dataKeys={['nama_barang', 'jumlah', 'kondisi']}
-                currentLimit={limits.inventaris}
+                currentLimit={pagination.inventaris.limit}
                 onLimitChange={(val) => handleLimitChange('inventaris', val)}
+                currentPage={pagination.inventaris.page}
+                totalPages={getTotalPages(inventaris, pagination.inventaris.limit)}
+                onPageChange={(val) => handlePageChange('inventaris', val)}
             />
             <DataTable 
                 title="Riwayat Kegiatan" 
                 icon={<History className="text-purple-500" size={24}/>} 
-                data={riwayat} 
+                data={paginateData(riwayat, pagination.riwayat.page, pagination.riwayat.limit)} 
                 columns={['Nama Kegiatan', 'Tanggal', 'Tempat']} 
                 dataKeys={['nama_kegiatan', 'tanggal', 'tempat']}
-                currentLimit={limits.riwayat}
+                currentLimit={pagination.riwayat.limit}
                 onLimitChange={(val) => handleLimitChange('riwayat', val)}
+                currentPage={pagination.riwayat.page}
+                totalPages={getTotalPages(riwayat, pagination.riwayat.limit)}
+                onPageChange={(val) => handlePageChange('riwayat', val)}
             />
           </div>
         </main>
