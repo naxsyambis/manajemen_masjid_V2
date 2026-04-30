@@ -9,9 +9,15 @@ const storage = multer.diskStorage({
     if (req.originalUrl.includes("auth")) folder = "uploads/ttd";
     else if (req.originalUrl.includes("berita")) folder = "uploads/berita";
     else if (req.originalUrl.includes("kepengurusan")) folder = "uploads/kepengurusan";
-    else if (req.originalUrl.includes("struktur-organisasi")) folder = "uploads/kepengurusan";
+    else if (req.originalUrl.includes("struktur-organisasi")) {
+        if (file.fieldname === 'ttd') {
+             folder = "uploads/ttd";
+        } else {
+             folder = "uploads/kepengurusan";
+        }
+    }
     else if (req.originalUrl.includes("masjid")) folder = "uploads/masjid";
-    else if (file.fieldname === 'poster_kegiatan') folder = 'uploads/kegiatan'; 
+    else if (file.fieldname === 'poster') folder = 'uploads/kegiatan'; 
     else if (file.fieldname === 'gambar_program') folder = 'uploads/program';
 
     const dir = path.join(__dirname, `../../${folder}`);

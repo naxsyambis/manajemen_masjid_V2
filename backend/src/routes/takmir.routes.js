@@ -48,8 +48,8 @@ router.put("/rekening-masjid/:id", auth, takmirOnly, rekeningMasjid.updateRekeni
 router.delete("/rekening-masjid/:id", auth, takmirOnly, rekeningMasjid.deleteRekening);
 
 router.get("/struktur-organisasi", auth, takmirOnly, strukturOrganisasi.getAllStruktur);
-router.post("/struktur-organisasi", auth, takmirOnly, upload.single("foto"), strukturOrganisasi.createStruktur);
-router.put("/struktur-organisasi/:id", auth, takmirOnly, upload.single("foto"), strukturOrganisasi.updateStruktur);
+router.post("/struktur-organisasi", auth, takmirOnly, upload.fields([{ name: 'foto', maxCount: 1 }, { name: 'ttd', maxCount: 1 }]), strukturOrganisasi.createStruktur);
+router.put("/struktur-organisasi/:id", auth, takmirOnly, upload.fields([{ name: 'foto', maxCount: 1 }, { name: 'ttd', maxCount: 1 }]), strukturOrganisasi.updateStruktur);
 router.delete("/struktur-organisasi/:id", auth, takmirOnly, strukturOrganisasi.deleteStruktur);
 
 module.exports = router;
