@@ -320,7 +320,7 @@ const Riwayat = () => {
     }
   };
 
-  const handleCetak = async (item) => {
+const handleCetak = async (item) => {
     try {
       if (!item) {
         showPopup({
@@ -337,20 +337,8 @@ const Riwayat = () => {
 
       const savedTtd = localStorage.getItem('ttdImage');
 
-      let donaturName = item.jumlah > 0 ? "Hamba Allah" : "Penerima";
+      let donaturName = item.nama_donatur || (item.jumlah > 0 ? "Hamba Allah" : "Penerima");
       let cleanDeskripsi = item.deskripsi || "-";
-
-      if (item.deskripsi && item.deskripsi.includes(' - Donatur: ')) {
-        const parts = item.deskripsi.split(' - Donatur: ');
-        cleanDeskripsi = parts[0];
-        donaturName = parts[1] || "Hamba Allah";
-      }
-
-      if (item.deskripsi && item.deskripsi.includes(' - Penerima: ')) {
-        const parts = item.deskripsi.split(' - Penerima: ');
-        cleanDeskripsi = parts[0];
-        donaturName = parts[1] || "Penerima";
-      }
 
       await generateKwitansiPDF({
         id: `TX-${item.keuangan_id}`,
@@ -480,24 +468,13 @@ const Riwayat = () => {
                     </div>
                   </td>
                 </tr>
-              ) : filteredTransaksi.map((item) => {
+                ) : filteredTransaksi.map((item) => {
                 const isMasuk = Number(item.jumlah) > 0;
                 const catName = categories.find(c => c.kategori_id === item.kategori_id)?.nama_kategori || 'Umum';
 
-                let donaturDisplay = isMasuk ? "Hamba Allah" : "Penerima";
+                // PERBAIKAN: Langsung ambil dari database
+                let donaturDisplay = item.nama_donatur || (isMasuk ? "Hamba Allah" : "Penerima");
                 let descDisplay = item.deskripsi || "-";
-
-                if (item.deskripsi && item.deskripsi.includes(' - Donatur: ')) {
-                  const parts = item.deskripsi.split(' - Donatur: ');
-                  descDisplay = parts[0];
-                  donaturDisplay = parts[1] || "Hamba Allah";
-                }
-
-                if (item.deskripsi && item.deskripsi.includes(' - Penerima: ')) {
-                  const parts = item.deskripsi.split(' - Penerima: ');
-                  descDisplay = parts[0];
-                  donaturDisplay = parts[1] || "Penerima";
-                }
 
                 return (
                   <tr key={item.keuangan_id} className="group hover:bg-mu-green/[0.02] transition-colors">

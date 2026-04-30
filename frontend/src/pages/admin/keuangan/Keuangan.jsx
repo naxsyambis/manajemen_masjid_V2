@@ -356,7 +356,8 @@ const Keuangan = () => {
       await axios.post('http://localhost:3000/takmir/keuangan', {
         jumlah: nominalFinal,
         tanggal: formData.tanggal,
-        deskripsi: `${formData.deskripsi.trim()} - ${formData.jenis_transaksi === 'pemasukan' ? 'Donatur' : 'Penerima'}: ${namaPihak}`,
+        deskripsi: formData.deskripsi.trim(), 
+        nama_donatur: namaPihak, 
         kategori_id: parseInt(formData.kategori_id)
       }, {
         headers: { Authorization: `Bearer ${token}` }

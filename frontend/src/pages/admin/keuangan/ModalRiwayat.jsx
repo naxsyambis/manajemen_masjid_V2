@@ -24,22 +24,13 @@ const ModalRiwayat = ({ show, onClose, onSuccess, data, categories }) => {
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
+useEffect(() => {
     if (data && show) {
-      let donaturName = "";
-      let cleanDeskripsi = data.deskripsi;
-
-      if (data.deskripsi.includes(' - Donatur: ')) {
-        const parts = data.deskripsi.split(' - Donatur: ');
-        cleanDeskripsi = parts[0];
-        donaturName = parts[1];
-      }
-
       setForm({
         jumlah: Math.abs(data.jumlah),
         kategori_id: data.kategori_id,
-        donatur: donaturName,
-        deskripsi: cleanDeskripsi,
+        donatur: data.nama_donatur || '', 
+        deskripsi: data.deskripsi || '',
         tanggal: data.tanggal.split('T')[0]
       });
     }
@@ -55,7 +46,8 @@ const ModalRiwayat = ({ show, onClose, onSuccess, data, categories }) => {
         jumlah: nominalFinal,
         kategori_id: parseInt(form.kategori_id),
         tanggal: form.tanggal,
-        deskripsi: form.donatur ? `${form.deskripsi} - Donatur: ${form.donatur}` : form.deskripsi
+        deskripsi: form.deskripsi,
+        nama_donatur: form.donatur 
       };
 
       await axios.put(`http://localhost:3000/takmir/keuangan/${data.keuangan_id}`, payload, {
