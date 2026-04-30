@@ -109,7 +109,7 @@ const KegiatanSection = () => {
                   to={`/kegiatan/${item.kegiatan_id}`}
                   className="text-[#006227] font-semibold text-right hover:underline mt-auto"
                 >
-                  Baca Selengkapnya →
+                  Baca Selengkapnya 
                 </Link>
               </div>
             ))

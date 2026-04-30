@@ -111,6 +111,20 @@ exports.getProgram = async (req, res) => {
     res.json(await Program.findAll());
 };
 
+exports.getProgramById = async (req, res) => {
+  try {
+    const data = await Program.findByPk(req.params.id);
+
+    if (!data) {
+      return res.status(404).json({ message: "Program tidak ditemukan" });
+    }
+
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 exports.getKegiatan = async (req, res) => {
     res.json(await Kegiatan.findAll());

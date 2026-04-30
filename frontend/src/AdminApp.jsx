@@ -16,9 +16,7 @@ import Settings from './pages/admin/Settings';
 import CreateBerita from './pages/admin/Berita/CreateBerita';
 import EditBerita from './pages/admin/Berita/EditBerita';
 import DetailBerita from './pages/admin/Berita/DetailBerita';
-// 🔥 BERITA
 import ListBerita from './pages/admin/Berita/ListBerita';
-
 import DataStruktur from './pages/admin/StrukturOrganisasi/DataStruktur';
 import TambahStruktur from './pages/admin/StrukturOrganisasi/TambahStruktur';
 import EditStruktur from './pages/admin/StrukturOrganisasi/EditStruktur';

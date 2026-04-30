@@ -121,7 +121,7 @@ const KegiatanLengkap = () => {
                 to={`/kegiatan/${item.kegiatan_id}`}
                 className="text-[#006227] font-semibold text-right hover:underline"
               >
-                Baca Selengkapnya →
+                Baca Selengkapnya
               </Link>
             </div>
           ))}

@@ -17,5 +17,6 @@ router.get("/inventaris", publicController.getInventaris);
 router.get("/jadwal-sholat", publicController.getJadwalSholat);
 router.get("/struktur-organisasi", publicController.getStrukturOrganisasi);
 router.get("/kegiatan/:id", publicController.getKegiatanById);
+router.get("/program/:id", publicController.getProgramById);
 
 module.exports = router;

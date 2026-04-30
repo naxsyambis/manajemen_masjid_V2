@@ -11,6 +11,7 @@ import Masjid from './pages/public/masjid/Masjid'; // detail masjid
 import Kepengurusan from './pages/public/kepengurusan/Kepengurusan';
 import MapMasjid from './pages/public/lokasi/MapMasjid'; // map
 import IsiKegiatan from './pages/public/kegiatan/IsiKegiatan'; 
+import IsiProgram from './pages/public/program/IsiProgram';
 
 const PublicApp = () => {
   const routes = useRoutes([
@@ -20,15 +21,11 @@ const PublicApp = () => {
     { path: '/program', element: <ListProgram /> },
     { path: '/berita', element: <ListBerita /> },
     { path: '/berita/:id', element: <DetailBerita /> },
-
-    // ✅ HALAMAN MAP MASJID (INI YANG DIPANGGIL NAVBAR)
     { path: '/masjid', element: <MapMasjid /> },
-
-    // ✅ DETAIL MASJID
     { path: '/masjid/:id', element: <Masjid /> },
-
     { path: '/kepengurusan', element: <Kepengurusan /> },
-    { path: '/kegiatan/:id', element: <IsiKegiatan /> },  // Detail kegiatan
+    { path: '/kegiatan/:id', element: <IsiKegiatan /> }, 
+    { path: '/program/:id', element: <IsiProgram /> },
 
     // 404
     {
