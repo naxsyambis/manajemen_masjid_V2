@@ -37,7 +37,7 @@ exports.create = async (req, res) => {
       tanggal: new Date(),
       gambar: thumbnail,
       user_id: req.user.user_id,
-      masjid_id: null,
+      masjid_id: req.body.masjid_id,
       status: "dipublikasi",
       published_at: new Date()
     });

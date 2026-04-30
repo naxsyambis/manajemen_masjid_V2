@@ -1,31 +1,26 @@
 // frontend/src/pages/public/berita/DetailBerita.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import NavbarPublic from '../../../components/NavbarPublic'; // Path relatif untuk menghindari error import
-import FooterPublic from '../../../components/FooterPublic'; // Path relatif untuk menghindari error import
+import NavbarPublic from '../../../components/NavbarPublic';
+import FooterPublic from '../../../components/FooterPublic';
 
 const DetailBerita = () => {
-  const { id } = useParams(); // Mengambil ID berita dari URL
+  const { id } = useParams();
   const [berita, setBerita] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fungsi untuk fetch detail berita dari backend
   useEffect(() => {
     const fetchBeritaDetail = async () => {
       try {
-        console.log(`Fetching berita detail from: http://localhost:3000/public/berita/${id}`); // Logging URL untuk debugging
-        const response = await fetch(`http://localhost:3000/public/berita/${id}`); // Pastikan URL backend benar dan server berjalan
-        console.log('Response status for berita detail:', response.status); // Logging status HTTP
+        const response = await fetch(`http://localhost:3000/public/berita/${id}`);
         if (!response.ok) {
           throw new Error(`Server error: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        console.log('Data berita detail received:', data); // Logging data yang diterima
-        console.log("DATA BERITA:", data);
         setBerita(data);
       } catch (err) {
-        console.error('Error fetching berita detail:', err); // Logging error detail
+        console.error('Error fetching berita detail:', err);
         setError(err.message || 'Gagal mengambil data berita. Periksa koneksi atau endpoint.');
       } finally {
         setLoading(false);
@@ -37,7 +32,6 @@ const DetailBerita = () => {
     }
   }, [id]);
 
-  // Fungsi untuk format tanggal
   const formatTanggal = (tanggal) => {
     if (!tanggal) return 'Tanggal tidak tersedia';
     return new Date(tanggal).toLocaleDateString('id-ID', {
@@ -52,7 +46,7 @@ const DetailBerita = () => {
     return (
       <div className="font-sans overflow-x-hidden">
         <NavbarPublic />
-        <main className="site-bg pt-32 pb-20"> {/* Diubah dari py-20 menjadi pt-32 pb-20 untuk memberikan lebih banyak space di atas */}
+        <main className="site-bg pt-32 pb-20">
           <div className="container mx-auto px-6 text-center">
             <div className="animate-pulse text-2xl text-[#1e293b]">Memuat detail berita...</div>
           </div>
@@ -66,7 +60,7 @@ const DetailBerita = () => {
     return (
       <div className="font-sans overflow-x-hidden">
         <NavbarPublic />
-        <main className="site-bg pt-32 pb-20"> {/* Diubah dari py-20 menjadi pt-32 pb-20 untuk memberikan lebih banyak space di atas */}
+        <main className="site-bg pt-32 pb-20">
           <div className="container mx-auto px-6 text-center">
             <div className="text-2xl text-red-500">Error: {error}</div>
             <p className="text-sm text-[#1e293b] mt-2">Periksa console browser untuk detail lebih lanjut.</p>
@@ -87,7 +81,7 @@ const DetailBerita = () => {
     return (
       <div className="font-sans overflow-x-hidden">
         <NavbarPublic />
-        <main className="site-bg pt-32 pb-20"> {/* Diubah dari py-20 menjadi pt-32 pb-20 untuk memberikan lebih banyak space di atas */}
+        <main className="site-bg pt-32 pb-20">
           <div className="container mx-auto px-6 text-center">
             <div className="text-2xl text-[#1e293b]">Berita tidak ditemukan.</div>
             <Link
@@ -106,11 +100,10 @@ const DetailBerita = () => {
   return (
     <div className="font-sans overflow-x-hidden">
       <NavbarPublic />
-      <main className="site-bg pt-32 pb-20"> {/* Diubah dari py-20 menjadi pt-32 pb-20 untuk memberikan lebih banyak space di atas */}
+      <main className="site-bg pt-32 pb-20">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
-            {/* Breadcrumb dihapus sesuai permintaan */}
-
+            
             {/* Header Berita */}
             <div className="mb-8">
               <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight leading-tight">
@@ -137,18 +130,29 @@ const DetailBerita = () => {
               </div>
             </div>
 
-            {/* Gambar Berita */}
+            {/* 🔴 PERBAIKAN 1: Tampilkan Gambar Utama (berita.gambar) */}
+            <div className="mb-8">
+              <img
+                src={berita.gambar ? `http://localhost:3000/uploads/berita/${berita.gambar}` : 'https://via.placeholder.com/800x400?text=No+Image'}
+                alt={berita.judul}
+                className="w-full h-64 md:h-[450px] object-cover rounded-2xl shadow-lg"
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/800x400?text=No+Image";
+                }}
+              />
+            </div>
+
+            {/* 🔴 PERBAIKAN 2: Tampilkan Gambar Tambahan (Jika diupload > 1 gambar) */}
             {berita.gambar_list && berita.gambar_list.length > 0 && (
               <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {berita.gambar_list.map((item, index) => (
                   <img
                     key={item.gambar_id}
-                    src={`http://localhost:3000/uploads/berita/${berita.gambar}`}
-                    alt={`${berita.judul}-${index}`}
-                    className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-lg"
+                    src={`http://localhost:3000/uploads/berita/${item.path_gambar}`} // Diperbaiki jadi item.path_gambar
+                    alt={`Tambahan ${berita.judul}-${index}`}
+                    className="w-full h-64 md:h-96 object-cover rounded-2xl shadow-md border border-gray-100"
                     onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/800x400?text=No+Image";
+                      e.target.src = "https://via.placeholder.com/800x400?text=No+Image";
                     }}
                   />
                 ))}
@@ -160,8 +164,23 @@ const DetailBerita = () => {
               <div className="whitespace-pre-wrap">{berita.isi}</div>
             </div>
 
+            {/* Jika ada URL Youtube */}
+            {berita.youtube_url && (
+              <div className="mb-12">
+                <h3 className="text-2xl font-bold text-[#006227] mb-4">Video Terkait</h3>
+                <a 
+                  href={berita.youtube_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline break-all"
+                >
+                  {berita.youtube_url}
+                </a>
+              </div>
+            )}
+
             {/* Tombol Kembali */}
-            <div className="text-center">
+            <div className="text-center mt-10 border-t border-gray-200 pt-10">
               <Link
                 to="/berita"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-[#006227] text-white rounded-xl font-semibold shadow-lg hover:bg-[#004a1e] transform hover:-translate-y-1 transition-all duration-300 hover:shadow-xl"
