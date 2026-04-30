@@ -23,6 +23,8 @@ router.get("/masjid", auth, superadminOnly, masjid.getAll);
 router.get("/masjid/:id", auth, superadminOnly, masjid.getById);
 router.delete("/masjid/:id", auth, superadminOnly, masjid.delete);
 
+router.get("/user", auth, superadminOnly, takmir.getAllUser);
+
 router.post("/takmir", auth, superadminOnly, takmir.create);
 router.get("/takmir", auth, superadminOnly, takmir.getAll);
 router.get("/takmir/:id", auth, superadminOnly, takmir.getById);

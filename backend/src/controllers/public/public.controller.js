@@ -55,6 +55,12 @@ exports.getBerita = async (req, res) => {
           model: require("../../models/BeritaGambar"),
           as: "gambar_list",
           attributes: ["gambar_id", "path_gambar"]
+        },
+        // Tambahkan include Masjid di sini
+        {
+          model: Masjid, // Karena Masjid sudah di-import di atas file
+          as: "masjid",
+          attributes: ["masjid_id", "nama_masjid"] // Cukup ambil data yang diperlukan
         }
       ],
       order: [["published_at", "DESC"]]
@@ -78,6 +84,12 @@ exports.getBeritaById = async (req, res) => {
           model: require("../../models/BeritaGambar"),
           as: "gambar_list",
           attributes: ["gambar_id", "path_gambar"]
+        },
+        // Tambahkan include Masjid di sini
+        {
+          model: Masjid, // Karena Masjid sudah di-import di atas file
+          as: "masjid",
+          attributes: ["masjid_id", "nama_masjid"] // Cukup ambil data yang diperlukan
         }
       ],
       order: [
