@@ -189,8 +189,7 @@ const HapusStruktur = () => {
   const getFotoUrl = (foto) => {
     if (!foto) return null;
     if (foto.startsWith('http')) return foto;
-    if (foto.startsWith('/uploads')) return `http://localhost:3000${foto}`;
-    return `http://localhost:3000/uploads/struktur-organisasi/${foto}`;
+    return `http://localhost:3000/uploads/kepengurusan/${foto}`;
   };
 
   useEffect(() => {

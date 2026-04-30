@@ -31,6 +31,10 @@ const StrukturOrganisasi = sequelize.define("struktur_organisasi", {
         type: DataTypes.STRING,
         allowNull: true
     },
+    ttd: { 
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW

@@ -7,7 +7,7 @@ exports.create = async (req, res) => {
         const data = await Keuangan.create({
             jumlah: req.body.jumlah,
             tanggal: req.body.tanggal,
-            deskripsi: req.body.deskripsi,
+            deskripsi: req.body.deskripsi, 
             nama_donatur: req.body.nama_donatur || 'Hamba Allah', 
             kategori_id: req.body.kategori_id,
             user_id: req.user.user_id,
@@ -76,7 +76,7 @@ exports.update = async (req, res) => {
             jumlah: req.body.jumlah || keuangan.jumlah,
             tanggal: req.body.tanggal || keuangan.tanggal,
             deskripsi: req.body.deskripsi || keuangan.deskripsi,
-            nama_donatur: req.body.nama_donatur !== undefined ? req.body.nama_donatur : keuangan.nama_donatur,
+            nama_donatur: req.body.nama_donatur !== undefined ? req.body.nama_donatur : keuangan.nama_donatur, // Sudah Benar
             kategori_id: req.body.kategori_id || keuangan.kategori_id
         });
 
