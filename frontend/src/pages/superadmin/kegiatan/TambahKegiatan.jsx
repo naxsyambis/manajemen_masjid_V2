@@ -1,231 +1,237 @@
-// frontend/src/pages/superadmin/kegiatan/TambahKegiatan.jsx
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { Save, Calendar, MapPin, FileText, AlertCircle, RefreshCcw } from 'lucide-react';
+import { Save, RefreshCcw, Calendar } from 'lucide-react';
+
+const BASE_URL = "http://localhost:3000";
 
 const TambahKegiatan = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
   const [formData, setFormData] = useState({
     nama_kegiatan: '',
     waktu_kegiatan: '',
     lokasi: '',
     deskripsi: ''
   });
+
+  const [poster, setPoster] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [masjidList, setMasjidList] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
+
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
-
   const isExpanded = isOpen || isHovered;
 
-  // Hitung minDate untuk membatasi tanggal mulai dari hari ini (00:00)
-  const minDate = (() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today.toISOString().slice(0, 16);
-  })();
-
+  // ⏱ realtime
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    
-    // Validasi tambahan: Pastikan waktu_kegiatan tidak di masa lalu
-    const selectedDate = new Date(formData.waktu_kegiatan);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (selectedDate < today) {
-      setError('Waktu kegiatan tidak boleh di masa lalu.');
-      setLoading(false);
+  // 🔥 FETCH MASJID
+  useEffect(() => {
+    axios.get(`${BASE_URL}/superadmin/masjid`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => setMasjidList(res.data || []))
+    .catch(() => setMasjidList([]));
+  }, []);
+
+  // 📅 MIN DATE (hari ini)
+  const today = new Date().toISOString().slice(0,16);
+
+  // HANDLE IMAGE
+  const handleImage = (file) => {
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Maksimal 5MB");
       return;
     }
-    
+
+    setPoster(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
+  // SUBMIT
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.nama_kegiatan || !formData.waktu_kegiatan || !formData.lokasi) {
+      return alert("Semua field wajib diisi");
+    }
+
+    setLoading(true);
+    setError(null);
+
     try {
-      await axios.post('http://localhost:3000/superadmin/kegiatan', formData, {
-        headers: { Authorization: `Bearer ${token}` }
+      const form = new FormData();
+
+      form.append("nama_kegiatan", formData.nama_kegiatan);
+      form.append("waktu_kegiatan", formData.waktu_kegiatan);
+      form.append("lokasi", formData.lokasi);
+      form.append("deskripsi", formData.deskripsi);
+
+      if (poster) form.append("poster", poster);
+
+      await axios.post(`${BASE_URL}/superadmin/kegiatan`, form, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
-      alert('Kegiatan berhasil ditambahkan');
+
       navigate('/superadmin/kegiatan');
+
     } catch (err) {
-      console.error('Error adding kegiatan:', err);
-      setError('Gagal menambahkan kegiatan. Silakan coba lagi.');
+      console.error(err);
+      setError(err.response?.data?.message || "Gagal tambah kegiatan");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRefresh = () => {
-    window.location.reload();
-  };
-
   return (
-    <div className="tambah-kegiatan h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
-      <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
-      
+    <div className="h-screen bg-gray-50 flex">
+
+      <SuperAdminSidebar
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        onLogout={onLogout}
+        user={user}
+        setIsHovered={setIsHovered}
+        isExpanded={isExpanded}
+      />
+
       <div className="flex-1 flex flex-col">
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
-        
-        <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+        <div className="p-8 space-y-8 overflow-y-auto">
+
+          {/* HEADER */}
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
+              <h1 className="text-4xl font-black">
                 Tambah <span className="text-mu-green">Kegiatan</span>
               </h1>
-              <div className="flex items-center gap-2 mt-2 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
-                <Calendar size={12} className="text-mu-green" />
-                <span>{time.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                <span className="mx-2">•</span>
-                <span className="text-mu-green">{time.toLocaleTimeString('id-ID')}</span>
-              </div>
+              <p className="text-xs text-gray-400 mt-2 flex items-center gap-2">
+                <Calendar size={12}/>
+                {time.toLocaleDateString('id-ID')} • {time.toLocaleTimeString('id-ID')}
+              </p>
             </div>
-            
-            <div className="flex gap-4">
-              <button 
-                onClick={handleRefresh}
-                className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 hover:shadow-lg"
-              >
-                <RefreshCcw size={14} />
-                Refresh Halaman
-              </button>
-            </div>
+
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-white px-6 py-3 rounded-xl shadow text-xs font-bold flex gap-2"
+            >
+              <RefreshCcw size={14}/> Refresh
+            </button>
           </div>
-          
-          {/* Error Message */}
+
+          {/* ERROR */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4 shadow-lg">
-              <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
-              <div>
-                <p className="text-red-700 font-medium">Error</p>
-                <p className="text-red-600 text-sm mt-1">{error}</p>
-              </div>
+            <div className="bg-red-100 text-red-600 p-4 rounded-xl">
+              {error}
             </div>
           )}
-          
-          {/* Form Tambah Kegiatan Modern dan Elegan */}
-          <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
-            <div className="p-10 lg:p-16">
-              <div className="mb-12 text-center">
-                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter mb-4">Tambah Kegiatan Baru</h2>
-                <p className="text-gray-600 text-lg">Isi informasi kegiatan dengan lengkap dan akurat</p>
+
+          {/* FORM */}
+          <div className="bg-white p-10 rounded-[2rem] shadow">
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* NAMA */}
+              <div>
+                <label className="font-bold text-sm">Nama Kegiatan</label>
+                <input
+                  value={formData.nama_kegiatan}
+                  onChange={(e)=>setFormData({...formData,nama_kegiatan:e.target.value})}
+                  className="w-full p-4 border rounded-xl mt-1"
+                />
               </div>
-              
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                  <div className="space-y-10">
-                    <div className="space-y-6">
-                      <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Informasi Kegiatan</h3>
-                      
-                      <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Nama Kegiatan</label>
-                        <input
-                          type="text"
-                          value={formData.nama_kegiatan}
-                          onChange={(e) => setFormData({ ...formData, nama_kegiatan: e.target.value })}
-                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
-                          placeholder="Masukkan nama kegiatan"
-                          required
-                        />
-                        <p className="text-sm text-gray-500">Isi dengan nama resmi kegiatan</p>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Waktu Kegiatan</label>
-                        <div className="relative">
-                          <Calendar size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                          <input
-                            type="datetime-local"
-                            value={formData.waktu_kegiatan}
-                            onChange={(e) => setFormData({ ...formData, waktu_kegiatan: e.target.value })}
-                            min={minDate} // Menambahkan batasan tanggal minimal dari hari ini (00:00)
-                            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
-                            required
-                          />
-                        </div>
-                        <p className="text-sm text-gray-500">Pilih tanggal dan waktu kegiatan (minimal hari ini)</p>
-                      </div>
+
+              {/* WAKTU */}
+              <div>
+                <label className="font-bold text-sm">Waktu Kegiatan</label>
+                <input
+                  type="datetime-local"
+                  min={today} // ✅ MIN HARI INI
+                  value={formData.waktu_kegiatan}
+                  onChange={(e)=>setFormData({...formData,waktu_kegiatan:e.target.value})}
+                  className="w-full p-4 border rounded-xl mt-1"
+                />
+              </div>
+
+              {/* LOKASI (DROPDOWN) */}
+              <div>
+                <label className="font-bold text-sm">Lokasi Masjid</label>
+                <select
+                  value={formData.lokasi}
+                  onChange={(e)=>setFormData({...formData,lokasi:e.target.value})}
+                  className="w-full p-4 border rounded-xl mt-1"
+                >
+                  <option value="">Pilih Masjid</option>
+                  {masjidList.map(m => (
+                    <option key={m.masjid_id} value={m.nama_masjid}>
+                      {m.nama_masjid}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* DESKRIPSI */}
+              <div>
+                <label className="font-bold text-sm">Deskripsi</label>
+                <textarea
+                  rows={5}
+                  value={formData.deskripsi}
+                  onChange={(e)=>setFormData({...formData,deskripsi:e.target.value})}
+                  className="w-full p-4 border rounded-xl mt-1"
+                />
+              </div>
+
+              {/* UPLOAD */}
+              <div>
+                <label className="font-bold text-sm">Upload Poster</label>
+
+                <label className="w-full border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer mt-2 p-4 bg-gray-50 hover:border-mu-green transition">
+
+                  {preview ? (
+                    <img src={preview} className="max-h-96 object-contain"/>
+                  ) : (
+                    <div className="text-gray-400 text-center">
+                      Klik upload poster
                     </div>
-                  </div>
-                  
-                  <div className="space-y-10">
-                    <div className="space-y-6">
-                      <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Detail Kegiatan</h3>
-                      
-                      <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Lokasi</label>
-                        <div className="relative">
-                          <MapPin size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                          <input
-                            type="text"
-                            value={formData.lokasi}
-                            onChange={(e) => setFormData({ ...formData, lokasi: e.target.value })}
-                            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
-                            placeholder="Masukkan lokasi kegiatan"
-                            required
-                          />
-                        </div>
-                        <p className="text-sm text-gray-500">Sertakan nama tempat atau alamat</p>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Deskripsi</label>
-                          <p className="text-sm text-gray-500">{formData.deskripsi.length} / 255 karakter</p>
-                        </div>
-                        <div className="relative">
-                          <FileText size={20} className="absolute left-3 top-3 text-gray-400" />
-                          <textarea
-                            value={formData.deskripsi}
-                            onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
-                            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm resize-none"
-                            placeholder="Masukkan deskripsi kegiatan (opsional)"
-                            rows="8"
-                            maxLength={255}
-                          />
-                        </div>
-                        <p className="text-sm text-gray-500">Berikan penjelasan singkat tentang kegiatan</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Tombol Aksi dengan Efek Hover */}
-                <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/superadmin/kegiatan')}
-                    className="flex items-center px-8 py-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 rounded-2xl hover:from-gray-300 hover:to-gray-400 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex items-center px-8 py-4 bg-mu-green text-white rounded-2xl hover:bg-green-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Save size={22} className="mr-3" />
-                    {loading ? 'Menyimpan...' : 'Simpan Kegiatan'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-          
-          <div className="flex justify-center items-center gap-4 text-gray-300 py-4">
-            <div className="h-[1px] w-12 bg-gray-100"></div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em]">Integrated Database System v3.0</p>
-            <div className="h-[1px] w-12 bg-gray-100"></div>
+                  )}
+
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={(e)=>handleImage(e.target.files[0])}
+                  />
+                </label>
+              </div>
+
+              {/* BUTTON */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-mu-green text-white py-4 rounded-xl font-bold"
+              >
+                {loading ? "Menyimpan..." : "Simpan Kegiatan"}
+              </button>
+
+            </form>
+
           </div>
         </div>
       </div>
