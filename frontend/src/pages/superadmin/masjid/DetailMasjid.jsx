@@ -146,6 +146,9 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [berita, setBerita] = useState([]);
   const [program, setProgram] = useState([]);
 
+  const [userMap, setUserMap] = useState({});
+  const [kategoriMap, setKategoriMap] = useState({});
+
   const [pagination, setPagination] = useState({
     keuangan: { page: 1, limit: 5 },
     berita: { page: 1, limit: 5 },
@@ -190,7 +193,9 @@ const DetailMasjid = ({ user, onLogout }) => {
       const headers = { Authorization: `Bearer ${token}` };
       const [mRes, tRes] = await Promise.all([
         axios.get(`http://localhost:3000/superadmin/masjid/${id}`, { headers }),
-        axios.get(`http://localhost:3000/superadmin/takmir`, { headers })
+        axios.get(`http://localhost:3000/superadmin/takmir`, { headers }),
+        axios.get(`http://localhost:3000/superadmin/user`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`http://localhost:3000/superadmin/kategori`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setMasjid(mRes.data);
@@ -359,8 +364,8 @@ const DetailMasjid = ({ user, onLogout }) => {
                 title="Program Kerja" 
                 icon={<Rocket className="text-purple-500" size={24}/>} 
                 data={paginateData(program, pagination.program.page, pagination.program.limit)} 
-                columns={['Nama Program', 'Status']} 
-                dataKeys={['nama_program', 'status']}
+                columns={['gambar','nama program', 'jadwal rutin', 'deskripsi', 'kategori']}
+                dataKeys={['gambar','nama_program', 'jadwal_rutin', 'deskripsi', 'kategori_id']}
                 currentLimit={pagination.program.limit}
                 onLimitChange={(val) => handleLimitChange('program', val)}
                 currentPage={pagination.program.page}
@@ -374,8 +379,8 @@ const DetailMasjid = ({ user, onLogout }) => {
                 title="Daftar Jamaah" 
                 icon={<Users className="text-blue-500" size={24}/>} 
                 data={paginateData(jamaah, pagination.jamaah.page, pagination.jamaah.limit)} 
-                columns={['Nama', 'Status', 'Alamat']} 
-                dataKeys={['nama', 'status', 'alamat']}
+                columns={['nama', 'alamat', 'no hp', 'jenis kelamin', 'peran', 'status']}
+                dataKeys={['nama', 'alamat', 'no_hp', 'jenis_kelamin', 'peran', 'status']}
                 currentLimit={pagination.jamaah.limit}
                 onLimitChange={(val) => handleLimitChange('jamaah', val)}
                 currentPage={pagination.jamaah.page}
@@ -386,8 +391,8 @@ const DetailMasjid = ({ user, onLogout }) => {
                 title="Daftar Inventaris" 
                 icon={<Package className="text-orange-500" size={24}/>} 
                 data={paginateData(inventaris, pagination.inventaris.page, pagination.inventaris.limit)} 
-                columns={['Nama Barang', 'Jumlah', 'Kondisi']} 
-                dataKeys={['nama_barang', 'jumlah', 'kondisi']}
+                columns={['Nama Barang', 'Jumlah', 'Kondisi', 'keterangan']} 
+                dataKeys={['nama_barang', 'jumlah', 'kondisi', 'keterangan']}
                 currentLimit={pagination.inventaris.limit}
                 onLimitChange={(val) => handleLimitChange('inventaris', val)}
                 currentPage={pagination.inventaris.page}
@@ -398,8 +403,8 @@ const DetailMasjid = ({ user, onLogout }) => {
                 title="Riwayat Kegiatan" 
                 icon={<History className="text-purple-500" size={24}/>} 
                 data={paginateData(riwayat, pagination.riwayat.page, pagination.riwayat.limit)} 
-                columns={['Nama Kegiatan', 'Tanggal', 'Tempat']} 
-                dataKeys={['nama_kegiatan', 'tanggal', 'tempat']}
+                columns={['poster', 'nama kegiatan', 'waktu kegiatan', 'lokasi', 'deskripsi']}
+                dataKeys={[ 'poster','nama_kegiatan', 'waktu_kegiatan', 'lokasi', 'deskripsi']}
                 currentLimit={pagination.riwayat.limit}
                 onLimitChange={(val) => handleLimitChange('riwayat', val)}
                 currentPage={pagination.riwayat.page}
