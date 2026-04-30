@@ -42,6 +42,12 @@ StrukturOrganisasi.belongsTo(Masjid, { foreignKey: "masjid_id", as: "masjid" });
 Keuangan.belongsTo(KategoriKeuangan, { foreignKey: "kategori_id", as: "kategori_keuangan" });
 KategoriKeuangan.hasMany(Keuangan, { foreignKey: "kategori_id", as: "keuangan_list" });
 
+Berita.belongsTo(User, { foreignKey: "user_id", as: "user" });
+User.hasMany(Berita, { foreignKey: "user_id", as: "berita_list" });
+
+Berita.belongsTo(Masjid, { foreignKey: "masjid_id", as: "masjid" });
+Masjid.hasMany(Berita, { foreignKey: "masjid_id", as: "berita_list" });
+
 module.exports = {
     User,
     Masjid,

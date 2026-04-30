@@ -159,3 +159,15 @@ exports.delete = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.getAllUser = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ["user_id", "nama", "email", "role"]
+    });
+    res.json({ data: users });
+  } catch (err) {
+    console.error("GET ALL USER ERROR:", err);
+    res.status(500).json({ message: "Gagal mengambil data user" });
+  }
+};
