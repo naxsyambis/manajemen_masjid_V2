@@ -1,6 +1,6 @@
 // frontend/src/pages/superadmin/masjid/DataMasjid.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -12,19 +12,23 @@ import {
 } from 'lucide-react';
 
 const DataMasjid = ({ user, onLogout }) => {
+  // UI State
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  
+  // Data State
   const [masjids, setMasjids] = useState([]);
   const [filteredMasjids, setFilteredMasjids] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedMasjid, setSelectedMasjid] = useState(null);
-  const [deleting, setDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
-  const [refreshing, setRefreshing] = useState(false);
   
+  // Pagination State
   const [entriesPerPage, setEntriesPerPage] = useState(5); 
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -32,34 +36,14 @@ const DataMasjid = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // Clock Effect
+  // 1. Clock Effect
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch Data Effect
-  useEffect(() => {
-    fetchMasjids();
-  }, []);
-
-  // Search & Filter Effect
-  useEffect(() => {
-    const filtered = masjids.filter(masjid =>
-      masjid.nama_masjid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      masjid.alamat?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredMasjids(filtered);
-    setCurrentPage(1);
-  }, [masjids, searchTerm]);
-
-  // Pagination Logic
-  const indexOfLastItem = currentPage * entriesPerPage;
-  const indexOfFirstItem = indexOfLastItem - entriesPerPage;
-  const currentItems = filteredMasjids.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredMasjids.length / entriesPerPage);
-
-  const fetchMasjids = async () => {
+  // 2. Fetch Data Function (Wrapped in useCallback for efficiency)
+  const fetchMasjids = useCallback(async () => {
     try {
       setRefreshing(true);
       setError(null);
@@ -74,8 +58,41 @@ const DataMasjid = ({ user, onLogout }) => {
       setLoading(false);
       setRefreshing(false);
     }
+  }, [token]);
+
+  useEffect(() => {
+    fetchMasjids();
+  }, [fetchMasjids]);
+
+  // 3. Search & Filter Effect
+  useEffect(() => {
+    const filtered = masjids.filter(masjid =>
+      masjid.nama_masjid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      masjid.alamat?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredMasjids(filtered);
+    setCurrentPage(1);
+  }, [masjids, searchTerm]);
+
+  // 4. Pagination Logic
+  const indexOfLastItem = currentPage * entriesPerPage;
+  const indexOfFirstItem = indexOfLastItem - entriesPerPage;
+  const currentItems = filteredMasjids.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredMasjids.length / entriesPerPage);
+
+  const getPaginationNumbers = () => {
+    const maxVisible = 5;
+    let start = Math.max(currentPage - Math.floor(maxVisible / 2), 1);
+    let end = start + maxVisible - 1;
+
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(end - maxVisible + 1, 1);
+    }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
+  // 5. Actions
   const handleDelete = async () => {
     if (!selectedMasjid) return;
     setDeleting(true);
@@ -87,6 +104,7 @@ const DataMasjid = ({ user, onLogout }) => {
       closeDeleteModal();
     } catch (err) {
       console.error('Error deleting masjid:', err);
+      alert('Gagal menghapus data.');
     } finally {
       setDeleting(false);
     }
@@ -102,6 +120,7 @@ const DataMasjid = ({ user, onLogout }) => {
     setSelectedMasjid(null);
   };
 
+  // 6. Loading State
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
@@ -162,7 +181,7 @@ const DataMasjid = ({ user, onLogout }) => {
           </div>
           
           {/* Table Container */}
-          <div className="bg-white p-4 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white p-4 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-gray-100 shadow-sm">
             
             {/* Toolbar */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -196,11 +215,11 @@ const DataMasjid = ({ user, onLogout }) => {
             </div>
             
             {/* Table */}
-            <div className="overflow-x-auto -mx-4 md:mx-0">
+            <div className="overflow-x-auto">
               <table className="min-w-full border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="sticky left-0 bg-gray-50 z-10 px-4 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Logo</th>
+                    <th className="px-4 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Logo</th>
                     <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Info Masjid</th>
                     <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Lokasi & Kontak</th>
                     <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-gray-100">Koordinat</th>
@@ -208,70 +227,76 @@ const DataMasjid = ({ user, onLogout }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentItems.map((masjid) => (
-                    <tr key={masjid.masjid_id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="sticky left-0 bg-white group-hover:bg-gray-50 z-10 px-4 py-4 border-b border-gray-50">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-100 rounded-full overflow-hidden shadow-inner flex items-center justify-center border border-gray-200">
-                          {masjid.logo_foto ? (
-                            <img src={`http://localhost:3000${masjid.logo_foto}`} alt="Logo" className="w-full h-full object-cover" />
-                          ) : (
-                            <ImageIcon size={20} className="text-gray-300" />
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 border-b border-gray-50">
-                        <div className="text-sm font-bold text-gray-800">{masjid.nama_masjid}</div>
-                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">ID: {masjid.masjid_id}</div>
-                      </td>
-                      <td className="px-6 py-4 border-b border-gray-50">
-                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
-                          <MapPin size={12} className="text-mu-green flex-shrink-0" />
-                          <span className="truncate max-w-[200px]">{masjid.alamat}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
-                          <Phone size={12} className="text-mu-green flex-shrink-0" />
-                          <span>{masjid.no_hp}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 border-b border-gray-50">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
-                            <Navigation size={10} className="text-mu-green" />
-                            <span>Lat: {masjid.latitude}</span>
+                  {currentItems.length > 0 ? (
+                    currentItems.map((masjid) => (
+                      <tr key={masjid.masjid_id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-4 py-4 border-b border-gray-50">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-100 rounded-full overflow-hidden shadow-inner flex items-center justify-center border border-gray-200">
+                            {masjid.logo_foto ? (
+                              <img src={`http://localhost:3000${masjid.logo_foto}`} alt="Logo" className="w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon size={20} className="text-gray-300" />
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
-                            <Navigation size={10} className="text-mu-green" />
-                            <span>Lng: {masjid.longitude}</span>
+                        </td>
+                        <td className="px-6 py-4 border-b border-gray-50">
+                          <div className="text-sm font-bold text-gray-800">{masjid.nama_masjid}</div>
+                          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">ID: {masjid.masjid_id}</div>
+                        </td>
+                        <td className="px-6 py-4 border-b border-gray-50">
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
+                            <MapPin size={12} className="text-mu-green flex-shrink-0" />
+                            <span className="truncate max-w-[200px]">{masjid.alamat}</span>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 border-b border-gray-50 text-center">
-                        <div className="flex justify-center items-center gap-2">
-                          <button 
-                            onClick={() => navigate(`/superadmin/masjid/detail/${masjid.masjid_id}`)} 
-                            className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
-                            title="Detail"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button 
-                            onClick={() => navigate(`/superadmin/masjid/edit/${masjid.masjid_id}`)} 
-                            className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button 
-                            onClick={() => openDeleteModal(masjid)} 
-                            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                            title="Hapus"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+                          <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
+                            <Phone size={12} className="text-mu-green flex-shrink-0" />
+                            <span>{masjid.no_hp}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 border-b border-gray-50">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
+                              <Navigation size={10} className="text-mu-green" />
+                              <span>Lat: {masjid.latitude}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
+                              <Navigation size={10} className="text-mu-green" />
+                              <span>Lng: {masjid.longitude}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 border-b border-gray-50 text-center">
+                          <div className="flex justify-center items-center gap-2">
+                            <button 
+                              onClick={() => navigate(`/superadmin/masjid/detail/${masjid.masjid_id}`)} 
+                              className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+                              title="Detail"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button 
+                              onClick={() => navigate(`/superadmin/masjid/edit/${masjid.masjid_id}`)} 
+                              className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                              title="Edit"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button 
+                              onClick={() => openDeleteModal(masjid)} 
+                              className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                              title="Hapus"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="text-center py-10 text-gray-400 text-xs font-bold uppercase">Data tidak ditemukan</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -279,8 +304,9 @@ const DataMasjid = ({ user, onLogout }) => {
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredMasjids.length)} dari {filteredMasjids.length} data
+                Menampilkan {filteredMasjids.length > 0 ? indexOfFirstItem + 1 : 0} - {Math.min(indexOfLastItem, filteredMasjids.length)} dari {filteredMasjids.length} data
               </p>
+
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -289,20 +315,26 @@ const DataMasjid = ({ user, onLogout }) => {
                 >
                   <ChevronLeft size={18} />
                 </button>
+
                 <div className="flex gap-1">
-                  {[...Array(totalPages)].map((_, i) => (
+                  {getPaginationNumbers().map((page) => (
                     <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`min-w-[32px] h-8 rounded-lg text-[10px] font-bold transition-all ${currentPage === i + 1 ? 'bg-mu-green text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 hover:bg-gray-50'}`}
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`min-w-[32px] h-8 rounded-lg text-[10px] font-bold transition-all ${
+                        currentPage === page
+                          ? 'bg-mu-green text-white shadow-md'
+                          : 'bg-white text-gray-400 border border-gray-100 hover:bg-gray-50'
+                      }`}
                     >
-                      {i + 1}
+                      {page}
                     </button>
                   ))}
                 </div>
+
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage === totalPages || totalPages === 0}
                   className="p-2 rounded-lg bg-gray-50 text-gray-400 disabled:opacity-30 hover:text-mu-green transition-all"
                 >
                   <ChevronRight size={18} />
@@ -310,17 +342,13 @@ const DataMasjid = ({ user, onLogout }) => {
               </div>
             </div>
           </div>
-          
-          <div className="flex flex-col items-center gap-2 text-gray-300 py-4">
-            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em]">Integrated Database System v3.0</p>
-          </div>
         </div>
       </div>
 
       {/* Delete Modal */}
       {showDeleteModal && selectedMasjid && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
             <div className="bg-red-500 p-6 flex justify-center text-white">
               <AlertTriangle size={48} className="animate-bounce" />
             </div>
