@@ -1,54 +1,37 @@
+// backend/src/controllers/superadmin/berita.controller.js
+
 const Berita = require("../../models/Berita");
-const { logActivity } = require("../../services/auditLog.service");
-const sharp = require("sharp");
-const path = require("path");
-const fs = require("fs");
 const BeritaGambar = require("../../models/BeritaGambar");
+const { logActivity } = require("../../services/auditLog.service");
+const fs = require("fs");
+const path = require("path");
 
 exports.create = async (req, res) => {
   try {
-    let gambarList = [];
-
-    if (req.files?.length) {
-      const dir = path.join(__dirname, "../../../uploads/berita");
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-      for (const file of req.files) {
-        const filename = `berita_${Date.now()}_${Math.random()
-          .toString(36)
-          .slice(2)}.webp`;
-
-        const filepath = path.join(dir, filename);
-
-        await sharp(file.path)
-          .resize(800)
-          .webp({ quality: 70 })
-          .toFile(filepath);
-
-        gambarList.push(`/uploads/berita/${filename}`);
-      }
+    let gambarUtama = null;
+    
+    // Sama seperti takmir, langsung ambil filename dari multer
+    if (req.files && req.files.length > 0) {
+      gambarUtama = req.files[0].filename; 
     }
-
-    const thumbnail = gambarList[0] || null;
 
     const data = await Berita.create({
       judul: req.body.judul,
       isi: req.body.isi,
       tanggal: new Date(),
-      gambar: thumbnail,
+      gambar: gambarUtama, // Menyimpan "namafile.jpg" saja
       user_id: req.user.user_id,
       masjid_id: req.body.masjid_id,
       status: "dipublikasi",
       published_at: new Date()
     });
 
-    if (gambarList.length) {
-      await BeritaGambar.bulkCreate(
-        gambarList.map(p => ({
-          berita_id: data.berita_id,
-          path_gambar: p
-        }))
-      );
+    if (req.files && req.files.length > 0) {
+      const gambarData = req.files.map(file => ({
+        berita_id: data.berita_id,
+        path_gambar: file.filename // Menyimpan "namafile.jpg" saja
+      }));
+      await BeritaGambar.bulkCreate(gambarData);
     }
 
     await logActivity({
@@ -69,12 +52,12 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const berita = await Berita.findByPk(req.params.id);
-    if (!berita)
-      return res.status(404).json({ message: "Berita tidak ditemukan" });
+    if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan" });
 
     const oldData = berita.toJSON();
     let gambarPath = berita.gambar;
 
+    // Hapus gambar lama jika ada request penghapusan
     if (req.body.deletedImages) {
       const deletedIds = JSON.parse(req.body.deletedImages);
 
@@ -84,12 +67,8 @@ exports.update = async (req, res) => {
         });
 
         for (const img of imagesToDelete) {
-          const filePath = path.join(
-            __dirname,
-            "../../../",
-            img.path_gambar
-          );
-
+          // Penyesuaian path hapus file
+          const filePath = path.join(__dirname, "../../../uploads/berita", img.path_gambar);
           if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
           }
@@ -101,43 +80,22 @@ exports.update = async (req, res) => {
       }
     }
 
-    if (req.files?.length) {
-      const dir = path.join(__dirname, "../../../uploads/berita");
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-      const newImages = [];
-
-      for (const file of req.files) {
-        const filename = `berita_${Date.now()}_${Math.random()
-          .toString(36)
-          .slice(2)}.webp`;
-
-        const filepath = path.join(dir, filename);
-
-        await sharp(file.path)
-          .resize(800)
-          .webp({ quality: 70 })
-          .toFile(filepath);
-
-        newImages.push(`/uploads/berita/${filename}`);
-      }
-
-      await BeritaGambar.bulkCreate(
-        newImages.map(p => ({
-          berita_id: berita.berita_id,
-          path_gambar: p
-        }))
-      );
+    // Jika ada upload gambar baru
+    if (req.files && req.files.length > 0) {
+      const gambarData = req.files.map(file => ({
+        berita_id: berita.berita_id,
+        path_gambar: file.filename
+      }));
+      await BeritaGambar.bulkCreate(gambarData);
     }
 
+    // Set gambar utama dari sisa gambar yang ada
     const remainingImages = await BeritaGambar.findAll({
       where: { berita_id: berita.berita_id },
       order: [["gambar_id", "ASC"]]
     });
 
-    gambarPath = remainingImages.length
-      ? remainingImages[0].path_gambar
-      : null;
+    gambarPath = remainingImages.length ? remainingImages[0].path_gambar : null;
 
     await berita.update({
       judul: req.body.judul,
@@ -154,7 +112,7 @@ exports.update = async (req, res) => {
       record_id: berita.berita_id
     });
 
-    res.json({ message: "Berita berhasil diupdate" });
+    res.json({ message: "Berita berhasil diupdate", data: berita });
 
   } catch (error) {
     console.error("UPDATE BERITA ERROR:", error);
@@ -165,20 +123,22 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const berita = await Berita.findByPk(req.params.id);
-    if (!berita)
-      return res.status(404).json({ message: "Berita tidak ditemukan" });
+    if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan" });
 
+    // Hapus file fisik gambar utama
     if (berita.gambar) {
-      const filePath = path.join(__dirname, "../../../", berita.gambar);
+      // Penyesuaian path karena kita hanya menyimpan nama filenya saja
+      const filePath = path.join(__dirname, "../../../uploads/berita", berita.gambar);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
+    // Hapus file fisik galeri
     const gallery = await BeritaGambar.findAll({
       where: { berita_id: req.params.id }
     });
 
     for (const img of gallery) {
-      const filePath = path.join(__dirname, "../../../", img.path_gambar);
+      const filePath = path.join(__dirname, "../../../uploads/berita", img.path_gambar);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
@@ -212,8 +172,7 @@ exports.getById = async (req, res) => {
       order: [[{ model: BeritaGambar, as: "gambar_list" }, "gambar_id", "ASC"]]
     });
 
-    if (!data)
-      return res.status(404).json({ message: "Berita tidak ditemukan" });
+    if (!data) return res.status(404).json({ message: "Berita tidak ditemukan" });
 
     res.json(data);
   } catch (error) {
@@ -245,12 +204,9 @@ exports.getAll = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const berita = await Berita.findByPk(req.params.id);
-    if (!berita) {
-      return res.status(404).json({ message: "Berita tidak ditemukan" });
-    }
+    if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan" });
 
     const oldData = berita.toJSON();
-
     let publishedAt = berita.published_at;
 
     if (req.body.status === "dipublikasi") {
