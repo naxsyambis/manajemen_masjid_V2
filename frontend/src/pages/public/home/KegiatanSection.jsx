@@ -1,5 +1,3 @@
-// frontend/src/components/KegiatanSection.jsx (atau path yang sesuai)
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom'; // Asumsikan menggunakan React Router
 
@@ -116,21 +114,21 @@ const KegiatanSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center relative z-10"> {/* Gunakan place-items-center untuk center item di grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 place-items-center relative z-10">
           {kegiatanTerbaru.length > 0 ? (
             kegiatanTerbaru.map((item, index) => (
               <div
                 key={item.kegiatan_id}
-                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 stat-card-hover w-full max-w-sm min-h-[400px] flex flex-col" // min-h-[400px] untuk tinggi minimum sama, tanpa tinggi tetap
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 border border-gray-100 stat-card-hover w-full max-w-sm min-h-[400px] flex flex-col"
               >
-                <div className="p-6 flex-grow flex flex-col"> {/* flex-grow dan flex flex-col untuk mengisi ruang, tanpa overflow-y-auto */}
+                <div className="p-6 flex-grow flex flex-col">
                   {/* Ikon di atas */}
                   <div className="w-20 h-20 bg-gradient-to-br from-[#006227] to-[#004a1e] rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500">
                     {icons[index] || (
                       <svg className="w-8 h-8 text-[#fecb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                    )} {/* Fallback ikon */}
+                    )}
                   </div>
                   <h3 className="text-xl md:text-2xl font-bold text-[#006227] mb-4 group-hover:text-[#004a1e] transition-colors line-clamp-2 leading-tight">
                     {item.nama_kegiatan}
@@ -149,23 +147,26 @@ const KegiatanSection = () => {
                       <span><strong>Lokasi:</strong> {item.lokasi || 'Lokasi belum ditentukan'}</span>
                     </p>
                   </div>
-                  <p className={`text-[#1e293b] leading-relaxed mb-6 flex-grow ${expandedCards[index] ? '' : 'line-clamp-3'}`}> {/* flex-grow agar deskripsi mengisi ruang */}
-                    {expandedCards[index] ? item.deskripsi : getExcerpt(item.deskripsi)}
+                  <p
+                    className={`text-[#1e293b] leading-relaxed mb-6 flex-grow break-words whitespace-normal ${
+                      expandedCards[index] ? '' : 'line-clamp-3'
+                    }`}
+                  >
+                    {item.deskripsi || 'Tidak ada deskripsi'}
                   </p>
-                  {/* Tombol untuk expand/collapse */}
-                  <div className="flex justify-end mt-auto"> {/* mt-auto untuk push ke bawah */}
-                    <button
-                      onClick={() => toggleExpand(index)}
+                  <div className="flex justify-end mt-auto">
+                    <Link
+                      to={`/kegiatan/${item.kegiatan_id}`}
                       className="text-[#006227] hover:text-[#004a1e] font-semibold transition-colors"
                     >
-                      {expandedCards[index] ? 'Baca Lebih Sedikit' : 'Baca Selengkapnya'}
-                    </button>
+                      Baca Selengkapnya
+                    </Link>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="col-span-full text-center text-[#1e293b] py-12"> {/* Gunakan col-span-full untuk span seluruh grid */}
+            <div className="col-span-full text-center text-[#1e293b] py-12">
               <p className="text-lg">Tidak ada kegiatan tersedia.</p>
             </div>
           )}
@@ -174,7 +175,7 @@ const KegiatanSection = () => {
         {/* Button Kegiatan Lainnya */}
         <div className="text-center mt-12 relative z-10">
           <Link
-            to="/kegiatan" // Link ke halaman kegiatan lengkap; sesuaikan dengan routing Anda
+            to="/kegiatan"
             className="inline-flex items-center gap-3 px-8 py-4 bg-[#006227] text-white rounded-xl font-semibold shadow-lg hover:bg-[#004a1e] transform hover:-translate-y-1 transition-all duration-300 hover:shadow-xl"
           >
             <span>Kegiatan Lainnya</span>

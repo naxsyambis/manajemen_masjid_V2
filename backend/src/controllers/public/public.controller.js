@@ -10,6 +10,7 @@ const prayerService = require("../../services/prayer.service");
 const jadwalService = require("../../services/prayer.service");
 const MasjidService = require("../../services/masjid.service");
 
+
 exports.listMasjid = async (req, res) => {
   try {
     const data = await Masjid.findAll();
@@ -103,6 +104,18 @@ exports.getKegiatan = async (req, res) => {
     res.json(await Kegiatan.findAll());
 };
 
+exports.getKegiatanById = async (req, res) => {
+  try {
+    const kegiatan = await Kegiatan.findByPk(req.params.id);  // Mengambil data kegiatan berdasarkan ID
+    if (!kegiatan) {
+      return res.status(404).json({ message: "Kegiatan tidak ditemukan" });
+    }
+    res.json(kegiatan);  // Mengembalikan data kegiatan
+  } catch (error) {
+    res.status(500).json({ message: "Gagal mengambil data kegiatan", error: error.message });
+  }
+};
+
 
 exports.getKepengurusan = async (req, res) => {
     res.json(await Kepengurusan.findAll());
@@ -166,6 +179,26 @@ exports.getJadwalSholat = async (req, res) => {
     res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getStrukturOrganisasi = async (req, res) => {
+  try {
+    const { masjid_id } = req.query;
+
+    const data = await require("../../models/StrukturOrganisasi").findAll({
+      where: masjid_id ? { masjid_id } : {},
+      order: [["struktur_id", "ASC"]]
+    });
+
+    res.json({
+      message: "Berhasil mengambil struktur organisasi",
+      data
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
