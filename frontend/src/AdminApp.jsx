@@ -19,6 +19,11 @@ import DetailBerita from './pages/admin/Berita/DetailBerita';
 // 🔥 BERITA
 import ListBerita from './pages/admin/Berita/ListBerita';
 
+import DataStruktur from './pages/admin/StrukturOrganisasi/DataStruktur';
+import TambahStruktur from './pages/admin/StrukturOrganisasi/TambahStruktur';
+import EditStruktur from './pages/admin/StrukturOrganisasi/EditStruktur';
+import HapusStruktur from './pages/admin/StrukturOrganisasi/HapusStruktur';
+
 const AdminApp = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
@@ -30,8 +35,9 @@ const AdminApp = () => {
   const syncUserContext = (data) => {
     if (data.nama) localStorage.setItem('userName', data.nama);
     if (data.nama_masjid) localStorage.setItem('namaMasjid', data.nama_masjid);
+    if (data.masjid_id) localStorage.setItem('masjid_id', data.masjid_id);
     if (data.foto_tanda_tangan) localStorage.setItem('ttdImage', data.foto_tanda_tangan);
-  };
+};
 
   // 🔥 LOGOUT
   const handleLogout = () => {
@@ -56,6 +62,12 @@ const AdminApp = () => {
     { path: '/berita/tambah', element: <CreateBerita /> },
     { path: '/berita/edit/:id', element: <EditBerita /> }, 
     { path: '/berita/detail/:id', element: <DetailBerita /> },
+
+    // ✅ STRUKTUR ORGANISASI
+  { path: '/struktur-organisasi', element: <DataStruktur /> },
+  { path: '/struktur-organisasi/tambah', element: <TambahStruktur /> },
+  { path: '/struktur-organisasi/edit/:id', element: <EditStruktur /> },
+  { path: '/struktur-organisasi/hapus/:id', element: <HapusStruktur /> },
 
     { path: '/settings', element: <Settings /> },
   ], []);
