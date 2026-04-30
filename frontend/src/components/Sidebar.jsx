@@ -9,7 +9,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  Newspaper
+  Newspaper,
+  Network
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
@@ -27,6 +28,7 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
     { id: 'inventaris', name: 'Inventaris Masjid', path: '/admin/inventaris', icon: <Package size={20} /> },
     { id: 'riwayat', name: 'Riwayat & Laporan', path: '/admin/riwayat', icon: <ClipboardList size={20} /> },
     { id: 'berita', name: 'Berita Masjid', path: '/admin/berita', icon: <Newspaper size={20} /> },
+    { id: 'struktur-organisasi', name: 'Struktur Organisasi', path: '/admin/struktur-organisasi', icon: <Network size={20} /> },
     { id: 'settings', name: 'Pengaturan', path: '/admin/settings', icon: <Settings size={20} /> },
   ];
 

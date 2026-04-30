@@ -2,7 +2,113 @@
   "hash": "9a226c63",
   "configHash": "cb8d875a",
   "lockfileHash": "b2e1b092",
-  "browserHash": "0e0c187b",
-  "optimized": {},
-  "chunks": {}
+  "browserHash": "7dba818c",
+  "optimized": {
+    "axios": {
+      "src": "../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "f557f1c8",
+      "needsInterop": false
+    },
+    "jspdf-autotable": {
+      "src": "../../node_modules/jspdf-autotable/dist/jspdf.plugin.autotable.mjs",
+      "file": "jspdf-autotable.js",
+      "fileHash": "37ca1709",
+      "needsInterop": false
+    },
+    "jspdf": {
+      "src": "../../node_modules/jspdf/dist/jspdf.es.min.js",
+      "file": "jspdf.js",
+      "fileHash": "cf150778",
+      "needsInterop": false
+    },
+    "leaflet": {
+      "src": "../../node_modules/leaflet/dist/leaflet-src.js",
+      "file": "leaflet.js",
+      "fileHash": "c1e2c479",
+      "needsInterop": true
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "24fa4dcb",
+      "needsInterop": false
+    },
+    "react-dom": {
+      "src": "../../node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "32d51ba3",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "5887f31f",
+      "needsInterop": true
+    },
+    "react-leaflet": {
+      "src": "../../node_modules/react-leaflet/lib/index.js",
+      "file": "react-leaflet.js",
+      "fileHash": "9647fa6d",
+      "needsInterop": false
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "4eab507e",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "441ead7f",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "280d928e",
+      "needsInterop": true
+    },
+    "recharts": {
+      "src": "../../node_modules/recharts/es6/index.js",
+      "file": "recharts.js",
+      "fileHash": "90437961",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-DNXwb8T0": {
+      "file": "chunk-DNXwb8T0.js",
+      "isDynamicEntry": false
+    },
+    "html2canvas-CZuEVRhD": {
+      "file": "html2canvas-CZuEVRhD.js",
+      "isDynamicEntry": true
+    },
+    "index.es-Bm8mvJBm": {
+      "file": "index.es-Bm8mvJBm.js",
+      "isDynamicEntry": true
+    },
+    "leaflet-src-RYbhXfRv": {
+      "file": "leaflet-src-RYbhXfRv.js",
+      "isDynamicEntry": false
+    },
+    "purify.es-B_rIv-EI": {
+      "file": "purify.es-B_rIv-EI.js",
+      "isDynamicEntry": true
+    },
+    "react-BiV2DCve": {
+      "file": "react-BiV2DCve.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-7Vv2yYQa": {
+      "file": "react-dom-7Vv2yYQa.js",
+      "isDynamicEntry": false
+    },
+    "typeof-BD_jV0iu": {
+      "file": "typeof-BD_jV0iu.js",
+      "isDynamicEntry": false
+    }
+  }
 }
