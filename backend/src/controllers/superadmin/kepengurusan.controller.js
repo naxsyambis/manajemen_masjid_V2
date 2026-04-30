@@ -15,7 +15,7 @@ exports.create = async (req, res) => {
       const filename = `pengurus_${Date.now()}.webp`;
       const filepath = path.join(dir, filename);
 
-      await sharp(req.file.buffer)
+      await sharp(req.file.path)
         .rotate()
         .resize(800)
         .toFormat("webp", { quality: 70 })
@@ -70,7 +70,7 @@ exports.update = async (req, res) => {
       const filename = `pengurus_${Date.now()}.webp`;
       const filepath = path.join(dir, filename);
 
-      await sharp(req.file.buffer)
+      await sharp(req.file.path)
         .resize(800)
         .toFormat("webp", { quality: 70 })
         .toFile(filepath);
