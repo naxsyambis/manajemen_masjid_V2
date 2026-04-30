@@ -1,6 +1,7 @@
 // frontend/src/pages/admin/StrukturOrganisasi/DataStruktur.jsx
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -413,42 +414,46 @@ const DataStruktur = () => {
         </div>
       </div>
 
-      {showDeleteModal && selectedStruktur && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 transform animate-scale-in">
-            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-t-2xl flex items-center">
-              <AlertTriangle size={32} className="mr-4 animate-pulse" />
-              <h1 className="text-2xl font-bold">Konfirmasi Hapus</h1>
+        {/* Modal Hapus */}
+        {showDeleteModal && selectedStruktur &&
+        createPortal(
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+                <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 flex items-center">
+                <AlertTriangle size={32} className="mr-4 animate-pulse" />
+                <h1 className="text-2xl font-bold">Konfirmasi Hapus</h1>
+                </div>
+
+                <div className="p-6">
+                <p className="text-gray-700 mb-6 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus data struktur organisasi{' '}
+                    <strong>{selectedStruktur.nama}</strong>? Tindakan ini tidak dapat dibatalkan.
+                </p>
+
+                <div className="flex justify-end space-x-4">
+                    <button
+                    onClick={closeDeleteModal}
+                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-medium flex items-center"
+                    >
+                    <X size={20} className="mr-2" />
+                    Batal
+                    </button>
+
+                    <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 transition-all font-medium flex items-center disabled:opacity-50"
+                    >
+                    <Trash2 size={20} className="mr-2" />
+                    {deleting ? 'Menghapus...' : 'Hapus Data'}
+                    </button>
+                </div>
+                </div>
             </div>
-
-            <div className="p-6">
-              <p className="text-gray-700 mb-6 leading-relaxed">
-                Apakah Anda yakin ingin menghapus data struktur organisasi{' '}
-                <strong>{selectedStruktur.nama}</strong>? Tindakan ini tidak dapat dibatalkan.
-              </p>
-
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={closeDeleteModal}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-medium flex items-center"
-                >
-                  <X size={20} className="mr-2" />
-                  Batal
-                </button>
-
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 transition-all font-medium flex items-center disabled:opacity-50"
-                >
-                  <Trash2 size={20} className="mr-2" />
-                  {deleting ? 'Menghapus...' : 'Hapus Data'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </div>,
+            document.body
+        )
+        }
     </div>
   );
 };
