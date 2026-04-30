@@ -1,16 +1,14 @@
 const express = require("express");
 const PDFDocument = require("pdfkit");
+const { Op } = require("sequelize");
+
+const {
+  StrukturOrganisasi,
+  Keuangan,
+  KategoriKeuangan
+} = require("../models");
 
 const router = express.Router();
-
-// =====================================================
-// SESUAIKAN PATH DB INI DENGAN PROJECT KAMU
-// Contoh umum:
-// const db = require("../config/db");
-// const db = require("../config/database");
-// const db = require("../database/db");
-// =====================================================
-const db = require("../config/database");
 
 // =======================================
 // HELPER FORMAT RUPIAH
@@ -44,91 +42,142 @@ const formatTanggalIndonesia = (tanggal) => {
 
 // =======================================
 // HELPER AMBIL PENANDATANGAN
+// role: ketua / bendahara
+// Ambil dari StrukturOrganisasi sesuai masjid_id
 // =======================================
 const getPenandatangan = async ({ role, masjidId }) => {
-  const jabatanDicari = role.toLowerCase();
-
-  // =====================================================
-  // PENTING:
-  // Sesuaikan nama tabel jika berbeda.
-  // Di frontend endpoint kamu namanya struktur-organisasi,
-  // tapi nama tabel database bisa saja:
-  // struktur_organisasi / kepengurusan / takmir_struktur
-  // =====================================================
-  const [rows] = await db.query(
-    `
-    SELECT 
-      struktur_id,
-      nama,
-      jabatan,
-      ttd,
-      masjid_id
-    FROM struktur_organisasi
-    WHERE masjid_id = ?
-      AND LOWER(jabatan) LIKE ?
-    LIMIT 1
-    `,
-    [masjidId, `%${jabatanDicari}%`]
-  );
-
-  return rows?.[0] || null;
-};
-
-// =======================================
-// HELPER AMBIL DATA KWITANSI / TRANSAKSI
-// =======================================
-const getDataKwitansi = async ({ nomorDokumen, masjidId }) => {
   try {
-    // =====================================================
-    // PENTING:
-    // Sesuaikan nama tabel dan kolom kalau database kamu beda.
-    // Aku pakai contoh tabel: transaksi
-    // =====================================================
-    const [rows] = await db.query(
-      `
-      SELECT 
-        id,
-        tanggal,
-        jenis,
-        kategori,
-        keterangan,
-        nominal,
-        donatur,
-        masjid_id
-      FROM transaksi
-      WHERE id = ?
-        AND masjid_id = ?
-      LIMIT 1
-      `,
-      [nomorDokumen, masjidId]
-    );
+    const jabatanDicari = String(role || "").toLowerCase();
 
-    return rows?.[0] || null;
+    const penandatangan = await StrukturOrganisasi.findOne({
+      where: {
+        masjid_id: masjidId,
+        jabatan: {
+          [Op.like]: `%${jabatanDicari}%`
+        }
+      },
+      order: [["struktur_id", "ASC"]]
+    });
+
+    return penandatangan ? penandatangan.get({ plain: true }) : null;
   } catch (error) {
-    console.error("Gagal mengambil data kwitansi/transaksi:", error.message);
+    console.error("Gagal mengambil penandatangan:", error.message);
     return null;
   }
 };
 
 // =======================================
+// HELPER AMBIL DATA KWITANSI / KEUANGAN
+// Sesuai controller keuangan kamu:
+// model Keuangan, primary key: keuangan_id
+// =======================================
+const getDataKwitansi = async ({ nomorDokumen, masjidId }) => {
+  try {
+    const kwitansi = await Keuangan.findOne({
+      where: {
+        keuangan_id: nomorDokumen,
+        masjid_id: masjidId
+      },
+      include: [
+        {
+          model: KategoriKeuangan,
+          as: "kategori_keuangan",
+          required: false
+        }
+      ]
+    });
+
+    return kwitansi ? kwitansi.get({ plain: true }) : null;
+  } catch (error) {
+    console.error("Gagal mengambil data kwitansi/keuangan:", error.message);
+    return null;
+  }
+};
+
+// =======================================
+// HELPER AMBIL KATEGORI
+// =======================================
+const getKategoriText = (item) => {
+  if (!item) return "-";
+
+  const kategori = item.kategori_keuangan || {};
+
+  return (
+    kategori.nama_kategori ||
+    kategori.nama ||
+    kategori.kategori ||
+    kategori.jenis ||
+    kategori.tipe ||
+    "-"
+  );
+};
+
+// =======================================
+// HELPER AMBIL JENIS TRANSAKSI
+// =======================================
+const getJenisTransaksi = (item) => {
+  if (!item) return "-";
+
+  const jumlah = Number(item.jumlah || 0);
+  const kategoriText = String(getKategoriText(item) || "").toLowerCase();
+
+  if (jumlah < 0) return "KELUAR";
+
+  if (
+    kategoriText.includes("pengeluaran") ||
+    kategoriText.includes("keluar") ||
+    kategoriText.includes("out")
+  ) {
+    return "KELUAR";
+  }
+
+  if (
+    kategoriText.includes("pemasukan") ||
+    kategoriText.includes("masuk") ||
+    kategoriText.includes("in")
+  ) {
+    return "MASUK";
+  }
+
+  return jumlah < 0 ? "KELUAR" : "MASUK";
+};
+
+// =======================================
+// HELPER NOMINAL
+// =======================================
+const getNominal = (item) => {
+  if (!item) return 0;
+  return Number(item.jumlah || item.nominal || 0);
+};
+
+// =======================================
+// TEST ROUTE
+// =======================================
+router.get("/verifikasi-ttd/test", (req, res) => {
+  res.send("Route verifikasi TTD aktif ✅");
+});
+
+// =======================================
 // GET PDF VERIFIKASI TTD
 //
 // Contoh URL hasil scan QR:
-// http://localhost:3000/verifikasi-ttd/kwitansi/12/ketua?masjid_id=1
-// http://localhost:3000/verifikasi-ttd/kwitansi/12/bendahara?masjid_id=1
+// /verifikasi-ttd/kwitansi/12/ketua?masjid_id=1&nama_masjid=MASJID%20AHMAD%20DAHLAN
+// /verifikasi-ttd/kwitansi/12/bendahara?masjid_id=1&nama_masjid=MASJID%20AHMAD%20DAHLAN
 // =======================================
 router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res) => {
   try {
     const { jenisDokumen, nomorDokumen, role } = req.params;
-    const { masjid_id } = req.query;
+    const { masjid_id, nama_masjid } = req.query;
 
     if (!masjid_id) {
-      return res.status(400).send("Masjid ID tidak ditemukan pada URL verifikasi.");
+      return res
+        .status(400)
+        .send("Masjid ID tidak ditemukan pada URL verifikasi.");
     }
 
     const allowedRoles = ["ketua", "bendahara"];
 
-    if (!allowedRoles.includes(role.toLowerCase())) {
+    if (!allowedRoles.includes(String(role || "").toLowerCase())) {
       return res.status(400).send("Role penandatangan tidak valid.");
     }
 
@@ -147,14 +196,18 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
 
     let kwitansi = null;
 
-    if (jenisDokumen.toLowerCase() === "kwitansi") {
+    if (String(jenisDokumen || "").toLowerCase() === "kwitansi") {
       kwitansi = await getDataKwitansi({
         nomorDokumen,
         masjidId: masjid_id
       });
     }
 
-    const namaMasjid = "MASJID MUHAMMADIYAH";
+    const namaMasjid =
+      nama_masjid && nama_masjid !== "-"
+        ? nama_masjid
+        : "-";
+
     const tanggalVerifikasi = new Date();
 
     const doc = new PDFDocument({
@@ -176,6 +229,7 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
     doc
       .font("Helvetica-Bold")
       .fontSize(17)
+      .fillColor("#006227")
       .text("VERIFIKASI TANDA TANGAN ELEKTRONIK", {
         align: "center"
       });
@@ -183,9 +237,10 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
     doc.moveDown(0.4);
 
     doc
-      .font("Helvetica")
-      .fontSize(11)
-      .text(namaMasjid, {
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .fillColor("#006227")
+      .text(String(namaMasjid || "-").toUpperCase(), {
         align: "center"
       });
 
@@ -194,6 +249,7 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
     doc
       .font("Helvetica")
       .fontSize(9)
+      .fillColor("black")
       .text("Dokumen Verifikasi Internal Sistem Manajemen Masjid", {
         align: "center"
       });
@@ -203,16 +259,17 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
     doc
       .moveTo(50, doc.y)
       .lineTo(545, doc.y)
-      .stroke();
+      .stroke("#006227");
 
     doc.moveDown(1.5);
 
     // =======================================
-    // PERNYATAAN
+    // PERNYATAAN AWAL
     // =======================================
     doc
       .font("Helvetica")
       .fontSize(10.5)
+      .fillColor("black")
       .text(
         "Dokumen ini merupakan PDF verifikasi tanda tangan elektronik yang dibuat oleh sistem berdasarkan data tanda tangan yang tersimpan pada Struktur Organisasi Takmir Masjid.",
         {
@@ -228,6 +285,7 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
+      .fillColor("black")
       .text("A. DATA PENANDATANGAN");
 
     doc.moveDown(0.5);
@@ -256,20 +314,20 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
     doc
       .font("Helvetica")
       .fontSize(10)
-      .text(`Jenis Dokumen      : ${jenisDokumen}`)
-      .text(`Nomor Dokumen      : ${nomorDokumen}`)
+      .text(`Jenis Dokumen      : ${jenisDokumen || "-"}`)
+      .text(`Nomor Dokumen      : ${nomorDokumen || "-"}`)
       .text(`Tanggal Verifikasi : ${formatTanggalIndonesia(tanggalVerifikasi)}`);
 
     if (kwitansi) {
       doc
         .text(`Tanggal Transaksi  : ${formatTanggalIndonesia(kwitansi.tanggal)}`)
-        .text(`Jenis Transaksi    : ${kwitansi.jenis || "-"}`)
-        .text(`Kategori           : ${kwitansi.kategori || "-"}`)
-        .text(`Pihak Terkait      : ${kwitansi.donatur || "-"}`)
-        .text(`Nominal            : ${formatRupiah(kwitansi.nominal)}`)
-        .text(`Keterangan         : ${kwitansi.keterangan || "-"}`);
+        .text(`Jenis Transaksi    : ${getJenisTransaksi(kwitansi)}`)
+        .text(`Kategori           : ${getKategoriText(kwitansi)}`)
+        .text(`Pihak Terkait      : ${kwitansi.nama_donatur || "Hamba Allah"}`)
+        .text(`Nominal            : ${formatRupiah(Math.abs(getNominal(kwitansi)))}`)
+        .text(`Keterangan         : ${kwitansi.deskripsi || "-"}`);
     } else {
-      doc.text("Detail Dokumen     : Data detail dokumen tidak ditemukan atau tabel berbeda.");
+      doc.text("Detail Dokumen     : Data detail dokumen tidak ditemukan.");
     }
 
     doc.moveDown(1);
