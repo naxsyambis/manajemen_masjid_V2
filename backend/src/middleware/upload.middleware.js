@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
     }
     else if (req.originalUrl.includes("masjid")) folder = "uploads/masjid";
     else if (file.fieldname === 'poster') folder = 'uploads/kegiatan'; 
-    else if (file.fieldname === 'gambar_program') folder = 'uploads/program';
+    else if (file.fieldname === 'gambar') folder = 'uploads/program';
 
     const dir = path.join(__dirname, `../../${folder}`);
     if (!fs.existsSync(dir)) {
