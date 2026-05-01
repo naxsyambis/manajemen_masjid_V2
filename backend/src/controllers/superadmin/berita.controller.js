@@ -20,6 +20,7 @@ exports.create = async (req, res) => {
       isi: req.body.isi,
       tanggal: new Date(),
       gambar: gambarUtama, // Menyimpan "namafile.jpg" saja
+      youtube_url: req.body.youtube_url || null, // 🔥 FIX: Pastikan tersimpan saat create
       user_id: req.user.user_id,
       masjid_id: req.body.masjid_id,
       status: "dipublikasi",
@@ -97,9 +98,11 @@ exports.update = async (req, res) => {
 
     gambarPath = remainingImages.length ? remainingImages[0].path_gambar : null;
 
+    // 🔥 FIX: Aman menerima URL kosong atau URL baru dari Superadmin
     await berita.update({
       judul: req.body.judul,
       isi: req.body.isi,
+      youtube_url: req.body.youtube_url || null, 
       gambar: gambarPath
     });
 
