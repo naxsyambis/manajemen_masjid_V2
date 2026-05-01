@@ -44,7 +44,6 @@ exports.register = async (req, res) => {
     }
 };
 
-
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -141,7 +140,6 @@ exports.getProfile = async (req, res) => {
     }
 };
 
-
 exports.uploadTtd = async (req, res) => {
   try {
     if (!req.file) {
@@ -158,14 +156,10 @@ exports.uploadTtd = async (req, res) => {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
+    // Hapus TTD lama jika sudah ada
     if (user.foto_tanda_tangan) {
-    const oldPath = path.resolve(
-      "uploads",
-      "ttd",
-      path.basename(user.foto_tanda_tangan)
-    );
-
-    if (fs.existsSync(oldPath)) {
+      const oldPath = path.join(uploadDir, path.basename(user.foto_tanda_tangan));
+      if (fs.existsSync(oldPath)) {
         fs.unlinkSync(oldPath);
       }
     }
@@ -173,10 +167,16 @@ exports.uploadTtd = async (req, res) => {
     const filename = `ttd_${user.user_id}_${Date.now()}.webp`;
     const outputPath = path.join(uploadDir, filename);
 
-    await sharp(req.file.buffer)
-    .resize(500)
-    .toFormat("webp", { quality: 70 })
-    .toFile(outputPath);
+    // 🔥 FIX: sharp harus membaca dari req.file.path karena multer menggunakan diskStorage
+    await sharp(req.file.path)
+      .resize(500)
+      .toFormat("webp", { quality: 70 })
+      .toFile(outputPath);
+
+    // 🔥 FIX: Hapus file original yang baru diupload oleh multer agar tidak makan memori
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
 
     await user.update({
       foto_tanda_tangan: `/uploads/ttd/${filename}`
@@ -207,7 +207,6 @@ exports.uploadTtd = async (req, res) => {
   }
 };
 
-
 exports.deleteTtd = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.user_id);
@@ -218,11 +217,8 @@ exports.deleteTtd = async (req, res) => {
     const oldData = user.toJSON();
 
     if (user.foto_tanda_tangan) {
-      const filePath = path.resolve(
-        "uploads",
-        "ttd",
-        path.basename(user.foto_tanda_tangan)
-      );
+      // 🔥 FIX: Path yang presisi supaya physical file juga beneran kehapus
+      const filePath = path.join(__dirname, "../../../uploads/ttd", path.basename(user.foto_tanda_tangan));
 
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
