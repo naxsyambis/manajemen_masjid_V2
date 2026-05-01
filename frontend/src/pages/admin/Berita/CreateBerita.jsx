@@ -11,7 +11,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info
+  Info,
+  Youtube
 } from "lucide-react";
 
 const handleAuthError = (err, showPopup) => {
@@ -112,6 +113,7 @@ const AlertPopup = ({ alertData, onClose }) => {
 const CreateBerita = () => {
   const [judul, setJudul] = useState("");
   const [isi, setIsi] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
 
   const [images, setImages] = useState([null, null, null, null, null]);
   const [preview, setPreview] = useState([null, null, null, null, null]);
@@ -161,6 +163,20 @@ const CreateBerita = () => {
 
     if (callback) {
       setTimeout(callback, 100);
+    }
+  };
+
+  const isValidYoutubeUrl = (url) => {
+    if (!url.trim()) return true;
+
+    try {
+      const parsed = new URL(url);
+      return (
+        parsed.hostname.includes("youtube.com") ||
+        parsed.hostname.includes("youtu.be")
+      );
+    } catch {
+      return false;
     }
   };
 
@@ -254,6 +270,15 @@ const CreateBerita = () => {
       return false;
     }
 
+    if (!isValidYoutubeUrl(youtubeUrl)) {
+      showPopup({
+        type: "warning",
+        title: "Link YouTube Tidak Valid",
+        message: "Masukkan link YouTube yang valid, contoh:\nhttps://www.youtube.com/watch?v=xxxx\natau\nhttps://youtu.be/xxxx"
+      });
+      return false;
+    }
+
     return true;
   };
 
@@ -268,6 +293,7 @@ const CreateBerita = () => {
       const formData = new FormData();
       formData.append("judul", judul.trim());
       formData.append("isi", isi.trim());
+      formData.append("youtube_url", youtubeUrl.trim());
 
       images.forEach((img) => {
         if (img) formData.append("gambar", img);
@@ -286,7 +312,6 @@ const CreateBerita = () => {
         message: "Berita berhasil ditambahkan.",
         onConfirm: () => navigate("/admin/berita")
       });
-
     } catch (err) {
       if (handleAuthError(err, showPopup)) return;
 
@@ -344,6 +369,25 @@ const CreateBerita = () => {
             className="w-full mt-2 px-4 py-4 bg-gray-50 rounded-2xl shadow-inner outline-none font-bold"
             placeholder="Masukkan isi berita"
           />
+        </div>
+
+        <div>
+          <label className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+            <Youtube size={15} />
+            Link YouTube <span className="text-gray-300 normal-case">(Opsional)</span>
+          </label>
+
+          <input
+            type="url"
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            className="w-full mt-2 px-4 py-4 bg-gray-50 rounded-2xl shadow-inner outline-none font-bold"
+            placeholder="Contoh: https://www.youtube.com/watch?v=xxxx"
+          />
+
+          <p className="mt-2 text-xs font-semibold text-gray-400">
+            Kosongkan jika berita tidak memiliki video YouTube.
+          </p>
         </div>
 
         <div className="space-y-4">

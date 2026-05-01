@@ -16,7 +16,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info
+  Info,
+  Youtube,
+  ExternalLink
 } from "lucide-react";
 
 const handleAuthError = (err, showPopup) => {
@@ -74,6 +76,11 @@ const AlertPopup = ({ alertData, onClose }) => {
           ? "bg-mu-yellow hover:bg-yellow-400 text-mu-green"
           : "bg-mu-green hover:bg-green-700 text-white";
 
+  const handleConfirm = () => {
+    if (alertData.onConfirm) alertData.onConfirm();
+    onClose();
+  };
+
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
       <div
@@ -115,10 +122,7 @@ const AlertPopup = ({ alertData, onClose }) => {
 
               <button
                 type="button"
-                onClick={() => {
-                  if (alertData.onConfirm) alertData.onConfirm();
-                  onClose();
-                }}
+                onClick={handleConfirm}
                 className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
               >
                 {alertData.confirmText || "Hapus"}
@@ -127,7 +131,7 @@ const AlertPopup = ({ alertData, onClose }) => {
           ) : (
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleConfirm}
               className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
             >
               {alertData.confirmText || "Mengerti"}
@@ -177,8 +181,6 @@ const ListBerita = () => {
   };
 
   const closePopup = () => {
-    const callback = alertData.onConfirm;
-
     setAlertData({
       show: false,
       type: "info",
@@ -187,10 +189,6 @@ const ListBerita = () => {
       confirmText: "",
       onConfirm: null
     });
-
-    if (callback) {
-      setTimeout(callback, 100);
-    }
   };
 
   useEffect(() => {
@@ -259,6 +257,48 @@ const ListBerita = () => {
     );
   };
 
+  const getYoutubeLink = (berita) => {
+    return (
+      berita.youtube ||
+      berita.link_youtube ||
+      berita.youtube_url ||
+      berita.url_youtube ||
+      ""
+    );
+  };
+
+  const formatYoutubeLink = (link) => {
+    if (!link) return "";
+
+    if (link.startsWith("http://") || link.startsWith("https://")) {
+      return link;
+    }
+
+    return `https://${link}`;
+  };
+
+  const renderYoutube = (berita) => {
+    const youtubeLink = getYoutubeLink(berita);
+
+    if (!youtubeLink) {
+      return <span className="text-gray-400 font-black">-</span>;
+    }
+
+    return (
+      <a
+        href={formatYoutubeLink(youtubeLink)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest shadow-sm"
+        title={youtubeLink}
+      >
+        <Youtube size={16} />
+        <span>Video</span>
+        <ExternalLink size={13} />
+      </a>
+    );
+  };
+
   const openDeleteModal = (id) => {
     showPopup({
       type: "confirm",
@@ -312,6 +352,7 @@ const ListBerita = () => {
 
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={fetchBeritas}
             className="flex items-center gap-2 px-4 py-3 border rounded-2xl hover:-translate-y-1 transition"
           >
@@ -320,6 +361,7 @@ const ListBerita = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => navigate("/admin/berita/tambah")}
             className="flex items-center gap-2 px-5 py-3 bg-mu-green text-white rounded-2xl shadow-xl hover:-translate-y-1 transition"
           >
@@ -350,6 +392,7 @@ const ListBerita = () => {
               <tr className="text-[10px] uppercase tracking-widest bg-gray-50 text-center">
                 <th className="p-8">Gambar</th>
                 <th className="p-8">Judul</th>
+                <th className="p-8">YouTube</th>
                 <th className="p-8">Status</th>
                 <th className="p-8">Tanggal</th>
                 <th className="p-8">Aksi</th>
@@ -359,13 +402,13 @@ const ListBerita = () => {
             <tbody className="divide-y">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="p-16 text-center text-gray-400 font-black uppercase tracking-widest">
+                  <td colSpan="6" className="p-16 text-center text-gray-400 font-black uppercase tracking-widest">
                     Memuat Data...
                   </td>
                 </tr>
               ) : filteredBeritas.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-16 text-center text-gray-400 font-black uppercase tracking-widest">
+                  <td colSpan="6" className="p-16 text-center text-gray-400 font-black uppercase tracking-widest">
                     Data berita tidak ditemukan
                   </td>
                 </tr>
@@ -394,6 +437,10 @@ const ListBerita = () => {
                     </td>
 
                     <td className="p-8 text-center">
+                      {renderYoutube(b)}
+                    </td>
+
+                    <td className="p-8 text-center">
                       {renderStatus(b.status)}
                     </td>
 
@@ -405,6 +452,7 @@ const ListBerita = () => {
                       {(b.status === "disetujui" || b.status === "ditolak") ? (
                         <div className="flex justify-center gap-4 opacity-40 group-hover:opacity-100 transition">
                           <button
+                            type="button"
                             onClick={() => navigate(`/admin/berita/detail/${b.berita_id}`)}
                             className="p-3 rounded-xl hover:bg-blue-500 hover:text-white"
                             title="Detail"
@@ -413,6 +461,7 @@ const ListBerita = () => {
                           </button>
 
                           <button
+                            type="button"
                             onClick={() => navigate(`/admin/berita/edit/${b.berita_id}`)}
                             className="p-3 rounded-xl hover:bg-yellow-500 hover:text-white"
                             title="Edit"
@@ -421,6 +470,7 @@ const ListBerita = () => {
                           </button>
 
                           <button
+                            type="button"
                             onClick={() => openDeleteModal(b.berita_id)}
                             className="p-3 rounded-xl hover:bg-red-500 hover:text-white"
                             title="Hapus"
