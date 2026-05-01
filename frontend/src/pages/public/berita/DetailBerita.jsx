@@ -1,103 +1,191 @@
-// frontend/src/pages/public/berita/DetailBerita.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import NavbarPublic from '../../../components/NavbarPublic';
 import FooterPublic from '../../../components/FooterPublic';
 
-// 🔥 FUNGSI PINTAR UNTUK MENGATASI PATH GAMBAR
-const getImageUrl = (imagePath) => {
-  if (!imagePath) return 'https://via.placeholder.com/800x400?text=No+Image';
-  if (imagePath.startsWith('http')) return imagePath;
-  if (imagePath.startsWith('/uploads/')) return `http://localhost:3000${imagePath}`;
-  return `http://localhost:3000/uploads/berita/${imagePath}`;
+const getImageUrl = (path) => {
+  if (!path) return 'https://via.placeholder.com/800x400';
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('/uploads/')) return `http://localhost:3000${path}`;
+  return `http://localhost:3000/uploads/berita/${path}`;
+};
+
+const getYoutubeEmbed = (url) => {
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : null;
 };
 
 const DetailBerita = () => {
   const { id } = useParams();
-  const [berita, setBerita] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
+  const [berita, setBerita] = useState(null);
+  const [images, setImages] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // 🔥 FETCH DATA
   useEffect(() => {
-    const fetchBeritaDetail = async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/public/berita/${id}`);
-        if (!response.ok) throw new Error(`Server error: ${response.status}`);
-        const data = await response.json();
-        setBerita(data);
-      } catch (err) {
-        setError(err.message || 'Gagal mengambil data berita.');
-      } finally {
-        setLoading(false);
+    const fetchData = async () => {
+      const res = await fetch(`http://localhost:3000/public/berita/${id}`);
+      const data = await res.json();
+
+      setBerita(data);
+
+      let imgArr = [];
+
+      if (data.gambar) {
+        imgArr.push(getImageUrl(data.gambar));
       }
+
+      if (data.gambar_list?.length > 0) {
+        data.gambar_list.forEach((g) => {
+          imgArr.push(getImageUrl(g.path_gambar));
+        });
+      }
+
+      setImages(imgArr);
+      setLoading(false);
     };
-    if (id) fetchBeritaDetail();
+
+    fetchData();
   }, [id]);
 
-  if (loading) return (
-    <div className="font-sans overflow-x-hidden min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="animate-pulse text-2xl font-bold text-[#006227]">Memuat detail berita...</div>
-    </div>
-  );
+  // 🔥 AUTO SLIDE
+  useEffect(() => {
+    if (images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [images]);
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) =>
+      prev === 0 ? images.length - 1 : prev - 1
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   if (!berita) return null;
 
-  return (
-    <div className="font-sans overflow-x-hidden">
-      <NavbarPublic />
-      <main className="site-bg pt-32 pb-20 min-h-screen">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-[3rem] shadow-xl border border-gray-100">
-            
-            <div className="mb-8 text-center">
-              <span className="inline-block px-4 py-1 bg-[#006227]/10 text-[#006227] text-sm font-bold rounded-full mb-4 uppercase tracking-widest">
-                Berita Ranting
-              </span>
-              <h1 className="text-3xl md:text-5xl font-serif font-bold text-gray-800 mb-6 leading-tight">
-                {berita.judul}
-              </h1>
-              <p className="text-gray-500 font-medium">
-                Dipublikasikan pada: {new Date(berita.tanggal).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-            </div>
+  const namaMasjid =
+    berita.masjid?.nama_masjid ||
+    berita.user?.takmirs?.[0]?.masjid?.nama_masjid ||
+    "Cabang Muhammadiyah Pundong";
 
-            <div className="mb-10 rounded-3xl overflow-hidden shadow-lg bg-gray-100">
+  const youtubeEmbed = getYoutubeEmbed(berita.youtube_url);
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <NavbarPublic />
+
+      <main className="pt-32 pb-20">
+        <div className="max-w-5xl mx-auto px-6">
+
+          {/* JUDUL */}
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">
+            {berita.judul}
+          </h1>
+
+          {/* INFO */}
+          <div className="text-gray-500 mb-6">
+            {namaMasjid} •{" "}
+            {new Date(berita.tanggal).toLocaleDateString('id-ID')}
+          </div>
+
+          {/* 🔥 SLIDER */}
+          {images.length > 0 && (
+            <div className="relative mb-6">
+
+              {/* IMAGE */}
               <img
-                src={getImageUrl(berita.gambar)}
-                alt={berita.judul}
-                className="w-full h-auto max-h-[500px] object-cover"
-                onError={(e) => { e.target.src = "https://via.placeholder.com/800x400?text=No+Image"; }}
+                src={images[currentIndex]}
+                className="w-full h-[450px] object-cover rounded-xl"
+              />
+
+              {/* LEFT BUTTON */}
+              {images.length > 1 && (
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white px-3 py-2 rounded-full"
+                >
+                  ❮
+                </button>
+              )}
+
+              {/* RIGHT BUTTON */}
+              {images.length > 1 && (
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white px-3 py-2 rounded-full"
+                >
+                  ❯
+                </button>
+              )}
+
+            </div>
+          )}
+
+          {/* 🔥 THUMBNAIL */}
+          {images.length > 1 && (
+            <div className="flex gap-2 mb-8 overflow-x-auto">
+              {images.map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  onClick={() => setCurrentIndex(i)}
+                  className={`h-20 w-28 object-cover rounded cursor-pointer ${
+                    currentIndex === i ? 'ring-2 ring-green-600' : ''
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* ISI */}
+          <div className="text-gray-800 leading-relaxed text-justify mb-10 whitespace-pre-line">
+            {berita.isi}
+          </div>
+
+          {/* 🔥 YOUTUBE (PALING BAWAH) */}
+          {youtubeEmbed && (
+            <div className="mb-10">
+              <iframe
+                src={youtubeEmbed}
+                className="w-full h-[400px] rounded-xl"
+                allowFullScreen
+                title="Youtube"
               />
             </div>
+          )}
 
-            {berita.gambar_list && berita.gambar_list.length > 0 && (
-              <div className="mb-10 grid grid-cols-2 md:grid-cols-3 gap-4">
-                {berita.gambar_list.map((item, index) => (
-                  <img
-                    key={item.gambar_id}
-                    src={getImageUrl(item.path_gambar)} 
-                    alt={`Galeri ${index}`}
-                    className="w-full h-32 md:h-48 object-cover rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:scale-105 transition"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                ))}
-              </div>
-            )}
-            
-            <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed mb-12 whitespace-pre-wrap text-justify">
-              {berita.isi}
-            </div>
-
-            <div className="text-center mt-12 pt-8 border-t border-gray-100">
-              <Link to="/berita" className="inline-flex items-center px-8 py-4 bg-[#006227] text-white rounded-2xl font-bold hover:bg-[#004a1e] transition-all shadow-lg hover:-translate-y-1">
-                Kembali ke Daftar Berita
-              </Link>
-            </div>
-            
+          {/* BUTTON */}
+          <div className="text-center mt-10">
+            <Link
+              to="/berita"
+              className="px-8 py-4 bg-[#006227] text-white rounded-xl font-semibold"
+            >
+              Kembali ke Berita
+            </Link>
           </div>
+
         </div>
       </main>
+
       <FooterPublic />
     </div>
   );

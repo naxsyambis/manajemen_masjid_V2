@@ -1,146 +1,230 @@
-// frontend/src/pages/public/berita/ListBerita.jsx
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import NavbarPublic from '../../../components/NavbarPublic';
 import FooterPublic from '../../../components/FooterPublic';
 
-// 🔥 FUNGSI PINTAR UNTUK MENGATASI PATH GAMBAR
-const getImageUrl = (imagePath) => {
-  if (!imagePath) return 'https://via.placeholder.com/800x400?text=No+Image';
-  if (imagePath.startsWith('http')) return imagePath;
-  if (imagePath.startsWith('/uploads/')) return `http://localhost:3000${imagePath}`;
-  return `http://localhost:3000/uploads/berita/${imagePath}`;
-};
-
 const ListBerita = () => {
   const [berita, setBerita] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
   useEffect(() => {
     const fetchBerita = async () => {
       try {
-        const response = await fetch('http://localhost:3000/public/berita');
-        if (!response.ok) throw new Error(`Server error: ${response.status}`);
-        const data = await response.json();
-        
-        const sortedData = data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-        setBerita(sortedData);
+        const res = await fetch('http://localhost:3000/public/berita');
+        if (!res.ok) throw new Error('Gagal mengambil data');
+
+        const data = await res.json();
+
+        const sorted = data.sort(
+          (a, b) => new Date(b.tanggal) - new Date(a.tanggal)
+        );
+
+        setBerita(sorted);
       } catch (err) {
-        setError(err.message || 'Gagal mengambil data berita.');
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchBerita();
   }, []);
 
-  const getExcerpt = (text, maxLength = 120) => {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  const getExcerpt = (text, max = 100) => {
+    return text?.length > max ? text.substring(0, max) + '...' : text;
   };
 
+  const formatTanggal = (tanggal) => {
+    return new Date(tanggal).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // 🔥 PAGINATION
+  const indexLast = currentPage * itemsPerPage;
+  const indexFirst = indexLast - itemsPerPage;
+  const currentData = berita.slice(indexFirst, indexLast);
   const totalPages = Math.ceil(berita.length / itemsPerPage);
-  const currentBerita = berita.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (loading) {
     return (
-      <div className="font-sans overflow-x-hidden">
+      <>
         <NavbarPublic />
-        <main className="site-bg pt-32 pb-20 min-h-screen flex items-center justify-center">
-          <div className="animate-pulse text-2xl font-bold text-[#006227]">Memuat berita...</div>
-        </main>
+        <div className="text-center py-20 text-xl">Memuat berita...</div>
         <FooterPublic />
-      </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <NavbarPublic />
+        <div className="text-center py-20 text-red-500">{error}</div>
+        <FooterPublic />
+      </>
     );
   }
 
   return (
-    <div className="font-sans overflow-x-hidden">
+    <>
       <NavbarPublic />
-      <main className="site-bg pt-32 pb-20 min-h-screen">
+
+      <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight">Berita Ranting</h1>
-            <p className="text-lg md:text-xl text-[#1e293b] max-w-3xl mx-auto leading-relaxed">
-              Daftar lengkap berita dan informasi terkini seputar kegiatan ranting Muhammadiyah.
+
+          {/* HEADER */}
+          <div className="text-center mb-16 mt-6">
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4">
+              Berita Ranting
+            </h2>
+            <p className="text-gray-600">
+              Semua berita dan informasi terbaru
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentBerita.length > 0 ? (
-              currentBerita.map((item) => {
-                
-                // 🔥 LOGIKA MENGAMBIL NAMA MASJID: 
-                // Cek langsung dari berita, kalau gak ada ambil dari relasi takmir pembuat berita
-                const namaMasjid = item.masjid?.nama_masjid || item.user?.takmirs?.[0]?.masjid?.nama_masjid || 'Masjid tidak diketahui';
+          {/* GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+            {currentData.length > 0 ? (
+              currentData.map((item) => {
+
+                // 🔥 FIX GAMBAR
+                const gambarUrl =
+                  item.gambar
+                    ? `http://localhost:3000/uploads/berita/${item.gambar}`
+                    : item.gambar_list?.length > 0
+                      ? `http://localhost:3000/uploads/berita/${item.gambar_list[0].path_gambar}`
+                      : 'https://via.placeholder.com/800x400';
+
+                // 🔥 FIX MASJID
+                const namaMasjid =
+                  item.masjid?.nama_masjid ||
+                  item.user?.takmirs?.[0]?.masjid?.nama_masjid ||
+                  "Cabang Muhammadiyah Pundong";
 
                 return (
-                  <Link
+                  <div
                     key={item.berita_id}
-                    to={`/berita/${item.berita_id}`}
-                    className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2 block border border-gray-100 flex flex-col"
+                    className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col h-full"
                   >
-                    <div className="relative h-60 w-full overflow-hidden bg-gray-100 shrink-0">
-                      <img
-                        src={getImageUrl(item.gambar)}
-                        alt={item.judul}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        onError={(e) => { e.target.src = 'https://via.placeholder.com/800x400?text=No+Image'; }}
-                      />
-                      <div className="absolute top-4 left-4">
-                        <span className="px-4 py-2 bg-[#006227] text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-md">
-                          Berita
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6 flex-1 flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-xl font-bold text-[#006227] mb-3 group-hover:text-[#004a1e] transition-colors line-clamp-2 leading-snug">
-                          {item.judul || 'Judul tidak tersedia'}
-                        </h3>
-                        <p className="text-[#1e293b] mb-4 line-clamp-3 leading-relaxed text-sm">
-                          {getExcerpt(item.isi || 'Isi berita tidak tersedia')}
-                        </p>
 
-                        <div className="flex items-center gap-2 mb-2 text-sm text-[#006227] font-semibold">
-                          <span>🕌</span>
-                          <span>{namaMasjid}</span>
+                    {/* GAMBAR */}
+                    <div className="h-56 overflow-hidden">
+                      <img
+                        src={gambarUrl}
+                        alt={item.judul}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    {/* CONTENT */}
+                    <div className="p-5 flex flex-col flex-grow">
+
+                      {/* JUDUL */}
+                      <h3 className="font-bold text-lg text-[#006227] mb-2 line-clamp-2 min-h-[48px]">
+                        {item.judul}
+                      </h3>
+
+                      {/* DESKRIPSI */}
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-3 flex-grow">
+                        {getExcerpt(item.isi)}
+                      </p>
+
+                      {/* INFO */}
+                      <div className="text-sm text-gray-500 space-y-1">
+                        <div className="font-semibold text-[#006227]">
+                          {namaMasjid}
+                        </div>
+                        <div>
+                          {formatTanggal(item.tanggal)}
                         </div>
                       </div>
-                      
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                          <span>🗓️</span> 
-                          {new Date(item.tanggal).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </span>
-                        <span className="text-[#006227] group-hover:translate-x-2 transition-transform font-bold text-lg">→</span>
+
+                      {/* 🔥 BUTTON SELANJUTNYA */}
+                      <div className="mt-4 flex justify-end">
+                        <Link
+                          to={`/berita/${item.berita_id}`}
+                          className="px-4 py-2 bg-[#006227] text-white text-sm rounded-lg hover:bg-[#004a1e] transition"
+                        >
+                          Selanjutnya →
+                        </Link>
                       </div>
+
                     </div>
-                  </Link>
+
+                  </div>
                 );
               })
             ) : (
-              <div className="col-span-full text-center text-[#1e293b] py-12">
-                <p className="text-lg">Tidak ada berita tersedia.</p>
+              <div className="col-span-full text-center py-12">
+                Tidak ada berita
               </div>
             )}
           </div>
 
+          {/* PAGINATION */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center mt-12 space-x-2">
-              <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 bg-[#006227] text-white rounded-lg disabled:opacity-50">Prev</button>
-              <span className="px-4 font-bold text-[#006227]">{currentPage} / {totalPages}</span>
-              <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 bg-[#006227] text-white rounded-lg disabled:opacity-50">Next</button>
+            <div className="flex justify-center mt-12 gap-2 flex-wrap items-center">
+
+              <button
+                onClick={() => goToPage(Math.max(currentPage - 1, 1))}
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                disabled={currentPage === 1}
+              >
+                Sebelumnya
+              </button>
+
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goToPage(i + 1)}
+                  className={`px-4 py-2 rounded-lg ${
+                    currentPage === i + 1
+                      ? 'bg-[#006227] text-white'
+                      : 'bg-gray-200'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+                disabled={currentPage === totalPages}
+              >
+                Selanjutnya
+              </button>
+
             </div>
           )}
+
+          {/* BUTTON HOME */}
+          <div className="text-center mt-12">
+            <Link
+              to="/"
+              className="px-8 py-4 bg-[#006227] text-white rounded-xl font-semibold hover:bg-[#004a1e]"
+            >
+              Kembali ke Home
+            </Link>
+          </div>
+
         </div>
-      </main>
+      </section>
+
       <FooterPublic />
-    </div>
+    </>
   );
 };
 

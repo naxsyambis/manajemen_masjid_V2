@@ -17,10 +17,7 @@ const BeritaSection = () => {
         const res = await fetch('http://localhost:3000/public/berita');
         if (!res.ok) throw new Error("Gagal fetch berita");
 
-        const result = await res.json();
-
-        // 🔥 HANDLE kalau backend pakai { data: [] }
-        const data = result.data || result;
+        const data = await res.json();
 
         const sorted = data.sort(
           (a, b) => new Date(b.tanggal) - new Date(a.tanggal)
@@ -88,80 +85,78 @@ const BeritaSection = () => {
 
         {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {beritaTerbaru.length > 0 ? (
-            beritaTerbaru.map((item) => {
+          {beritaTerbaru.map((item) => {
 
-              // 🔥 FIX GAMBAR (prioritas)
-              const gambarUrl =
-                item.gambar
-                  ? `http://localhost:3000/uploads/berita/${item.gambar}`
-                  : item.gambar_list && item.gambar_list.length > 0
-                    ? `http://localhost:3000/uploads/berita/${item.gambar_list[0].path_gambar}`
-                    : 'https://via.placeholder.com/800x400';
+            const gambarUrl =
+              item.gambar
+                ? `http://localhost:3000/uploads/berita/${item.gambar}`
+                : item.gambar_list?.length > 0
+                  ? `http://localhost:3000/uploads/berita/${item.gambar_list[0].path_gambar}`
+                  : 'https://via.placeholder.com/800x400';
 
-              return (
-                <Link
-                  key={item.berita_id}
-                  to={`/berita/${item.berita_id}`}
-                  className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col h-full"
-                >
+            const namaMasjid =
+              item.masjid?.nama_masjid ||
+              item.user?.takmirs?.[0]?.masjid?.nama_masjid ||
+              "Cabang Muhammadiyah Pundong";
 
-                  {/* GAMBAR */}
-                  <div className="h-56 overflow-hidden">
-                    <img
-                      src={gambarUrl}
-                      alt={item.judul}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+            return (
+              <div
+                key={item.berita_id}
+                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col h-full"
+              >
 
-                  {/* CONTENT */}
-                  <div className="p-5 flex flex-col flex-grow">
+                {/* GAMBAR */}
+                <div className="h-56 overflow-hidden">
+                  <img
+                    src={gambarUrl}
+                    alt={item.judul}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
 
-                    {/* JUDUL */}
-                    <h3 className="font-bold text-lg text-[#006227] mb-2 line-clamp-2 min-h-[48px]">
-                      {item.judul}
-                    </h3>
+                {/* CONTENT */}
+                <div className="p-5 flex flex-col flex-grow">
 
-                    {/* DESKRIPSI */}
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-3 flex-grow">
-                      {getExcerpt(item.isi)}
-                    </p>
+                  <h3 className="font-bold text-lg text-[#006227] mb-2 line-clamp-2 min-h-[48px]">
+                    {item.judul}
+                  </h3>
 
-                    {/* FOOTER */}
-                    <div className="text-sm text-gray-500 space-y-1 mt-auto">
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-3 flex-grow">
+                    {getExcerpt(item.isi)}
+                  </p>
 
-                      {/* MASJID */}
-                      <div className="font-semibold text-[#006227]">
-                        {item.masjid && item.masjid.nama_masjid
-                          ? item.masjid.nama_masjid
-                          : "Masjid tidak diketahui"}
-                      </div>
-
-                      {/* TANGGAL */}
-                      <div>
-                        {formatTanggal(item.tanggal)}
-                      </div>
-
+                  {/* FOOTER */}
+                  <div className="text-sm text-gray-500 space-y-1">
+                    <div className="font-semibold text-[#006227]">
+                      {namaMasjid}
                     </div>
-
+                    <div>
+                      {formatTanggal(item.tanggal)}
+                    </div>
                   </div>
 
-                </Link>
-              );
-            })
-          ) : (
-            <div className="col-span-full text-center">
-              Tidak ada berita
-            </div>
-          )}
+                  {/* 🔥 BUTTON SELENGKAPNYA */}
+                  <div className="mt-4 flex justify-end">
+                    <Link
+                      to={`/berita/${item.berita_id}`}
+                      className="text-[#006227] font-semibold hover:underline"
+                    >
+                      Selengkapnya
+                    </Link>
+                  </div>
+
+                </div>
+
+              </div>
+            );
+          })}
         </div>
 
-        {/* BUTTON */}
+        {/* BUTTON SEMUA */}
         <div className="text-center mt-10">
           <Link
             to="/berita"
-            className="px-6 py-3 bg-[#006227] text-white rounded-lg hover:bg-[#004a1e] transition"
+            className="px-6 py-3 bg-[#006227] text-white rounded-lg"
           >
             Lihat Semua Berita
           </Link>
