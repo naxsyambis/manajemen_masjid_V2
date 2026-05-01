@@ -5,7 +5,20 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { ArrowLeft, Edit, Trash2, AlertTriangle, X, Calendar, User, RefreshCcw, AlertCircle, FileText } from 'lucide-react';
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  X,
+  Calendar,
+  User,
+  RefreshCcw,
+  AlertCircle,
+  FileText,
+  Youtube,
+  ExternalLink
+} from 'lucide-react';
 
 // 🔥 FUNGSI PINTAR UNTUK MENGATASI PATH GAMBAR
 const getImageUrl = (imagePath) => {
@@ -13,6 +26,19 @@ const getImageUrl = (imagePath) => {
   if (imagePath.startsWith('http')) return imagePath;
   if (imagePath.startsWith('/uploads/')) return `http://localhost:3000${imagePath}`;
   return `http://localhost:3000/uploads/berita/${imagePath}`;
+};
+
+const getYoutubeUrl = (youtubeUrl) => {
+  if (!youtubeUrl) return null;
+
+  const trimmedUrl = youtubeUrl.trim();
+  if (!trimmedUrl) return null;
+
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return trimmedUrl;
+  }
+
+  return `https://${trimmedUrl}`;
 };
 
 const DetailBerita = ({ user, onLogout }) => {
@@ -74,6 +100,8 @@ const DetailBerita = ({ user, onLogout }) => {
 
   if (!berita) return null;
 
+  const youtubeUrl = getYoutubeUrl(berita.youtube_url);
+
   return (
     <div className="detail-berita h-screen bg-gray-50 flex">
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
@@ -91,8 +119,25 @@ const DetailBerita = ({ user, onLogout }) => {
           <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
             <div className="mb-6 text-center">
               <h2 className="text-3xl lg:text-4xl font-black text-gray-800 leading-tight mb-4">{berita.judul}</h2>
-              <div className="flex justify-center items-center gap-4 text-gray-600">
+              <div className="flex justify-center items-center gap-4 text-gray-600 flex-wrap">
                 <span className="text-sm bg-gray-100 px-4 py-2 rounded-xl font-bold uppercase tracking-widest">{berita.status}</span>
+
+                {youtubeUrl ? (
+                  <a
+                    href={youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
+                  >
+                    <Youtube size={16} />
+                    Video YouTube
+                    <ExternalLink size={14} />
+                  </a>
+                ) : (
+                  <span className="text-sm bg-gray-100 px-4 py-2 rounded-xl font-bold uppercase tracking-widest text-gray-400">
+                    YouTube: -
+                  </span>
+                )}
               </div>
             </div>
             
@@ -113,6 +158,27 @@ const DetailBerita = ({ user, onLogout }) => {
               <div className="text-gray-600 prose prose-xl max-w-none whitespace-pre-wrap leading-relaxed text-justify">
                 {berita.isi}
               </div>
+            </div>
+
+            <div className="mb-10">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <Youtube size={20} className="text-red-600" /> Link YouTube
+              </h3>
+
+              {youtubeUrl ? (
+                <a
+                  href={youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-all"
+                >
+                  <Youtube size={18} />
+                  Buka Video YouTube
+                  <ExternalLink size={16} />
+                </a>
+              ) : (
+                <p className="text-gray-400 font-bold">-</p>
+              )}
             </div>
             
             <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">

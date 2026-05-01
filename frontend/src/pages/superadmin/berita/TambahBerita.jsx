@@ -5,14 +5,24 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { Upload, Save, Image as ImageIcon, FileText, Calendar, RefreshCcw, AlertCircle } from 'lucide-react';
+import {
+  Upload,
+  Save,
+  Image as ImageIcon,
+  FileText,
+  Calendar,
+  RefreshCcw,
+  AlertCircle,
+  Youtube
+} from 'lucide-react';
 
 const TambahBerita = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [formData, setFormData] = useState({
     judul: '',
-    isi: ''
+    isi: '',
+    youtube_url: ''
   });
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,13 +38,36 @@ const TambahBerita = ({ user, onLogout }) => {
     return () => clearInterval(timer);
   }, []);
 
+  const isValidYoutubeUrl = (url) => {
+    if (!url.trim()) return true;
+
+    try {
+      const parsed = new URL(url);
+      return (
+        parsed.hostname.includes("youtube.com") ||
+        parsed.hostname.includes("youtu.be")
+      );
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isValidYoutubeUrl(formData.youtube_url)) {
+      setError('Link YouTube tidak valid. Gunakan link dari youtube.com atau youtu.be.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
+
     const data = new FormData();
     data.append('judul', formData.judul);
     data.append('isi', formData.isi);
+    data.append('youtube_url', formData.youtube_url.trim());
+
     files.forEach((file) => {
     data.append('gambar', file);
     });
@@ -193,6 +226,21 @@ const TambahBerita = ({ user, onLogout }) => {
                           required
                         />
                         <p className="text-sm text-gray-500">Berikan isi berita lengkap</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                          <Youtube size={18} className="text-red-600" />
+                          Link YouTube <span className="text-gray-400 normal-case font-normal">(Opsional)</span>
+                        </label>
+                        <input
+                          type="url"
+                          value={formData.youtube_url}
+                          onChange={(e) => setFormData({ ...formData, youtube_url: e.target.value })}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                          placeholder="Contoh: https://www.youtube.com/watch?v=xxxx"
+                        />
+                        <p className="text-sm text-gray-500">Kosongkan jika berita tidak memiliki video YouTube</p>
                       </div>
                     </div>
                   </div>

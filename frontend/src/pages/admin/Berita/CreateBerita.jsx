@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -6,13 +6,14 @@ import { useNavigate } from "react-router-dom";
 import {
   X,
   Save,
-  FileText,
-  ImagePlus,
   AlertTriangle,
   CheckCircle2,
   XCircle,
   Info,
-  Youtube
+  Youtube,
+  Calendar,
+  RefreshCcw,
+  AlertCircle
 } from "lucide-react";
 
 const handleAuthError = (err, showPopup) => {
@@ -115,10 +116,9 @@ const CreateBerita = () => {
   const [isi, setIsi] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
 
-  const [images, setImages] = useState([null, null, null, null, null]);
-  const [preview, setPreview] = useState([null, null, null, null, null]);
-
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [time, setTime] = useState(new Date());
 
   const [alertData, setAlertData] = useState({
     show: false,
@@ -131,6 +131,21 @@ const CreateBerita = () => {
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      files.forEach((file) => {
+        if (file.previewUrl) {
+          URL.revokeObjectURL(file.previewUrl);
+        }
+      });
+    };
+  }, [files]);
 
   const showPopup = ({
     type = "info",
@@ -166,6 +181,10 @@ const CreateBerita = () => {
     }
   };
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   const isValidYoutubeUrl = (url) => {
     if (!url.trim()) return true;
 
@@ -180,57 +199,64 @@ const CreateBerita = () => {
     }
   };
 
-  const handleChange = (e, index) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
 
-    if (!file.type.startsWith("image/")) {
+    if (selectedFiles.length === 0) return;
+
+    if (files.length + selectedFiles.length > 5) {
       showPopup({
         type: "warning",
-        title: "File Tidak Valid",
-        message: "File harus berupa gambar."
+        title: "Maksimal 5 Gambar",
+        message: "Jumlah gambar berita maksimal 5 file."
       });
       e.target.value = "";
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      showPopup({
-        type: "warning",
-        title: "Ukuran Terlalu Besar",
-        message: "Ukuran gambar maksimal 5MB."
+    const validFiles = [];
+
+    for (const file of selectedFiles) {
+      if (!file.type.startsWith("image/")) {
+        showPopup({
+          type: "warning",
+          title: "File Tidak Valid",
+          message: "Semua file harus berupa gambar."
+        });
+        e.target.value = "";
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        showPopup({
+          type: "warning",
+          title: "Ukuran Terlalu Besar",
+          message: "Ukuran setiap gambar maksimal 5MB."
+        });
+        e.target.value = "";
+        return;
+      }
+
+      validFiles.push({
+        file,
+        previewUrl: URL.createObjectURL(file)
       });
-      e.target.value = "";
-      return;
     }
 
-    const newImages = [...images];
-    const newPreview = [...preview];
-
-    if (newPreview[index]) {
-      URL.revokeObjectURL(newPreview[index]);
-    }
-
-    newImages[index] = file;
-    newPreview[index] = URL.createObjectURL(file);
-
-    setImages(newImages);
-    setPreview(newPreview);
+    setFiles((prev) => [...prev, ...validFiles]);
+    e.target.value = "";
   };
 
-  const removeImage = (index) => {
-    const newImages = [...images];
-    const newPreview = [...preview];
+  const handleRemoveFile = (index) => {
+    setFiles((prev) => {
+      const selected = prev[index];
 
-    if (newPreview[index]) {
-      URL.revokeObjectURL(newPreview[index]);
-    }
+      if (selected?.previewUrl) {
+        URL.revokeObjectURL(selected.previewUrl);
+      }
 
-    newImages[index] = null;
-    newPreview[index] = null;
-
-    setImages(newImages);
-    setPreview(newPreview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const validateForm = () => {
@@ -295,8 +321,8 @@ const CreateBerita = () => {
       formData.append("isi", isi.trim());
       formData.append("youtube_url", youtubeUrl.trim());
 
-      images.forEach((img) => {
-        if (img) formData.append("gambar", img);
+      files.forEach((item) => {
+        formData.append("gambar", item.file);
       });
 
       await axios.post("http://localhost:3000/takmir/berita", formData, {
@@ -328,132 +354,215 @@ const CreateBerita = () => {
   };
 
   return (
-    <div className="p-6 space-y-10 bg-[#fdfdfd] animate-fadeIn">
+    <div className="tambah-berita h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
       <AlertPopup alertData={alertData} onClose={closePopup} />
 
-      <div className="flex items-center gap-4 border-b pb-6">
-        <div className="p-3 bg-gradient-to-tr from-mu-green to-green-500 text-white rounded-2xl shadow-xl -rotate-3">
-          <FileText size={26} />
-        </div>
+      <div className="flex-1 flex flex-col">
+        <div className="main-content p-8 h-full overflow-y-auto space-y-8">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
+                Tambah <span className="text-mu-green">Berita</span>
+              </h1>
 
-        <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter">
-          Tambah Berita
-        </h1>
-      </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-[3rem] shadow-2xl border p-10 space-y-10"
-      >
-        <div>
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest">
-            Judul
-          </label>
-          <input
-            type="text"
-            value={judul}
-            onChange={(e) => setJudul(e.target.value)}
-            className="w-full mt-2 px-4 py-4 bg-gray-50 rounded-2xl shadow-inner outline-none font-bold"
-            placeholder="Masukkan judul berita"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest">
-            Isi
-          </label>
-          <textarea
-            value={isi}
-            onChange={(e) => setIsi(e.target.value)}
-            rows={6}
-            className="w-full mt-2 px-4 py-4 bg-gray-50 rounded-2xl shadow-inner outline-none font-bold"
-            placeholder="Masukkan isi berita"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-            <Youtube size={15} />
-            Link YouTube <span className="text-gray-300 normal-case">(Opsional)</span>
-          </label>
-
-          <input
-            type="url"
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            className="w-full mt-2 px-4 py-4 bg-gray-50 rounded-2xl shadow-inner outline-none font-bold"
-            placeholder="Contoh: https://www.youtube.com/watch?v=xxxx"
-          />
-
-          <p className="mt-2 text-xs font-semibold text-gray-400">
-            Kosongkan jika berita tidak memiliki video YouTube.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest">
-            Gambar (Max 5)
-          </label>
-
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-            {preview.map((item, i) => (
-              <div key={i} className="space-y-2">
-                <p className="text-[10px] font-black text-gray-400 uppercase">
-                  Foto {i + 1}
-                </p>
-
-                <label className="block rounded-2xl border-2 border-dashed p-4 cursor-pointer hover:bg-gray-50 transition">
-                  {item ? (
-                    <div className="relative group">
-                      <img
-                        src={item}
-                        alt={`Preview ${i + 1}`}
-                        className="w-full h-28 object-cover rounded-xl shadow"
-                      />
-
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          removeImage(i);
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-28 text-gray-300">
-                      <ImagePlus size={22} />
-                      <span className="text-[10px] mt-1 font-bold">
-                        Upload
-                      </span>
-                    </div>
-                  )}
-
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={(e) => handleChange(e, i)}
-                  />
-                </label>
+              <div className="flex items-center gap-2 mt-2 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
+                <Calendar size={12} className="text-mu-green" />
+                <span>
+                  {time.toLocaleDateString("id-ID", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  })}
+                </span>
+                <span className="mx-2">•</span>
+                <span className="text-mu-green">
+                  {time.toLocaleTimeString("id-ID")}
+                </span>
               </div>
-            ))}
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={handleRefresh}
+                className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95 hover:shadow-lg"
+              >
+                <RefreshCcw size={14} />
+                Refresh Halaman
+              </button>
+            </div>
+          </div>
+
+          {/* Form Tambah Berita Modern dan Elegan */}
+          <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
+            <div className="p-10 lg:p-16">
+              <div className="mb-12 text-center">
+                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter mb-4">
+                  Tambah Berita Baru
+                </h2>
+
+                <p className="text-gray-600 text-lg">
+                  Isi informasi berita dengan lengkap dan akurat
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  <div className="space-y-10">
+                    <div className="space-y-6">
+                      <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">
+                        Gambar Berita
+                      </h3>
+
+                      <div className="space-y-4">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleFileChange}
+                          className="hidden"
+                          id="gambar-upload"
+                        />
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {files.map((item, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={item.previewUrl}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-32 object-cover rounded-xl shadow-md"
+                              />
+
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveFile(index)}
+                                className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+
+                          {files.length < 5 && (
+                            <label
+                              htmlFor="gambar-upload"
+                              className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl h-32 cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition"
+                            >
+                              +
+                            </label>
+                          )}
+                        </div>
+
+                        <p className="text-sm text-gray-500">
+                          Upload foto gambar berita maksimal 5 gambar.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-10">
+                    <div className="space-y-6">
+                      <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">
+                        Informasi Berita
+                      </h3>
+
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
+                          Judul Berita
+                        </label>
+
+                        <input
+                          type="text"
+                          value={judul}
+                          onChange={(e) => setJudul(e.target.value)}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                          placeholder="Masukkan judul berita"
+                          required
+                        />
+
+                        <p className="text-sm text-gray-500">
+                          Isi dengan judul resmi berita
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
+                          Isi Berita
+                        </label>
+
+                        <textarea
+                          value={isi}
+                          onChange={(e) => setIsi(e.target.value)}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm resize-none"
+                          placeholder="Masukkan isi berita"
+                          rows="8"
+                          required
+                        />
+
+                        <p className="text-sm text-gray-500">
+                          Berikan isi berita lengkap
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                          <Youtube size={18} className="text-red-600" />
+                          Link YouTube{" "}
+                          <span className="text-gray-400 normal-case font-normal">
+                            (Opsional)
+                          </span>
+                        </label>
+
+                        <input
+                          type="url"
+                          value={youtubeUrl}
+                          onChange={(e) => setYoutubeUrl(e.target.value)}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                          placeholder="Contoh: https://www.youtube.com/watch?v=xxxx"
+                        />
+
+                        <p className="text-sm text-gray-500">
+                          Kosongkan jika berita tidak memiliki video YouTube
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tombol Aksi dengan Efek Hover */}
+                <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/berita")}
+                    className="flex items-center px-8 py-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 rounded-2xl hover:from-gray-300 hover:to-gray-400 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex items-center px-8 py-4 bg-mu-green text-white rounded-2xl hover:bg-green-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Save size={22} className="mr-3" />
+                    {loading ? "Menyimpan..." : "Simpan Berita"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div className="flex justify-center items-center gap-4 text-gray-300 py-4">
+            <div className="h-[1px] w-12 bg-gray-100"></div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em]">
+              Integrated Database System v3.0
+            </p>
+            <div className="h-[1px] w-12 bg-gray-100"></div>
           </div>
         </div>
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center gap-2 px-8 py-4 bg-mu-green text-white rounded-2xl shadow-xl hover:-translate-y-1 transition font-black disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Save size={18} />
-            {loading ? "Menyimpan..." : "Simpan"}
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 };

@@ -5,10 +5,20 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { 
-  Plus, Edit, Trash2, Eye, AlertTriangle, 
-  Image as ImageIcon, Search, Calendar, 
-  RefreshCcw, ChevronLeft, ChevronRight 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  AlertTriangle,
+  Image as ImageIcon,
+  Search,
+  Calendar,
+  RefreshCcw,
+  ChevronLeft,
+  ChevronRight,
+  Youtube,
+  ExternalLink
 } from 'lucide-react';
 
 /**
@@ -16,9 +26,25 @@ import {
  */
 const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith('http')) return imagePath; 
+  if (imagePath.startsWith('http')) return imagePath;
   if (imagePath.startsWith('/uploads/')) return `http://localhost:3000${imagePath}`;
   return `http://localhost:3000/uploads/berita/${imagePath}`;
+};
+
+/**
+ * Fungsi pembantu untuk menangani URL YouTube
+ */
+const getYoutubeUrl = (youtubeUrl) => {
+  if (!youtubeUrl) return null;
+
+  const trimmedUrl = youtubeUrl.trim();
+  if (!trimmedUrl) return null;
+
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return trimmedUrl;
+  }
+
+  return `https://${trimmedUrl}`;
 };
 
 const DataBerita = ({ user, onLogout }) => {
@@ -29,7 +55,7 @@ const DataBerita = ({ user, onLogout }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+
   // --- Data State ---
   const [beritas, setBeritas] = useState([]);
   const [filteredBeritas, setFilteredBeritas] = useState([]);
@@ -37,30 +63,38 @@ const DataBerita = ({ user, onLogout }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
-  
+
   // --- Pagination State ---
-  const [entriesPerPage, setEntriesPerPage] = useState(5); 
+  const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // 1. Digital Clock Effect[cite: 2]
+  // 1. Digital Clock Effect
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 2. Fetch Data dari API[cite: 2]
+  // 2. Fetch Data dari API
   const fetchBeritas = useCallback(async () => {
     try {
       setRefreshing(true);
       setError(null);
+
       const res = await axios.get('http://localhost:3000/superadmin/berita', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setBeritas(res.data);
+
+      const dataAsli = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+
+      setBeritas(dataAsli);
     } catch (err) {
       console.error('Error fetching beritas:', err);
       setError('Gagal memuat data berita.');
@@ -74,17 +108,19 @@ const DataBerita = ({ user, onLogout }) => {
     fetchBeritas();
   }, [fetchBeritas]);
 
-  // 3. Search & Filter Logic[cite: 2]
+  // 3. Search & Filter Logic
   useEffect(() => {
-    const filtered = beritas.filter(berita =>
+    const filtered = beritas.filter((berita) =>
       berita.judul?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      berita.isi?.toLowerCase().includes(searchTerm.toLowerCase())
+      berita.isi?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      berita.youtube_url?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
     setFilteredBeritas(filtered);
     setCurrentPage(1);
   }, [beritas, searchTerm]);
 
-  // 4. Pagination Logic[cite: 2]
+  // 4. Pagination Logic
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
   const currentItems = filteredBeritas.slice(indexOfFirstItem, indexOfLastItem);
@@ -99,17 +135,24 @@ const DataBerita = ({ user, onLogout }) => {
       end = totalPages;
       start = Math.max(end - maxVisible + 1, 1);
     }
+
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
-  // 5. Action Handlers[cite: 2]
+  // 5. Action Handlers
   const handleDelete = async () => {
     if (!selectedBerita) return;
+
     setDeleting(true);
+
     try {
-      await axios.delete(`http://localhost:3000/superadmin/berita/${selectedBerita.berita_id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.delete(
+        `http://localhost:3000/superadmin/berita/${selectedBerita.berita_id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
       fetchBeritas();
       closeDeleteModal();
     } catch (err) {
@@ -130,13 +173,41 @@ const DataBerita = ({ user, onLogout }) => {
     setSelectedBerita(null);
   };
 
-  // 6. Loading State (Consistent with DataMasjid)[cite: 2]
+  const renderYoutubeColumn = (berita) => {
+    const youtubeUrl = getYoutubeUrl(berita.youtube_url);
+
+    if (!youtubeUrl) {
+      return (
+        <span className="text-gray-300 font-black text-sm">
+          -
+        </span>
+      );
+    }
+
+    return (
+      <a
+        href={youtubeUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={youtubeUrl}
+        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest shadow-sm"
+      >
+        <Youtube size={16} />
+        <span>Video</span>
+        <ExternalLink size={12} />
+      </a>
+    );
+  };
+
+  // 6. Loading State
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-mu-green border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-black text-mu-green uppercase tracking-widest">Memuat Data Berita...</p>
+          <p className="text-sm font-black text-mu-green uppercase tracking-widest">
+            Memuat Data Berita...
+          </p>
         </div>
       </div>
     );
@@ -144,35 +215,45 @@ const DataBerita = ({ user, onLogout }) => {
 
   return (
     <div className="data-berita h-screen bg-gray-50 flex overflow-hidden font-inter">
-      <SuperAdminSidebar 
-        isOpen={isOpen} 
-        setIsOpen={setIsOpen} 
-        onLogout={onLogout} 
-        user={user} 
-        setIsHovered={setIsHovered} 
-        isExpanded={isExpanded} 
+      <SuperAdminSidebar
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        onLogout={onLogout}
+        user={user}
+        setIsHovered={setIsHovered}
+        isExpanded={isExpanded}
       />
-      
+
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
-        
+
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-8">
-          
           {/* Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-black text-gray-800 uppercase tracking-tighter">
                 Data <span className="text-mu-green">Berita</span>
               </h1>
+
               <div className="flex items-center gap-3 mt-3 text-gray-500 font-bold text-xs md:text-sm uppercase tracking-widest">
                 <Calendar size={16} className="text-mu-green" />
-                <span>{time.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                <span className="text-mu-green font-black ml-2">{time.toLocaleTimeString('id-ID')}</span>
+                <span>
+                  {time.toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </span>
+                <span className="text-mu-green font-black ml-2">
+                  {time.toLocaleTimeString('id-ID')}
+                </span>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap gap-4">
-              <button 
+              <button
+                type="button"
                 onClick={fetchBeritas}
                 disabled={refreshing}
                 className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-white border-2 border-gray-100 px-6 py-4 rounded-2xl text-xs font-black uppercase text-gray-500 hover:text-mu-green transition-all shadow-sm"
@@ -180,7 +261,9 @@ const DataBerita = ({ user, onLogout }) => {
                 <RefreshCcw size={18} className={refreshing ? 'animate-spin' : ''} />
                 Refresh
               </button>
+
               <button
+                type="button"
                 onClick={() => navigate('/superadmin/berita/tambah')}
                 className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-mu-green text-white px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-green-700 shadow-lg shadow-green-100 transition-all active:scale-95"
               >
@@ -189,104 +272,172 @@ const DataBerita = ({ user, onLogout }) => {
               </button>
             </div>
           </div>
-          
-          {/* Main Table Card[cite: 2] */}
+
+          {error && (
+            <div className="bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-2xl text-sm font-bold">
+              {error}
+            </div>
+          )}
+
+          {/* Main Table Card */}
           <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
-            
             {/* Table Toolbar */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
               <div className="flex items-center gap-6 w-full md:w-auto">
                 <div className="hidden sm:block">
-                  <h3 className="text-lg font-black text-gray-800 uppercase tracking-tighter">Daftar Berita</h3>
-                  <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Total: {filteredBeritas.length}</p>
+                  <h3 className="text-lg font-black text-gray-800 uppercase tracking-tighter">
+                    Daftar Berita
+                  </h3>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">
+                    Total: {filteredBeritas.length}
+                  </p>
                 </div>
+
                 <div className="flex items-center gap-3 bg-gray-50 border-2 border-gray-100 px-4 py-2.5 rounded-2xl">
-                  <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Show:</span>
-                  <select 
+                  <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                    Show:
+                  </span>
+
+                  <select
                     value={entriesPerPage}
-                    onChange={(e) => {setEntriesPerPage(Number(e.target.value)); setCurrentPage(1);}}
+                    onChange={(e) => {
+                      setEntriesPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
                     className="bg-transparent text-sm font-bold text-mu-green focus:outline-none cursor-pointer"
                   >
-                    {[5, 10, 25, 50].map(num => <option key={num} value={num}>{num}</option>)}
+                    {[5, 10, 25, 50].map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
-              
+
               <div className="relative w-full md:w-80">
-                <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search
+                  size={20}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+                />
+
                 <input
                   type="text"
-                  placeholder="Cari judul berita..."
+                  placeholder="Cari judul, isi, atau YouTube..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-12 pr-6 py-4 border-2 border-gray-50 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all bg-gray-50 text-sm w-full font-medium"
                 />
               </div>
             </div>
-            
-            {/* Table Content[cite: 2] */}
+
+            {/* Table Content */}
             <div className="overflow-x-auto">
               <table className="min-w-full border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-gray-50/50">
-                    <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Gambar</th>
-                    <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Judul Berita</th>
-                    <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Status</th>
-                    <th className="px-6 py-6 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Aksi</th>
+                    <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">
+                      Gambar
+                    </th>
+                    <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">
+                      Judul Berita
+                    </th>
+                    <th className="px-6 py-6 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">
+                      YouTube
+                    </th>
+                    <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">
+                      Status
+                    </th>
+                    <th className="px-6 py-6 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {currentItems.length > 0 ? (
                     currentItems.map((berita) => (
-                      <tr key={berita.berita_id} className="hover:bg-gray-50/80 transition-colors group">
+                      <tr
+                        key={berita.berita_id}
+                        className="hover:bg-gray-50/80 transition-colors group"
+                      >
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="w-16 h-16 bg-gray-100 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center border-2 border-transparent group-hover:border-mu-green transition-all">
                             {berita.gambar ? (
-                              <img 
-                                src={getImageUrl(berita.gambar)} 
-                                alt="Cover" 
+                              <img
+                                src={getImageUrl(berita.gambar)}
+                                alt="Cover"
                                 className="w-full h-full object-cover"
-                                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} 
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'block';
+                                }}
                               />
                             ) : null}
-                            <ImageIcon size={28} className="text-gray-300" style={{ display: berita.gambar ? 'none' : 'block' }} />
+
+                            <ImageIcon
+                              size={28}
+                              className="text-gray-300"
+                              style={{ display: berita.gambar ? 'none' : 'block' }}
+                            />
                           </div>
                         </td>
+
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="text-lg font-bold text-gray-800 group-hover:text-mu-green transition-colors max-w-[300px] truncate">
                             {berita.judul}
                           </div>
+
                           <div className="text-xs text-gray-400 font-black uppercase tracking-tighter mt-1">
-                            {new Date(berita.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {berita.tanggal
+                              ? new Date(berita.tanggal).toLocaleDateString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric'
+                                })
+                              : '-'}
                           </div>
                         </td>
+
+                        <td className="px-6 py-6 border-b border-gray-50 text-center">
+                          {renderYoutubeColumn(berita)}
+                        </td>
+
                         <td className="px-6 py-6 border-b border-gray-50">
-                          <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm ${
-                            berita.status === 'dipublikasi' 
-                              ? 'bg-green-100 text-green-700 border border-green-200' 
-                              : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-                          }`}>
-                            {berita.status}
+                          <span
+                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm ${
+                              berita.status === 'dipublikasi'
+                                ? 'bg-green-100 text-green-700 border border-green-200'
+                                : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                            }`}
+                          >
+                            {berita.status || '-'}
                           </span>
                         </td>
+
                         <td className="px-6 py-6 border-b border-gray-50 text-center">
                           <div className="flex justify-center items-center gap-3">
-                            <button 
-                              onClick={() => navigate(`/superadmin/berita/detail/${berita.berita_id}`)} 
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/superadmin/berita/detail/${berita.berita_id}`)}
                               className="p-3 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm"
                               title="Lihat Detail"
                             >
                               <Eye size={20} />
                             </button>
-                            <button 
-                              onClick={() => navigate(`/superadmin/berita/edit/${berita.berita_id}`)} 
+
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/superadmin/berita/edit/${berita.berita_id}`)}
                               className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                               title="Edit Berita"
                             >
                               <Edit size={20} />
                             </button>
-                            <button 
-                              onClick={() => openDeleteModal(berita)} 
+
+                            <button
+                              type="button"
+                              onClick={() => openDeleteModal(berita)}
                               className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
                               title="Hapus Berita"
                             >
@@ -298,22 +449,36 @@ const DataBerita = ({ user, onLogout }) => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="4" className="text-center py-24 text-gray-400 text-sm font-black uppercase tracking-[0.2em]">Data berita tidak ditemukan</td>
+                      <td
+                        colSpan="5"
+                        className="text-center py-24 text-gray-400 text-sm font-black uppercase tracking-[0.2em]"
+                      >
+                        Data berita tidak ditemukan
+                      </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
 
-            {/* Pagination Controls[cite: 2] */}
+            {/* Pagination Controls */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-12 gap-6">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                Menampilkan <span className="text-mu-green">{filteredBeritas.length > 0 ? indexOfFirstItem + 1 : 0}</span> - <span className="text-mu-green">{Math.min(indexOfLastItem, filteredBeritas.length)}</span> dari {filteredBeritas.length} berita
+                Menampilkan{' '}
+                <span className="text-mu-green">
+                  {filteredBeritas.length > 0 ? indexOfFirstItem + 1 : 0}
+                </span>{' '}
+                -{' '}
+                <span className="text-mu-green">
+                  {Math.min(indexOfLastItem, filteredBeritas.length)}
+                </span>{' '}
+                dari {filteredBeritas.length} berita
               </p>
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="p-3 rounded-xl bg-gray-50 text-gray-400 disabled:opacity-30 hover:bg-mu-green hover:text-white transition-all shadow-sm"
                 >
@@ -323,6 +488,7 @@ const DataBerita = ({ user, onLogout }) => {
                 <div className="flex gap-2">
                   {getPaginationNumbers().map((page) => (
                     <button
+                      type="button"
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={`min-w-[45px] h-11 rounded-xl text-xs font-black transition-all ${
@@ -337,7 +503,8 @@ const DataBerita = ({ user, onLogout }) => {
                 </div>
 
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || totalPages === 0}
                   className="p-3 rounded-xl bg-gray-50 text-gray-400 disabled:opacity-30 hover:bg-mu-green hover:text-white transition-all shadow-sm"
                 >
@@ -349,33 +516,45 @@ const DataBerita = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Identical Delete Modal[cite: 2] */}
+      {/* Delete Modal */}
       {showDeleteModal && selectedBerita && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/20">
             <div className="bg-red-500 p-10 flex justify-center text-white">
               <AlertTriangle size={64} className="animate-bounce" />
             </div>
+
             <div className="p-10 text-center">
-              <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tight mb-4">Hapus Berita?</h1>
+              <h1 className="text-3xl font-black text-gray-800 uppercase tracking-tight mb-4">
+                Hapus Berita?
+              </h1>
+
               <p className="text-base text-gray-500 mb-8 leading-relaxed">
-                Apakah Anda yakin ingin menghapus berita: <br/> 
-                <strong>{selectedBerita.judul}</strong>? <br/>
+                Apakah Anda yakin ingin menghapus berita: <br />
+                <strong>{selectedBerita.judul}</strong>? <br />
                 Data yang dihapus tidak bisa dikembalikan.
               </p>
+
               <div className="flex gap-4">
-                <button 
-                  onClick={closeDeleteModal} 
+                <button
+                  type="button"
+                  onClick={closeDeleteModal}
                   className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
                 >
                   Batal
                 </button>
-                <button 
-                  onClick={handleDelete} 
-                  disabled={deleting} 
+
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
                   className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-600 shadow-xl shadow-red-200 transition-all flex items-center justify-center"
                 >
-                  {deleting ? <RefreshCcw size={18} className="animate-spin" /> : 'Ya, Hapus'}
+                  {deleting ? (
+                    <RefreshCcw size={18} className="animate-spin" />
+                  ) : (
+                    'Ya, Hapus'
+                  )}
                 </button>
               </div>
             </div>
