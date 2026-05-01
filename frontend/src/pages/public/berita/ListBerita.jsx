@@ -154,12 +154,12 @@ const ListBerita = () => {
                       {/* 🔥 BUTTON SELANJUTNYA */}
                       <div className="mt-4 flex justify-end">
                         <Link
-                          to={`/berita/${item.berita_id}`}
-                          className="px-4 py-2 bg-[#006227] text-white text-sm rounded-lg hover:bg-[#004a1e] transition"
+                        to={`/berita/${item.berita_id}`}
+                        className="text-[#006227] font-semibold hover:underline"
                         >
-                          Selanjutnya →
-                        </Link>
-                      </div>
+                        Selengkapnya
+                         </Link>
+                     </div>
 
                     </div>
 
