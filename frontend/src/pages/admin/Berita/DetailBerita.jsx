@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+
 import {
   CalendarDays,
   Image as ImageIcon,
@@ -10,7 +11,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info
+  Info,
+  Youtube,
+  ExternalLink
 } from "lucide-react";
 
 const handleAuthError = (err, showPopup) => {
@@ -187,6 +190,12 @@ const DetailBerita = () => {
     }
   };
 
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `http://localhost:3000${path}`;
+  };
+
   useEffect(() => {
     fetchDetail();
   }, []);
@@ -204,6 +213,8 @@ const DetailBerita = () => {
 
       if (res.data.gambar) {
         setSelectedImage(res.data.gambar);
+      } else if (res.data.gambar_list?.length) {
+        setSelectedImage(res.data.gambar_list[0].path_gambar);
       }
     } catch (err) {
       if (handleAuthError(err, showPopup)) return;
@@ -293,6 +304,7 @@ const DetailBerita = () => {
   ];
 
   const uniqueImages = [...new Set(allImages)];
+  const youtubeUrl = data.youtube_url || "";
 
   return (
     <div className="p-6 bg-[#fdfdfd]">
@@ -308,13 +320,26 @@ const DetailBerita = () => {
             {data.judul}
           </h1>
 
-          <div className="flex items-center gap-3 mt-2">
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
             {renderStatus(data.status)}
 
             <div className="flex items-center gap-1 text-gray-400 text-sm">
               <CalendarDays size={14} />
               {data.tanggal ? new Date(data.tanggal).toLocaleDateString("id-ID") : "-"}
             </div>
+
+            {youtubeUrl && (
+              <a
+                href={youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-600 hover:text-white transition"
+              >
+                <Youtube size={14} />
+                Video YouTube
+                <ExternalLink size={12} />
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -323,7 +348,7 @@ const DetailBerita = () => {
         {selectedImage ? (
           <div className="flex justify-center">
             <img
-              src={`http://localhost:3000/uploads/berita/${selectedImage}`}
+              src={getImageUrl(selectedImage)}
               alt={data.judul}
               className="max-h-[400px] w-auto object-contain rounded-xl shadow-lg"
               onError={(e) => {
@@ -342,7 +367,7 @@ const DetailBerita = () => {
             {uniqueImages.map((img, index) => (
               <img
                 key={index}
-                src={`http://localhost:3000/uploads/berita/${img}`}
+                src={getImageUrl(img)}
                 alt={`Gambar ${index + 1}`}
                 onClick={() => setSelectedImage(img)}
                 className={`w-24 h-16 object-cover rounded-lg cursor-pointer border transition ${
@@ -366,8 +391,31 @@ const DetailBerita = () => {
           </p>
         </div>
 
+        <div className="space-y-3 border-t pt-5">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <Youtube size={20} className="text-red-600" />
+            Link YouTube
+          </h2>
+
+          {youtubeUrl ? (
+            <a
+              href={youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-600 hover:text-white transition break-all"
+            >
+              <Youtube size={18} />
+              Buka Video YouTube
+              <ExternalLink size={16} />
+            </a>
+          ) : (
+            <p className="text-gray-400 font-bold">-</p>
+          )}
+        </div>
+
         <div className="flex justify-end gap-3 pt-4 border-t">
           <button
+            type="button"
             onClick={() => navigate(`/admin/berita/edit/${id}`)}
             className="px-4 py-2 bg-yellow-500 text-white rounded-lg font-semibold hover:scale-105 transition"
           >
@@ -375,6 +423,7 @@ const DetailBerita = () => {
           </button>
 
           <button
+            type="button"
             onClick={confirmDelete}
             className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:scale-105 transition"
           >
