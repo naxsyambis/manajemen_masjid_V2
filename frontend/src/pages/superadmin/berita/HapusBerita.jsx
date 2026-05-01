@@ -5,7 +5,29 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { AlertTriangle, Trash2, X, FileText, Image as ImageIcon, Calendar } from 'lucide-react';
+import {
+  AlertTriangle,
+  Trash2,
+  X,
+  FileText,
+  Image as ImageIcon,
+  Calendar,
+  Youtube,
+  ExternalLink
+} from 'lucide-react';
+
+const getYoutubeUrl = (youtubeUrl) => {
+  if (!youtubeUrl) return null;
+
+  const trimmedUrl = youtubeUrl.trim();
+  if (!trimmedUrl) return null;
+
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return trimmedUrl;
+  }
+
+  return `https://${trimmedUrl}`;
+};
 
 const HapusBerita = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -63,6 +85,8 @@ const HapusBerita = ({ user, onLogout }) => {
   }
 
   if (!berita) return null;
+
+  const youtubeUrl = getYoutubeUrl(berita.youtube_url);
 
   return (
     <div className="super-admin-dashboard min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -140,6 +164,31 @@ const HapusBerita = ({ user, onLogout }) => {
                 <h3 className="text-xl font-semibold text-gray-800">Isi Berita</h3>
               </div>
               <p className="text-gray-600 leading-relaxed">{berita.isi || 'Tidak ada isi yang tersedia untuk berita ini.'}</p>
+            </div>
+
+            {/* Card YouTube */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 lg:col-span-2">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                  <Youtube size={24} className="text-red-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800">Link YouTube</h3>
+              </div>
+
+              {youtubeUrl ? (
+                <a
+                  href={youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-all"
+                >
+                  <Youtube size={18} />
+                  Buka Video YouTube
+                  <ExternalLink size={16} />
+                </a>
+              ) : (
+                <p className="text-gray-400 font-bold">-</p>
+              )}
             </div>
           </div>
           

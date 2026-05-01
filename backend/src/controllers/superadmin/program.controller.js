@@ -99,13 +99,22 @@ exports.deleteProgram = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    const data = await Program.findByPk(req.params.id);
+    const data = await Program.findByPk(req.params.id, {
+      include: [
+        { 
+          model: KategoriProgram, 
+          as: 'kategori_program', // Sesuai dengan as di models/index.js
+          attributes: ['nama_kategori'] 
+        }
+      ]
+    });
 
     if (!data) {
       return res.status(404).json({ message: "Program tidak ditemukan" });
     }
 
-    res.json(data);
+    // Pastikan mengirim dalam bentuk JSON murni agar include-nya terbaca
+    res.json(data.toJSON()); 
 
   } catch (err) {
     console.error("GET PROGRAM BY ID ERROR:", err);
