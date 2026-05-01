@@ -6,6 +6,9 @@ const ProgramLengkap = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -32,6 +35,17 @@ const ProgramLengkap = () => {
 
   const getExcerpt = (text, max = 100) => {
     return text?.length > max ? text.substring(0, max) + '...' : text;
+  };
+
+  // 🔥 PAGINATION
+  const indexLast = currentPage * itemsPerPage;
+  const indexFirst = indexLast - itemsPerPage;
+  const currentData = program.slice(indexFirst, indexLast);
+  const totalPages = Math.ceil(program.length / itemsPerPage);
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
@@ -66,8 +80,8 @@ const ProgramLengkap = () => {
 
         {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {program.length > 0 ? (
-            program.map((item) => (
+          {currentData.length > 0 ? (
+            currentData.map((item) => (
               <div
                 key={item.program_id}
                 className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col h-full"
@@ -89,22 +103,18 @@ const ProgramLengkap = () => {
                 {/* CONTENT */}
                 <div className="p-5 flex flex-col flex-grow">
 
-                  {/* JUDUL */}
                   <h3 className="font-bold text-lg text-[#006227] line-clamp-2 leading-tight mb-1">
                     {item.nama_program}
                   </h3>
 
-                  {/* JADWAL */}
                   <p className="text-sm text-gray-500 leading-tight mb-2">
                     {item.jadwal_rutin || '-'}
                   </p>
 
-                  {/* DESKRIPSI */}
                   <p className="text-sm text-gray-600 line-clamp-3 flex-grow">
                     {getExcerpt(item.deskripsi)}
                   </p>
 
-                  {/* BUTTON SELENGKAPNYA */}
                   <div className="mt-4 flex justify-end">
                     <Link
                       to={`/program/${item.program_id}`}
@@ -125,7 +135,81 @@ const ProgramLengkap = () => {
           )}
         </div>
 
-        {/* BUTTON BACK HOME */}
+        {/* 🔥 PAGINATION */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-12 gap-2 flex-wrap items-center">
+
+            {/* PREV */}
+            <button
+              onClick={() => goToPage(Math.max(currentPage - 1, 1))}
+              className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+              disabled={currentPage === 1}
+            >
+              Sebelumnya
+            </button>
+
+            {/* PAGE */}
+            {(() => {
+              const pages = [];
+              const maxVisible = 3;
+
+              let start = Math.max(currentPage - 1, 1);
+              let end = Math.min(start + maxVisible - 1, totalPages);
+
+              if (end - start < maxVisible - 1) {
+                start = Math.max(end - maxVisible + 1, 1);
+              }
+
+              if (start > 1) {
+                pages.push(
+                  <button key={1} onClick={() => goToPage(1)} className="px-4 py-2 bg-gray-200 rounded-lg">
+                    1
+                  </button>
+                );
+                if (start > 2) pages.push(<span key="s">...</span>);
+              }
+
+              for (let i = start; i <= end; i++) {
+                pages.push(
+                  <button
+                    key={i}
+                    onClick={() => goToPage(i)}
+                    className={`px-4 py-2 rounded-lg ${
+                      currentPage === i
+                        ? 'bg-[#006227] text-white'
+                        : 'bg-gray-200'
+                    }`}
+                  >
+                    {i}
+                  </button>
+                );
+              }
+
+              if (end < totalPages) {
+                if (end < totalPages - 1) pages.push(<span key="e">...</span>);
+                pages.push(
+                  <button key={totalPages} onClick={() => goToPage(totalPages)} className="px-4 py-2 bg-gray-200 rounded-lg">
+                    {totalPages}
+                  </button>
+                );
+              }
+
+              return pages;
+            })()}
+
+            {/* NEXT */}
+            <button
+              onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
+              className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+              disabled={currentPage === totalPages}
+            >
+              Selanjutnya
+            </button>
+
+          </div>
+        )}
+
+        {/* BACK HOME */}
         <div className="text-center mt-12">
           <Link
             to="/"

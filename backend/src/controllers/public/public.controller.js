@@ -92,6 +92,18 @@ exports.getBeritaById = async (req, res) => {
         berita_id: req.params.id,
         status: "dipublikasi"
       },
+
+      // 🔥 WAJIB: ambil field utama termasuk youtube
+      attributes: [
+        "berita_id",
+        "judul",
+        "isi",
+        "tanggal",
+        "gambar",
+        "youtube_url", // 🔥 INI YANG PENTING
+        "masjid_id"
+      ],
+
       include: [
         {
           model: require("../../models/BeritaGambar"),
@@ -103,7 +115,6 @@ exports.getBeritaById = async (req, res) => {
           as: "masjid",
           attributes: ["masjid_id", "nama_masjid"]
         },
-        // 🔥 RELASI BACKUP: Kalau masjid_id di berita NULL
         {
           model: User,
           as: "user",
@@ -112,13 +123,24 @@ exports.getBeritaById = async (req, res) => {
             {
               model: MasjidTakmir,
               as: "takmirs",
-              include: [{ model: Masjid, as: "masjid", attributes: ["nama_masjid"] }]
+              include: [
+                {
+                  model: Masjid,
+                  as: "masjid",
+                  attributes: ["nama_masjid"]
+                }
+              ]
             }
           ]
         }
       ],
+
       order: [
-        [{ model: require("../../models/BeritaGambar"), as: "gambar_list" }, "gambar_id", "ASC"]
+        [
+          { model: require("../../models/BeritaGambar"), as: "gambar_list" },
+          "gambar_id",
+          "ASC"
+        ]
       ]
     });
 
@@ -127,6 +149,7 @@ exports.getBeritaById = async (req, res) => {
     }
 
     res.json(data);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
