@@ -14,6 +14,7 @@ const inventaris = require("../controllers/superadmin/inventaris.controller");
 const jamaah = require("../controllers/superadmin/jamaah.controller");
 const audit = require("../controllers/superadmin/audit.controller");
 const kategoriProgram = require("../controllers/superadmin/kategoriProgram.controller"); 
+const strukturOrganisasi = require("../controllers/takmir/strukturOrganisasi.controller");
 
 router.get("/audit-log", auth, superadminOnly, audit.getAll);
 
@@ -60,6 +61,8 @@ router.put("/kepengurusan/:id", auth, superadminOnly, upload.single("foto_pengur
 router.get("/kepengurusan", auth, superadminOnly, kepengurusan.getAll);
 router.get("/kepengurusan/:id", auth, superadminOnly, kepengurusan.getById);
 router.delete("/kepengurusan/:id", auth, superadminOnly, kepengurusan.delete);
+
+router.get("/struktur-organisasi", auth, superadminOnly, strukturOrganisasi.getAllStruktur);
 
 router.get("/keuangan", auth, superadminOnly, keuangan.getAll);
 router.get("/inventaris", auth, superadminOnly, inventaris.getAll);

@@ -153,7 +153,7 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [riwayat, setRiwayat] = useState([]);
   const [berita, setBerita] = useState([]);
   const [program, setProgram] = useState([]);
-  const [kepengurusan, setKepengurusan] = useState([]); 
+  const [strukturOrganisasi, setStrukturOrganisasi] = useState([]); // Perbaikan State
 
   // State untuk menyimpan kamus data / mapping
   const [userMap, setUserMap] = useState({});
@@ -166,7 +166,7 @@ const DetailMasjid = ({ user, onLogout }) => {
     jamaah: { page: 1, limit: 5 },
     inventaris: { page: 1, limit: 5 },
     riwayat: { page: 1, limit: 5 },
-    kepengurusan: { page: 1, limit: 5 } // Pagination Baru
+    strukturOrganisasi: { page: 1, limit: 5 } // Perbaikan Pagination
   });
 
   const paginateData = (data, page, limit) => {
@@ -238,7 +238,8 @@ const DetailMasjid = ({ user, onLogout }) => {
         axios.get(`http://localhost:3000/superadmin/kegiatan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/berita?masjid_id=${id}`, { headers }).catch(() => ({ data: [] })),
         axios.get(`http://localhost:3000/superadmin/program?masjid_id=${id}`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`http://localhost:3000/superadmin/kepengurusan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } }))
+        // Perbaikan Fetch API untuk Struktur Organisasi
+        axios.get(`http://localhost:3000/superadmin/struktur-organisasi?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } }))
       ]);
 
       const formatTableData = (response, mapKategoriManual = null) => {
@@ -259,7 +260,8 @@ const DetailMasjid = ({ user, onLogout }) => {
       
       setBerita(formatTableData(bRes));
       setProgram(formatTableData(pRes, mapKatProg));
-      setKepengurusan(sRes.data?.data || sRes.data || []); // Simpan data pengurus
+      // Simpan data struktur organisasi
+      setStrukturOrganisasi(sRes.data?.data || sRes.data || []); 
 
       setJamaah(jRes.data?.data || jRes.data || []);
       setInventaris(iRes.data?.data || iRes.data || []);
@@ -387,19 +389,18 @@ const DetailMasjid = ({ user, onLogout }) => {
             }
           />
 
-          {/* Struktur Organisasi */}
+          {/* Perbaikan Struktur Organisasi */}
           <DataTable 
             title="Struktur Organisasi Masjid" 
             icon={<Users className="text-mu-green" size={24}/>} 
-            data={paginateData(kepengurusan, pagination.kepengurusan.page, pagination.kepengurusan.limit)} 
+            data={paginateData(strukturOrganisasi, pagination.strukturOrganisasi.page, pagination.strukturOrganisasi.limit)} 
             columns={['Foto', 'Nama Pengurus', 'Jabatan', 'Periode Mulai', 'Periode Selesai']} 
-            // dataKeys harus sesuai dengan skema strukturOrganisasi milik takmir
             dataKeys={['foto', 'nama', 'jabatan', 'periode_mulai', 'periode_selesai']} 
-            currentLimit={pagination.kepengurusan.limit}
-            onLimitChange={(val) => handleLimitChange('kepengurusan', val)}
-            currentPage={pagination.kepengurusan.page}
-            totalPages={getTotalPages(kepengurusan, pagination.kepengurusan.limit)}
-            onPageChange={(val) => handlePageChange('kepengurusan', val)}
+            currentLimit={pagination.strukturOrganisasi.limit}
+            onLimitChange={(val) => handleLimitChange('strukturOrganisasi', val)}
+            currentPage={pagination.strukturOrganisasi.page}
+            totalPages={getTotalPages(strukturOrganisasi, pagination.strukturOrganisasi.limit)}
+            onPageChange={(val) => handlePageChange('strukturOrganisasi', val)}
         />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
