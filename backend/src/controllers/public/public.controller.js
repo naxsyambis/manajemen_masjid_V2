@@ -6,10 +6,11 @@ const Kegiatan = require("../../models/Kegiatan");
 const Kepengurusan = require("../../models/Kepengurusan");
 const Keuangan = require("../../models/Keuangan");      
 const Inventaris = require("../../models/Inventaris"); 
+const User = require("../../models/User"); // 🔥 Import User
+const MasjidTakmir = require("../../models/masjid_takmir"); // 🔥 Import MasjidTakmir
 const prayerService = require("../../services/prayer.service");
 const jadwalService = require("../../services/prayer.service");
 const MasjidService = require("../../services/masjid.service");
-
 
 exports.listMasjid = async (req, res) => {
   try {
@@ -56,11 +57,23 @@ exports.getBerita = async (req, res) => {
           as: "gambar_list",
           attributes: ["gambar_id", "path_gambar"]
         },
-        // Tambahkan include Masjid di sini
         {
-          model: Masjid, // Karena Masjid sudah di-import di atas file
+          model: Masjid,
           as: "masjid",
-          attributes: ["masjid_id", "nama_masjid"] // Cukup ambil data yang diperlukan
+          attributes: ["masjid_id", "nama_masjid"]
+        },
+        // 🔥 RELASI BACKUP: Kalau masjid_id di berita NULL, cari lewat user takmirnya
+        {
+          model: User,
+          as: "user",
+          attributes: ["user_id"],
+          include: [
+            {
+              model: MasjidTakmir,
+              as: "takmirs",
+              include: [{ model: Masjid, as: "masjid", attributes: ["nama_masjid"] }]
+            }
+          ]
         }
       ],
       order: [["published_at", "DESC"]]
@@ -85,11 +98,23 @@ exports.getBeritaById = async (req, res) => {
           as: "gambar_list",
           attributes: ["gambar_id", "path_gambar"]
         },
-        // Tambahkan include Masjid di sini
         {
-          model: Masjid, // Karena Masjid sudah di-import di atas file
+          model: Masjid,
           as: "masjid",
-          attributes: ["masjid_id", "nama_masjid"] // Cukup ambil data yang diperlukan
+          attributes: ["masjid_id", "nama_masjid"]
+        },
+        // 🔥 RELASI BACKUP: Kalau masjid_id di berita NULL
+        {
+          model: User,
+          as: "user",
+          attributes: ["user_id"],
+          include: [
+            {
+              model: MasjidTakmir,
+              as: "takmirs",
+              include: [{ model: Masjid, as: "masjid", attributes: ["nama_masjid"] }]
+            }
+          ]
         }
       ],
       order: [
@@ -125,23 +150,21 @@ exports.getProgramById = async (req, res) => {
   }
 };
 
-
 exports.getKegiatan = async (req, res) => {
     res.json(await Kegiatan.findAll());
 };
 
 exports.getKegiatanById = async (req, res) => {
   try {
-    const kegiatan = await Kegiatan.findByPk(req.params.id);  // Mengambil data kegiatan berdasarkan ID
+    const kegiatan = await Kegiatan.findByPk(req.params.id); 
     if (!kegiatan) {
       return res.status(404).json({ message: "Kegiatan tidak ditemukan" });
     }
-    res.json(kegiatan);  // Mengembalikan data kegiatan
+    res.json(kegiatan);  
   } catch (error) {
     res.status(500).json({ message: "Gagal mengambil data kegiatan", error: error.message });
   }
 };
-
 
 exports.getKepengurusan = async (req, res) => {
     res.json(await Kepengurusan.findAll());
