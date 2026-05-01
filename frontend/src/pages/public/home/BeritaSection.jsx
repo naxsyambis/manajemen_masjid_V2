@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 
 const BeritaSection = () => {
   const [berita, setBerita] = useState([]);
-  const [masjidMap, setMasjidMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -14,32 +14,16 @@ const BeritaSection = () => {
 
     const fetchData = async () => {
       try {
-        // 🔥 ambil berita + masjid sekaligus
-        const [beritaRes, masjidRes] = await Promise.all([
-          fetch('http://localhost:3000/public/berita'),
-          fetch('http://localhost:3000/public/masjid')
-        ]);
+        const res = await fetch('http://localhost:3000/public/berita');
+        if (!res.ok) throw new Error("Gagal fetch berita");
 
-        if (!beritaRes.ok || !masjidRes.ok) {
-          throw new Error("Gagal fetch data");
-        }
+        const data = await res.json();
 
-        const beritaData = await beritaRes.json();
-        const masjidData = await masjidRes.json();
-
-        // 🔥 mapping masjid_id → nama
-        const map = {};
-        masjidData.forEach(m => {
-          map[m.masjid_id] = m.nama_masjid;
-        });
-
-        setMasjidMap(map);
-
-        const sortedData = beritaData.sort(
+        const sorted = data.sort(
           (a, b) => new Date(b.tanggal) - new Date(a.tanggal)
         );
 
-        setBerita(sortedData);
+        setBerita(sorted);
 
       } catch (err) {
         console.error(err);
@@ -89,6 +73,7 @@ const BeritaSection = () => {
     <section id="berita" className="py-20">
       <div className="container mx-auto px-6">
 
+        {/* HEADER */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-[#006227] mb-4">
             Berita Terbaru
@@ -98,62 +83,76 @@ const BeritaSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {beritaTerbaru.length > 0 ? (
-            beritaTerbaru.map((item) => (
-              <Link
+        {/* GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          {beritaTerbaru.map((item) => {
+
+            const gambarUrl =
+              item.gambar
+                ? `http://localhost:3000/uploads/berita/${item.gambar}`
+                : item.gambar_list?.length > 0
+                  ? `http://localhost:3000/uploads/berita/${item.gambar_list[0].path_gambar}`
+                  : 'https://via.placeholder.com/800x400';
+
+            const namaMasjid =
+              item.masjid?.nama_masjid ||
+              item.user?.takmirs?.[0]?.masjid?.nama_masjid ||
+              "Cabang Muhammadiyah Pundong";
+
+            return (
+              <div
                 key={item.berita_id}
-                to={`/berita/${item.berita_id}`}
-                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden"
+                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col h-full"
               >
 
-                <div className="h-52 overflow-hidden">
+                {/* GAMBAR */}
+                <div className="h-56 overflow-hidden">
                   <img
-                    src={
-                      item.gambar
-                        ? `http://localhost:3000/uploads/berita/${item.gambar}`
-                        : 'https://via.placeholder.com/800x400'
-                    }
+                    src={gambarUrl}
                     alt={item.judul}
                     className="w-full h-full object-cover"
                   />
                 </div>
 
-                <div className="p-5">
-                  <h3 className="font-bold text-lg text-[#006227] mb-2">
+                {/* CONTENT */}
+                <div className="p-5 flex flex-col flex-grow">
+
+                  <h3 className="font-bold text-lg text-[#006227] mb-2 line-clamp-2 min-h-[48px]">
                     {item.judul}
                   </h3>
 
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-3 flex-grow">
                     {getExcerpt(item.isi)}
                   </p>
 
+                  {/* FOOTER */}
                   <div className="text-sm text-gray-500 space-y-1">
-
-                    {/* 🔥 FIX DI SINI */}
-                    <div>
-                      🕌{" "}
-                      <span className="font-semibold text-[#006227]">
-                        {masjidMap[item.masjid_id] || "Masjid tidak diketahui"}
-                      </span>
+                    <div className="font-semibold text-[#006227]">
+                      {namaMasjid}
                     </div>
-
                     <div>
-                      📅 {formatTanggal(item.tanggal)}
+                      {formatTanggal(item.tanggal)}
                     </div>
-
                   </div>
+
+                  {/* 🔥 BUTTON SELENGKAPNYA */}
+                  <div className="mt-4 flex justify-end">
+                    <Link
+                      to={`/berita/${item.berita_id}`}
+                      className="text-[#006227] font-semibold hover:underline"
+                    >
+                      Selengkapnya
+                    </Link>
+                  </div>
+
                 </div>
 
-              </Link>
-            ))
-          ) : (
-            <div className="col-span-full text-center">
-              Tidak ada berita
-            </div>
-          )}
+              </div>
+            );
+          })}
         </div>
 
+        {/* BUTTON SEMUA */}
         <div className="text-center mt-10">
           <Link
             to="/berita"
