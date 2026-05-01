@@ -1,3 +1,5 @@
+// frontend/src/pages/superadmin/berita/EditBerita.jsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -259,6 +261,7 @@ const EditBerita = ({ user, onLogout }) => {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
+                {/* 🔥 BUG FIX: PERBAIKAN PEMANGGILAN URL GAMBAR LAMA */}
                 {existingImages.map((img) => (
                   <div key={img.gambar_id} className="relative">
                     <img
@@ -284,6 +287,7 @@ const EditBerita = ({ user, onLogout }) => {
                   <div key={index} className="relative">
                     <img
                       src={URL.createObjectURL(file)}
+                      alt="Preview Upload"
                       className="w-full h-32 object-cover rounded-xl"
                       alt="Preview gambar baru"
                     />
@@ -382,6 +386,16 @@ const EditBerita = ({ user, onLogout }) => {
                       </button>
                     )}
 
+                    {/* ✅ TOLAK */}
+                    {(status === "draft" || status === "menunggu" || status === "disetujui") && (
+                      <button
+                        type="button"
+                        onClick={() => updateStatus("ditolak")}
+                        className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:scale-105 transition"
+                      >
+                        Tolak
+                      </button>
+                    )}
                     {/* ✅ TOLAK */}
                     {(status === "draft" || status === "menunggu" || status === "disetujui") && (
                       <button
