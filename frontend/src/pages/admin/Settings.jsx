@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import axios from 'axios';
 import {
   User,
@@ -17,16 +18,137 @@ import {
   X,
   Landmark,
   Hash,
-  BadgeCheck
+  BadgeCheck,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Info
 } from 'lucide-react';
 
-const handleAuthError = (err) => {
+const MAX_REKENING_DIGIT = 20;
+const MAX_BANK_REKENING = 3;
+
+const AlertPopup = ({ alertData, onClose }) => {
+  if (!alertData.show) return null;
+
+  const isSuccess = alertData.type === "success";
+  const isError = alertData.type === "error";
+  const isWarning = alertData.type === "warning";
+  const isConfirm = alertData.type === "confirm";
+
+  const Icon = isSuccess
+    ? CheckCircle2
+    : isError
+      ? XCircle
+      : isWarning || isConfirm
+        ? AlertTriangle
+        : Info;
+
+  const iconClass = isSuccess
+    ? "bg-green-100 text-green-600"
+    : isError
+      ? "bg-red-100 text-red-600"
+      : isWarning || isConfirm
+        ? "bg-yellow-100 text-yellow-600"
+        : "bg-blue-100 text-blue-600";
+
+  const buttonClass = isConfirm
+    ? "bg-red-600 hover:bg-red-700 text-white"
+    : isSuccess
+      ? "bg-green-600 hover:bg-green-700 text-white"
+      : isError
+        ? "bg-red-600 hover:bg-red-700 text-white"
+        : isWarning
+          ? "bg-mu-yellow hover:bg-yellow-400 text-mu-green"
+          : "bg-mu-green hover:bg-green-700 text-white";
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+
+      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="p-8 text-center">
+          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}>
+            <Icon size={42} strokeWidth={2.5} />
+          </div>
+
+          <h3 className="text-2xl font-black text-gray-800 leading-tight">
+            {alertData.title}
+          </h3>
+
+          <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">
+            {alertData.message}
+          </p>
+
+          {isConfirm ? (
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-4 rounded-2xl bg-gray-100 text-gray-500 text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (alertData.onConfirm) alertData.onConfirm();
+                  onClose();
+                }}
+                className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+              >
+                {alertData.confirmText || "Ya"}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (alertData.onConfirm) alertData.onConfirm();
+                onClose();
+              }}
+              className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+            >
+              {alertData.confirmText || "Mengerti"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+const handleAuthError = (err, showPopup) => {
   if (err.response && err.response.status === 401) {
-    alert(err.response.data.message || "Sesi Anda telah berakhir");
-    localStorage.removeItem("token");
-    window.location.href = "/login";
+    const message = err.response.data.message || "Sesi Anda telah berakhir";
+
+    showPopup({
+      type: "error",
+      title: "Sesi Berakhir",
+      message,
+      confirmText: "Login Ulang",
+      onConfirm: () => {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+    });
+
     return true;
   }
+
   return false;
 };
 
@@ -47,10 +169,47 @@ const Settings = () => {
     atas_nama: ''
   });
 
+  const [alertData, setAlertData] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+    confirmText: "",
+    onConfirm: null
+  });
+
   const token = localStorage.getItem('token');
 
   const adminWA = "6281234567890";
   const pesanWA = encodeURIComponent(`Halo Admin SIM Masjid, saya Takmir ${masjid.nama_masjid || ""} ingin bertanya...`);
+
+  const showPopup = ({
+    type = "info",
+    title = "Informasi",
+    message = "",
+    confirmText = "",
+    onConfirm = null
+  }) => {
+    setAlertData({
+      show: true,
+      type,
+      title,
+      message,
+      confirmText,
+      onConfirm
+    });
+  };
+
+  const closePopup = () => {
+    setAlertData({
+      show: false,
+      type: "info",
+      title: "",
+      message: "",
+      confirmText: "",
+      onConfirm: null
+    });
+  };
 
   const fetchRekening = async (idMasjid) => {
     if (!token || !idMasjid) return;
@@ -67,10 +226,23 @@ const Settings = () => {
         }
       });
 
-      setRekeningList(Array.isArray(res.data.data) ? res.data.data : []);
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+
+      setRekeningList(data);
     } catch (err) {
-      if (handleAuthError(err)) return;
+      if (handleAuthError(err, showPopup)) return;
+
       console.error("Gagal mengambil data rekening:", err);
+
+      showPopup({
+        type: "error",
+        title: "Gagal Memuat",
+        message: "Data rekening masjid gagal dimuat."
+      });
     } finally {
       setLoadingRekening(false);
     }
@@ -78,14 +250,15 @@ const Settings = () => {
 
   const fetchSemuaData = async () => {
     if (!token) return;
+
     try {
       const resUser = await axios.get('http://localhost:3000/auth/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       setProfile({
-        nama: resUser.data.nama,
-        email: resUser.data.email
+        nama: resUser.data.nama || '',
+        email: resUser.data.email || ''
       });
 
       if (resUser.data.foto_tanda_tangan) {
@@ -106,20 +279,29 @@ const Settings = () => {
         localStorage.setItem('masjid_id', idMasjid);
 
         const resMasjid = await axios.get(`http://localhost:3000/public/masjid/${idMasjid}`);
-        const dataDb = resMasjid.data.masjid;
+        const dataDb = resMasjid.data.masjid || {};
 
         setMasjid({
-          nama_masjid: dataDb.nama_masjid,
-          alamat: dataDb.alamat
+          nama_masjid: dataDb.nama_masjid || '',
+          alamat: dataDb.alamat || ''
         });
 
-        localStorage.setItem('namaMasjid', dataDb.nama_masjid);
+        if (dataDb.nama_masjid) {
+          localStorage.setItem('namaMasjid', dataDb.nama_masjid);
+        }
 
         fetchRekening(idMasjid);
       }
     } catch (err) {
-      if (handleAuthError(err)) return;
+      if (handleAuthError(err, showPopup)) return;
+
       console.error("Gagal sinkron data database:", err);
+
+      showPopup({
+        type: "error",
+        title: "Gagal Memuat",
+        message: "Data pengaturan gagal dimuat."
+      });
     }
   };
 
@@ -127,8 +309,27 @@ const Settings = () => {
     fetchSemuaData();
   }, []);
 
-  // friska habis ngerubah ini
   const handleSaveTtd = async (file) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showPopup({
+        type: "warning",
+        title: "File Tidak Valid",
+        message: "File tanda tangan harus berupa gambar."
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showPopup({
+        type: "warning",
+        title: "Ukuran Terlalu Besar",
+        message: "Ukuran tanda tangan maksimal 5MB."
+      });
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("ttd", file);
@@ -138,40 +339,79 @@ const Settings = () => {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
           }
         }
       );
 
       setPreviewTtd(`http://localhost:3000${res.data.path}?t=${Date.now()}`);
       localStorage.setItem('ttdImage', res.data.path);
+
+      showPopup({
+        type: "success",
+        title: "Tanda Tangan Disimpan",
+        message: "Tanda tangan berhasil diupload."
+      });
     } catch (err) {
-      if (handleAuthError(err)) return;
+      if (handleAuthError(err, showPopup)) return;
+
       console.error(err);
-      alert("Gagal upload tanda tangan");
+
+      showPopup({
+        type: "error",
+        title: "Gagal Upload",
+        message: err.response?.data?.message || "Gagal upload tanda tangan."
+      });
     }
   };
 
-  // friska habis ngerubah ini
   const handleDeleteTtd = async () => {
-    if (window.confirm("Hapus berkas tanda tangan?")) {
-      try {
-        await axios.delete(
-          "http://localhost:3000/auth/profile/ttd",
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-        setPreviewTtd(null);
-        localStorage.removeItem('ttdImage');
-      } catch (err) {
-        if (handleAuthError(err)) return;
-        alert("Gagal menghapus.");
+    showPopup({
+      type: "confirm",
+      title: "Hapus Tanda Tangan?",
+      message: "Berkas tanda tangan akan dihapus dari akun Anda.",
+      confirmText: "Hapus",
+      onConfirm: async () => {
+        try {
+          await axios.delete(
+            "http://localhost:3000/auth/profile/ttd",
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+
+          setPreviewTtd(null);
+          localStorage.removeItem('ttdImage');
+
+          showPopup({
+            type: "success",
+            title: "Tanda Tangan Dihapus",
+            message: "Tanda tangan berhasil dihapus."
+          });
+        } catch (err) {
+          if (handleAuthError(err, showPopup)) return;
+
+          showPopup({
+            type: "error",
+            title: "Gagal Menghapus",
+            message: err.response?.data?.message || "Gagal menghapus tanda tangan."
+          });
+        }
       }
-    }
+    });
   };
 
   const openTambahRekening = () => {
+    if (rekeningList.length >= MAX_BANK_REKENING) {
+      showPopup({
+        type: "warning",
+        title: "Batas Rekening Tercapai",
+        message: `Maksimal rekening/bank yang bisa ditambahkan adalah ${MAX_BANK_REKENING}.`
+      });
+      return;
+    }
+
     setIsEditRekening(false);
     setSelectedRekeningId(null);
     setRekeningForm({
@@ -204,28 +444,81 @@ const Settings = () => {
     });
   };
 
+  const handleChangeNoRekening = (e) => {
+    const onlyNumber = e.target.value.replace(/[^0-9]/g, '');
+    const limitedNumber = onlyNumber.slice(0, MAX_REKENING_DIGIT);
+
+    setRekeningForm({
+      ...rekeningForm,
+      no_rekening: limitedNumber
+    });
+  };
+
   const handleSaveRekening = async (e) => {
     e.preventDefault();
 
     const idMasjid = masjidId || localStorage.getItem('masjid_id');
 
     if (!idMasjid) {
-      alert("Masjid ID tidak ditemukan. Silakan logout lalu login ulang.");
+      showPopup({
+        type: "warning",
+        title: "Masjid ID Tidak Ada",
+        message: "Masjid ID tidak ditemukan. Silakan logout lalu login ulang."
+      });
+      return;
+    }
+
+    if (!isEditRekening && rekeningList.length >= MAX_BANK_REKENING) {
+      showPopup({
+        type: "warning",
+        title: "Batas Rekening Tercapai",
+        message: `Maksimal rekening/bank yang bisa ditambahkan adalah ${MAX_BANK_REKENING}.`
+      });
       return;
     }
 
     if (!rekeningForm.nama_bank.trim()) {
-      alert("Nama bank wajib diisi.");
+      showPopup({
+        type: "warning",
+        title: "Nama Bank Kosong",
+        message: "Nama bank wajib diisi."
+      });
       return;
     }
 
     if (!rekeningForm.no_rekening.trim()) {
-      alert("Nomor rekening wajib diisi.");
+      showPopup({
+        type: "warning",
+        title: "Nomor Rekening Kosong",
+        message: "Nomor rekening wajib diisi."
+      });
+      return;
+    }
+
+    if (!/^[0-9]+$/.test(rekeningForm.no_rekening)) {
+      showPopup({
+        type: "warning",
+        title: "Nomor Rekening Tidak Valid",
+        message: "Nomor rekening hanya boleh berisi angka."
+      });
+      return;
+    }
+
+    if (rekeningForm.no_rekening.length > MAX_REKENING_DIGIT) {
+      showPopup({
+        type: "warning",
+        title: "Nomor Rekening Terlalu Panjang",
+        message: `Nomor rekening maksimal ${MAX_REKENING_DIGIT} digit.`
+      });
       return;
     }
 
     if (!rekeningForm.atas_nama.trim()) {
-      alert("Atas nama wajib diisi.");
+      showPopup({
+        type: "warning",
+        title: "Atas Nama Kosong",
+        message: "Atas nama wajib diisi."
+      });
       return;
     }
 
@@ -234,9 +527,9 @@ const Settings = () => {
         await axios.put(
           `http://localhost:3000/takmir/rekening-masjid/${selectedRekeningId}`,
           {
-            nama_bank: rekeningForm.nama_bank,
-            no_rekening: rekeningForm.no_rekening,
-            atas_nama: rekeningForm.atas_nama
+            nama_bank: rekeningForm.nama_bank.trim(),
+            no_rekening: rekeningForm.no_rekening.trim(),
+            atas_nama: rekeningForm.atas_nama.trim()
           },
           {
             headers: {
@@ -245,15 +538,19 @@ const Settings = () => {
           }
         );
 
-        alert("Rekening berhasil diupdate.");
+        showPopup({
+          type: "success",
+          title: "Rekening Diupdate",
+          message: "Rekening berhasil diperbarui."
+        });
       } else {
         await axios.post(
           "http://localhost:3000/takmir/rekening-masjid",
           {
             masjid_id: idMasjid,
-            nama_bank: rekeningForm.nama_bank,
-            no_rekening: rekeningForm.no_rekening,
-            atas_nama: rekeningForm.atas_nama
+            nama_bank: rekeningForm.nama_bank.trim(),
+            no_rekening: rekeningForm.no_rekening.trim(),
+            atas_nama: rekeningForm.atas_nama.trim()
           },
           {
             headers: {
@@ -262,44 +559,75 @@ const Settings = () => {
           }
         );
 
-        alert("Rekening berhasil ditambahkan.");
+        showPopup({
+          type: "success",
+          title: "Rekening Ditambahkan",
+          message: "Rekening berhasil ditambahkan."
+        });
       }
 
       closeRekeningForm();
       fetchRekening(idMasjid);
     } catch (err) {
-      if (handleAuthError(err)) return;
+      if (handleAuthError(err, showPopup)) return;
+
       console.error("Gagal menyimpan rekening:", err);
-      alert(err.response?.data?.message || "Gagal menyimpan rekening.");
+
+      showPopup({
+        type: "error",
+        title: "Gagal Menyimpan",
+        message: err.response?.data?.message || "Gagal menyimpan rekening."
+      });
     }
   };
 
   const handleDeleteRekening = async (rekeningId) => {
     const idMasjid = masjidId || localStorage.getItem('masjid_id');
 
-    if (!window.confirm("Hapus rekening ini?")) return;
+    showPopup({
+      type: "confirm",
+      title: "Hapus Rekening?",
+      message: "Data rekening yang dihapus tidak dapat dikembalikan.",
+      confirmText: "Hapus",
+      onConfirm: async () => {
+        try {
+          await axios.delete(
+            `http://localhost:3000/takmir/rekening-masjid/${rekeningId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          );
 
-    try {
-      await axios.delete(
-        `http://localhost:3000/takmir/rekening-masjid/${rekeningId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          showPopup({
+            type: "success",
+            title: "Rekening Dihapus",
+            message: "Rekening berhasil dihapus."
+          });
+
+          fetchRekening(idMasjid);
+        } catch (err) {
+          if (handleAuthError(err, showPopup)) return;
+
+          console.error("Gagal menghapus rekening:", err);
+
+          showPopup({
+            type: "error",
+            title: "Gagal Menghapus",
+            message: err.response?.data?.message || "Gagal menghapus rekening."
+          });
         }
-      );
-
-      alert("Rekening berhasil dihapus.");
-      fetchRekening(idMasjid);
-    } catch (err) {
-      if (handleAuthError(err)) return;
-      console.error("Gagal menghapus rekening:", err);
-      alert(err.response?.data?.message || "Gagal menghapus rekening.");
-    }
+      }
+    });
   };
+
+  const isBankLimitReached = rekeningList.length >= MAX_BANK_REKENING;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fadeIn p-4 pb-20">
+      <AlertPopup alertData={alertData} onClose={closePopup} />
+
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-8 transition-all hover:shadow-md">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="flex items-center gap-6 p-4 bg-gray-50/50 rounded-3xl border border-gray-100 group">
@@ -307,8 +635,12 @@ const Settings = () => {
               {profile.nama ? profile.nama.charAt(0) : '?'}
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1">Takmir Aktif</span>
-              <h3 className="font-black text-gray-800 uppercase tracking-tight text-xl truncate">{profile.nama || "..."}</h3>
+              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1">
+                Takmir Aktif
+              </span>
+              <h3 className="font-black text-gray-800 uppercase tracking-tight text-xl truncate">
+                {profile.nama || "..."}
+              </h3>
             </div>
           </div>
 
@@ -317,8 +649,12 @@ const Settings = () => {
               <Mail size={28} />
             </div>
             <div className="overflow-hidden">
-              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1">Kontak Login</span>
-              <p className="text-sm text-gray-500 font-mono italic truncate">{profile.email || "..."}</p>
+              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1">
+                Kontak Login
+              </span>
+              <p className="text-sm text-gray-500 font-mono italic truncate">
+                {profile.email || "..."}
+              </p>
             </div>
           </div>
         </div>
@@ -330,13 +666,17 @@ const Settings = () => {
             <div className="p-10 space-y-8 h-full flex flex-col justify-center">
               <div className="flex items-center gap-3 text-mu-green/40">
                 <Building size={20} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Informasi Lokasi</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  Informasi Lokasi
+                </span>
               </div>
 
               <div className="relative">
                 <div className="absolute -left-4 top-0 w-1 h-full bg-mu-green rounded-full opacity-20"></div>
                 <div className="bg-mu-green/[0.03] p-8 rounded-[2rem] border border-mu-green/5 space-y-2">
-                  <label className="text-[10px] font-black text-mu-green/40 uppercase tracking-widest block">Nama Masjid Resmi</label>
+                  <label className="text-[10px] font-black text-mu-green/40 uppercase tracking-widest block">
+                    Nama Masjid Resmi
+                  </label>
                   <p className="text-4xl font-black text-mu-green uppercase leading-none tracking-tighter">
                     {masjid.nama_masjid || "Syncing..."}
                   </p>
@@ -348,8 +688,12 @@ const Settings = () => {
                   <MapPin size={28} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest block">Alamat Operasional</label>
-                  <p className="text-base text-gray-500 font-semibold italic leading-relaxed">{masjid.alamat || "Data tidak ditemukan."}</p>
+                  <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest block">
+                    Alamat Operasional
+                  </label>
+                  <p className="text-base text-gray-500 font-semibold italic leading-relaxed">
+                    {masjid.alamat || "Data tidak ditemukan."}
+                  </p>
                 </div>
               </div>
             </div>
@@ -360,16 +704,23 @@ const Settings = () => {
               <div className="flex items-center gap-3 text-mu-green">
                 <CreditCard size={22} />
                 <div>
-                  <h3 className="text-lg font-black uppercase tracking-tight text-gray-800">Rekening Masjid</h3>
+                  <h3 className="text-lg font-black uppercase tracking-tight text-gray-800">
+                    Rekening Masjid
+                  </h3>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                     Kelola rekening donasi dan transaksi masjid
+                  </p>
+                  <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mt-1">
+                    {rekeningList.length}/{MAX_BANK_REKENING} rekening tersimpan
                   </p>
                 </div>
               </div>
 
               <button
+                type="button"
                 onClick={openTambahRekening}
-                className="bg-mu-green text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg active:scale-95"
+                disabled={isBankLimitReached}
+                className="bg-mu-green text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus size={16} />
                 Tambah Rekening
@@ -401,17 +752,17 @@ const Settings = () => {
                     </label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      maxLength={MAX_REKENING_DIGIT}
                       value={rekeningForm.no_rekening}
-                      onChange={(e) =>
-                        setRekeningForm({
-                          ...rekeningForm,
-                          no_rekening: e.target.value.replace(/[^0-9]/g, '')
-                        })
-                      }
+                      onChange={handleChangeNoRekening}
                       placeholder="Contoh: 1234567890"
                       className="w-full px-5 py-4 rounded-2xl bg-white border border-gray-100 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green text-sm font-bold text-gray-700"
                       required
                     />
+                    <p className="text-[9px] font-bold text-gray-400">
+                      {rekeningForm.no_rekening.length}/{MAX_REKENING_DIGIT} digit
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -482,6 +833,7 @@ const Settings = () => {
 
                     <div className="flex gap-3 md:opacity-40 group-hover:opacity-100 transition-opacity">
                       <button
+                        type="button"
                         onClick={() => openEditRekening(rekening)}
                         className="p-3 rounded-2xl bg-white border border-gray-100 text-yellow-500 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
                         title="Edit Rekening"
@@ -490,6 +842,7 @@ const Settings = () => {
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => handleDeleteRekening(rekening.rekening_id)}
                         className="p-3 rounded-2xl bg-white border border-gray-100 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm"
                         title="Hapus Rekening"
@@ -521,13 +874,20 @@ const Settings = () => {
                 <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
                   <HelpCircle size={22} className="text-mu-yellow" />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-80">Pusat Bantuan</span>
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-80">
+                  Pusat Bantuan
+                </span>
               </div>
               <div className="space-y-1">
-                <h4 className="text-lg font-black leading-tight">Butuh Bantuan Teknis?</h4>
-                <p className="text-[9px] opacity-70 font-medium italic">Hubungi Pengurus Ranting melalui WhatsApp resmi.</p>
+                <h4 className="text-lg font-black leading-tight">
+                  Butuh Bantuan Teknis?
+                </h4>
+                <p className="text-[9px] opacity-70 font-medium italic">
+                  Hubungi Pengurus Ranting melalui WhatsApp resmi.
+                </p>
               </div>
               <button
+                type="button"
                 onClick={() => window.open(`https://wa.me/${adminWA}?text=${pesanWA}`, '_blank')}
                 className="w-full bg-white text-mu-green py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-mu-yellow hover:text-mu-green transition-all shadow-lg active:scale-95"
               >
@@ -545,10 +905,13 @@ const Settings = () => {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3 text-mu-green">
                 <PenTool size={20} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Upload Tanda Tangan</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  Upload Tanda Tangan
+                </span>
               </div>
               {previewTtd && (
                 <button
+                  type="button"
                   onClick={handleDeleteTtd}
                   className="text-red-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-xl transition-all"
                 >
@@ -560,15 +923,23 @@ const Settings = () => {
             <div className="flex-1 flex flex-col justify-center">
               <div className="relative group aspect-square max-w-full mx-auto w-full border-2 border-dashed border-gray-100 rounded-[2rem] flex flex-col items-center justify-center bg-gray-50/30 overflow-hidden mb-8 transition-colors hover:bg-gray-50/50">
                 {previewTtd ? (
-                  <img src={previewTtd} alt="TTD" className="max-h-[85%] object-contain animate-fadeIn drop-shadow-xl" />
+                  <img
+                    src={previewTtd}
+                    alt="TTD"
+                    className="max-h-[85%] object-contain animate-fadeIn drop-shadow-xl"
+                  />
                 ) : (
                   <div className="text-center space-y-4">
                     <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-sm mx-auto text-gray-200 ring-8 ring-gray-50">
                       <PenTool size={40} />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Belum ada TTD</p>
-                      <p className="text-[8px] text-gray-400 italic">Klik tombol di bawah untuk unggah</p>
+                      <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
+                        Belum ada TTD
+                      </p>
+                      <p className="text-[8px] text-gray-400 italic">
+                        Klik tombol di bawah untuk unggah
+                      </p>
                     </div>
                   </div>
                 )}
