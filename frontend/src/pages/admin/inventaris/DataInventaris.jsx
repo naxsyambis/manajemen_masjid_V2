@@ -93,14 +93,23 @@ const AlertPopup = ({ alertData, onClose }) => {
           ? 'bg-red-600 hover:bg-red-700 text-white'
           : 'bg-mu-green hover:bg-green-700 text-white';
 
+  const handleMainButton = () => {
+    const callback = alertData.onConfirm;
+    onClose();
+
+    if (callback) {
+      setTimeout(callback, 120);
+    }
+  };
+
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-4">
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
         onClick={onClose}
       />
 
-      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
+      <div className="relative z-10 bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
         <button
           type="button"
           onClick={onClose}
@@ -115,11 +124,11 @@ const AlertPopup = ({ alertData, onClose }) => {
           </div>
 
           <h3 className="text-2xl font-black text-gray-800 leading-tight">
-            {alertData.title}
+            {alertData.title || 'Informasi'}
           </h3>
 
           <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">
-            {alertData.message}
+            {alertData.message || '-'}
           </p>
 
           {isConfirm ? (
@@ -134,10 +143,7 @@ const AlertPopup = ({ alertData, onClose }) => {
 
               <button
                 type="button"
-                onClick={() => {
-                  if (alertData.onConfirm) alertData.onConfirm();
-                  onClose();
-                }}
+                onClick={handleMainButton}
                 className={`py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
               >
                 {alertData.confirmText || 'Ya'}
@@ -146,7 +152,7 @@ const AlertPopup = ({ alertData, onClose }) => {
           ) : (
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleMainButton}
               className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
             >
               {alertData.confirmText || 'Mengerti'}
@@ -222,7 +228,13 @@ const DataInventaris = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setItems(Array.isArray(res.data) ? res.data : res.data.data || []);
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+
+      setItems(data);
     } catch (err) {
       if (handleAuthError(err, showPopup)) return;
 
@@ -243,8 +255,12 @@ const DataInventaris = () => {
   }, [token]);
 
   const filteredItems = items.filter((item) => {
-    const matchSearch = item.nama_barang?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchKondisi = filterKondisi === 'semua' || item.kondisi === filterKondisi;
+    const namaBarang = item.nama_barang || '';
+    const kondisi = item.kondisi || '';
+
+    const matchSearch = namaBarang.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchKondisi = filterKondisi === 'semua' || kondisi === filterKondisi;
+
     return matchSearch && matchKondisi;
   });
 
@@ -429,16 +445,71 @@ const DataInventaris = () => {
     });
   };
 
-  // 🔥 LOGIKA MENGHITUNG TOTAL BARU (Diambil dari kolom .jumlah)
-  const totalAset = items.reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
-  
-  const totalLayak = items
-    .filter(i => i.kondisi === 'baik')
-    .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
-    
-  const totalPerbaikan = items
-    .filter(i => i.kondisi !== 'baik') // Ini mencakup "rusak" dan "hilang"
-    .reduce((sum, item) => sum + Number(item.jumlah || 0), 0);
+  const hitungRingkasanInventaris = () => {
+    const kelompokBarang = {};
+
+    items.forEach((item) => {
+      const nama = String(item.nama_barang || '')
+        .trim()
+        .toLowerCase();
+
+      const kondisi = String(item.kondisi || '').trim().toLowerCase();
+      const jumlah = Number(item.jumlah || 0);
+
+      if (!nama || jumlah <= 0) return;
+
+      if (!kelompokBarang[nama]) {
+        kelompokBarang[nama] = {
+          baik: 0,
+          rusak: 0,
+          hilang: 0
+        };
+      }
+
+      if (kondisi === 'baik') {
+        kelompokBarang[nama].baik += jumlah;
+      } else if (kondisi === 'rusak') {
+        kelompokBarang[nama].rusak += jumlah;
+      } else if (kondisi === 'hilang') {
+        kelompokBarang[nama].hilang += jumlah;
+      }
+    });
+
+    return Object.values(kelompokBarang).reduce(
+      (summary, barang) => {
+        const totalAwalLayak = barang.baik;
+        const totalAwalRusak = barang.rusak;
+        const totalHilang = barang.hilang;
+
+        const sisaLayak = Math.max(totalAwalLayak - totalHilang, 0);
+
+        const sisaHilangSetelahKurangiLayak = Math.max(totalHilang - totalAwalLayak, 0);
+        const sisaRusak = Math.max(totalAwalRusak - sisaHilangSetelahKurangiLayak, 0);
+
+        const totalAsetAktif = sisaLayak + sisaRusak;
+
+        summary.totalAset += totalAsetAktif;
+        summary.totalLayak += sisaLayak;
+        summary.totalPerbaikan += sisaRusak;
+        summary.totalHilang += totalHilang;
+
+        return summary;
+      },
+      {
+        totalAset: 0,
+        totalLayak: 0,
+        totalPerbaikan: 0,
+        totalHilang: 0
+      }
+    );
+  };
+
+  const {
+    totalAset,
+    totalLayak,
+    totalPerbaikan,
+    totalHilang
+  } = hitungRingkasanInventaris();
 
   return (
     <div className="p-4 space-y-10 animate-fadeIn bg-[#fdfdfd]">
@@ -476,9 +547,8 @@ const DataInventaris = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
         <div className="stat-card-hover transition-all hover:scale-105">
-          {/* Manggil variabel hasil hitungan reduce */}
           <StatCard
             title="Total Aset"
             value={totalAset}
@@ -488,7 +558,6 @@ const DataInventaris = () => {
         </div>
 
         <div className="stat-card-hover transition-all hover:scale-105">
-          {/* Manggil variabel hasil hitungan reduce */}
           <StatCard
             title="Kondisi Layak"
             value={totalLayak}
@@ -498,12 +567,20 @@ const DataInventaris = () => {
         </div>
 
         <div className="stat-card-hover transition-all hover:scale-105">
-          {/* Manggil variabel hasil hitungan reduce */}
           <StatCard
             title="Perlu Perbaikan"
             value={totalPerbaikan}
             icon={<AlertCircle size={26} strokeWidth={2.5} />}
             colorClass="bg-red-50/50 text-red-600 border border-red-100 shadow-sm"
+          />
+        </div>
+
+        <div className="stat-card-hover transition-all hover:scale-105">
+          <StatCard
+            title="Barang Hilang"
+            value={totalHilang}
+            icon={<XCircle size={26} strokeWidth={2.5} />}
+            colorClass="bg-gray-50/50 text-gray-600 border border-gray-100 shadow-sm"
           />
         </div>
       </div>
@@ -515,6 +592,7 @@ const DataInventaris = () => {
               size={20}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-800 group-focus-within:text-mu-green transition-colors"
             />
+
             <input
               type="text"
               placeholder="Cari aset masjid..."
@@ -552,12 +630,14 @@ const DataInventaris = () => {
                     Nama Barang
                   </div>
                 </th>
+
                 <th className="p-8">
                   <div className="flex items-center gap-2">
                     <ArrowUpDown size={14} />
                     Kuantitas
                   </div>
                 </th>
+
                 <th className="p-8 text-center">Status Aset</th>
                 <th className="p-8">Keterangan</th>
                 <th className="p-8 text-center">Aksi</th>
@@ -573,73 +653,83 @@ const DataInventaris = () => {
                     </div>
                   </td>
                 </tr>
-              ) : filteredItems.map((item) => (
-                <tr
-                  key={item.inventaris_id}
-                  className="group hover:bg-mu-green/[0.03] transition-all duration-300 cursor-default"
-                >
-                  <td className="p-8">
-                    {/* Karena dari database nyimpennya huruf kecil semua (mukenah), CSS capitalize ini bakal otomatis bikin awalnya gede jadi "Mukenah" */}
-                    <span className="text-sm font-black text-gray-700 capitalize tracking-tighter group-hover:text-mu-green transition-colors">
-                      {item.nama_barang}
-                    </span>
-                  </td>
-
-                  <td className="p-8">
-                    <div className="flex items-end gap-1">
-                      <span className="text-2xl font-black text-gray-800 leading-none">
-                        {item.jumlah}
+              ) : (
+                filteredItems.map((item) => (
+                  <tr
+                    key={item.inventaris_id}
+                    className="group hover:bg-mu-green/[0.03] transition-all duration-300 cursor-default"
+                  >
+                    <td className="p-8">
+                      <span className="text-sm font-black text-gray-700 capitalize tracking-tighter group-hover:text-mu-green transition-colors">
+                        {item.nama_barang}
                       </span>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">
-                        Unit
+                    </td>
+
+                    <td className="p-8">
+                      <div className="flex items-end gap-1">
+                        <span className="text-2xl font-black text-gray-800 leading-none">
+                          {item.jumlah}
+                        </span>
+
+                        <span className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">
+                          Unit
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="p-8 text-center">
+                      <span
+                        className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-3 transition-all group-hover:scale-105 shadow-sm ${
+                          item.kondisi === 'baik'
+                            ? 'bg-green-100/50 text-green-700'
+                            : item.kondisi === 'rusak'
+                              ? 'bg-red-100/50 text-red-700'
+                              : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full ${
+                            item.kondisi === 'baik'
+                              ? 'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.8)]'
+                              : item.kondisi === 'rusak'
+                                ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]'
+                                : 'bg-gray-400'
+                          }`}
+                        />
+                        {item.kondisi}
                       </span>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td className="p-8 text-center">
-                    <span className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-3 transition-all group-hover:scale-105 shadow-sm ${
-                      item.kondisi === 'baik'
-                        ? 'bg-green-100/50 text-green-700'
-                        : 'bg-red-100/50 text-red-700'
-                    }`}>
-                      <span className={`w-2.5 h-2.5 rounded-full ${
-                        item.kondisi === 'baik'
-                          ? 'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.8)]'
-                          : 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]'
-                      }`}></span>
-                      {item.kondisi}
-                    </span>
-                  </td>
+                    <td className="p-8">
+                      <div className="flex flex-col gap-1 max-w-[250px]">
+                        <p className="text-[11px] text-gray-500 italic font-semibold leading-relaxed line-clamp-2">
+                          {item.keterangan || 'Lokasi Belum Terdata'}
+                        </p>
+                      </div>
+                    </td>
 
-                  <td className="p-8">
-                    <div className="flex flex-col gap-1 max-w-[250px]">
-                      <p className="text-[11px] text-gray-500 italic font-semibold leading-relaxed line-clamp-2">
-                        {item.keterangan || 'Lokasi Belum Terdata'}
-                      </p>
-                    </div>
-                  </td>
+                    <td className="p-8 text-center">
+                      <div className="flex justify-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(item)}
+                          className="p-4 bg-white border border-gray-100 text-yellow-500 rounded-2xl shadow-sm hover:bg-yellow-500 hover:text-white hover:border-yellow-500 transition-all transform hover:-translate-y-1"
+                        >
+                          <Pencil size={18} strokeWidth={2.5} />
+                        </button>
 
-                  <td className="p-8 text-center">
-                    <div className="flex justify-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity">
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(item)}
-                        className="p-4 bg-white border border-gray-100 text-yellow-500 rounded-2xl shadow-sm hover:bg-yellow-500 hover:text-white hover:border-yellow-500 transition-all transform hover:-translate-y-1"
-                      >
-                        <Pencil size={18} strokeWidth={2.5} />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleHapus(item.inventaris_id)}
-                        className="p-4 bg-white border border-gray-100 text-red-500 rounded-2xl shadow-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all transform hover:-translate-y-1"
-                      >
-                        <Trash2 size={18} strokeWidth={2.5} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <button
+                          type="button"
+                          onClick={() => handleHapus(item.inventaris_id)}
+                          className="p-4 bg-white border border-gray-100 text-red-500 rounded-2xl shadow-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all transform hover:-translate-y-1"
+                        >
+                          <Trash2 size={18} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -649,10 +739,12 @@ const DataInventaris = () => {
             <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center text-gray-200 shadow-sm border border-gray-50 animate-pulse">
               <Archive size={48} />
             </div>
+
             <div className="space-y-1">
               <p className="text-gray-400 font-black uppercase tracking-widest">
                 Aset Tidak Ditemukan
               </p>
+
               <p className="text-[10px] text-gray-800 italic">
                 Coba kata kunci lain atau periksa filter kondisi Anda.
               </p>
