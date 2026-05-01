@@ -1,12 +1,31 @@
 const Berita = require("../../models/Berita");
 const BeritaGambar = require("../../models/BeritaGambar");
+const MasjidTakmir = require("../../models/masjid_takmir"); // 🔥 Import model relasi takmir
 const { logActivity } = require("../../services/auditLog.service");
 const fs = require("fs");
 const path = require("path");
 
+// 🔥 FUNGSI HELPER: Ambil masjid_id berdasarkan takmir yang lagi login
+const getTakmirMasjidId = async (userId) => {
+    const takmir = await MasjidTakmir.findOne({ where: { user_id: userId } });
+    return takmir ? takmir.masjid_id : null;
+};
+
 exports.getAllBerita = async (req, res) => {
     try {
-        const berita = await Berita.findAll({ order: [['tanggal', 'DESC']] });
+        const masjid_id = await getTakmirMasjidId(req.user.user_id);
+        
+        // Kalau dia gak terdaftar di masjid mana-mana, tolak aksesnya
+        if (!masjid_id) {
+            return res.status(403).json({ message: "Anda tidak terdaftar di masjid manapun." });
+        }
+
+        // 🔥 FIX: Cuma ambil berita yang sesuai dengan masjid_id takmir
+        const berita = await Berita.findAll({ 
+            where: { masjid_id: masjid_id },
+            order: [['tanggal', 'DESC']] 
+        });
+        
         res.status(200).json({ data: berita });
     } catch (error) {
         res.status(500).json({ message: "Gagal mengambil data", error: error.message });
@@ -15,7 +34,14 @@ exports.getAllBerita = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    const data = await Berita.findByPk(req.params.id, {
+    const masjid_id = await getTakmirMasjidId(req.user.user_id);
+
+    // 🔥 FIX: Keamanan tambahan, filter ID Berita DAN masjid_id-nya
+    const data = await Berita.findOne({
+      where: { 
+          berita_id: req.params.id,
+          masjid_id: masjid_id 
+      },
       include: [
         {
           model: BeritaGambar,
@@ -25,7 +51,7 @@ exports.getById = async (req, res) => {
       ]
     });
 
-    if (!data) return res.status(404).json({ message: "Berita tidak ditemukan" });
+    if (!data) return res.status(404).json({ message: "Berita tidak ditemukan atau bukan milik masjid Anda." });
     res.json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -34,7 +60,11 @@ exports.getById = async (req, res) => {
 
 exports.createBerita = async (req, res) => {
     try {
-        const { judul, isi, masjid_id, youtube_url } = req.body;
+        const { judul, isi, youtube_url } = req.body;
+        
+        // 🔥 FIX: Ambil otomatis masjid_id dari takmir yang login
+        const masjid_id = await getTakmirMasjidId(req.user.user_id);
+        if (!masjid_id) return res.status(403).json({ message: "Anda tidak terdaftar di masjid manapun." });
 
         let gambarUtama = null;
         if (req.files && req.files.length > 0) {
@@ -44,7 +74,7 @@ exports.createBerita = async (req, res) => {
         const newBerita = await Berita.create({
             judul,
             isi,
-            masjid_id,
+            masjid_id: masjid_id, // Paksa pakai masjid_id si takmir
             youtube_url: youtube_url || null, 
             gambar: gambarUtama, 
             user_id: req.user.user_id,
@@ -69,9 +99,14 @@ exports.updateBerita = async (req, res) => {
     try {
         const { id } = req.params;
         const { judul, isi, youtube_url } = req.body;
+        const masjid_id = await getTakmirMasjidId(req.user.user_id);
 
-        const berita = await Berita.findByPk(id);
-        if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan" });
+        // 🔥 FIX: Cuma bisa update kalau berita_id dan masjid_id cocok!
+        const berita = await Berita.findOne({ 
+            where: { berita_id: id, masjid_id: masjid_id } 
+        });
+
+        if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan atau bukan milik masjid Anda." });
 
         const dataLama = { ...berita.toJSON() };
 
@@ -103,8 +138,14 @@ exports.updateBerita = async (req, res) => {
 exports.deleteBerita = async (req, res) => {
     try {
         const { id } = req.params;
-        const berita = await Berita.findByPk(id);
-        if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan" });
+        const masjid_id = await getTakmirMasjidId(req.user.user_id);
+
+        // 🔥 FIX: Cuma bisa hapus kalau berita_id dan masjid_id cocok!
+        const berita = await Berita.findOne({ 
+            where: { berita_id: id, masjid_id: masjid_id } 
+        });
+
+        if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan atau bukan milik masjid Anda." });
 
         const dataLama = { ...berita.toJSON() };
         await berita.destroy();

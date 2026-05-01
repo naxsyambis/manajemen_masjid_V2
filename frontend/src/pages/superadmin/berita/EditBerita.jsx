@@ -1,9 +1,19 @@
+// frontend/src/pages/superadmin/berita/EditBerita.jsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
 import { Save, RefreshCcw, AlertCircle } from 'lucide-react';
+
+// 🔥 FUNGSI PINTAR UNTUK MENGATASI PATH GAMBAR
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return 'https://via.placeholder.com/150?text=No+Image';
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('/uploads/')) return `http://localhost:3000${imagePath}`;
+  return `http://localhost:3000/uploads/berita/${imagePath}`;
+};
 
 const EditBerita = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -211,11 +221,14 @@ const EditBerita = ({ user, onLogout }) => {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
+                {/* 🔥 BUG FIX: PERBAIKAN PEMANGGILAN URL GAMBAR LAMA */}
                 {existingImages.map((img) => (
                   <div key={img.gambar_id} className="relative">
                     <img
-                      src={`http://localhost:3000/${img.path_gambar.replace(/^\/?/, '')}`}
+                      src={getImageUrl(img.path_gambar)}
+                      alt="Gambar Berita"
                       className="w-full h-32 object-cover rounded-xl"
+                      onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=Error'; }}
                     />
                     <button
                       type="button"
@@ -231,6 +244,7 @@ const EditBerita = ({ user, onLogout }) => {
                   <div key={index} className="relative">
                     <img
                       src={URL.createObjectURL(file)}
+                      alt="Preview Upload"
                       className="w-full h-32 object-cover rounded-xl"
                     />
                     <button
@@ -283,72 +297,67 @@ const EditBerita = ({ user, onLogout }) => {
 
             <div className="flex justify-between items-center gap-4">
 
-  {/* 🔥 ACTION BUTTON */}
-  <div className="flex gap-3">
+              {/* 🔥 ACTION BUTTON */}
+              <div className="flex gap-3">
+                {!isPublished && (
+                  <>
+                    {/* ✅ SETUJUI */}
+                    {(status === "draft" || status === "menunggu" || status === "ditolak") && (
+                      <button
+                        type="button"
+                        onClick={() => updateStatus("disetujui")}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:scale-105 transition"
+                      >
+                        Setujui
+                      </button>
+                    )}
 
-    {!isPublished && (
-      <>
-        {/* ✅ SETUJUI */}
-        {(status === "draft" || status === "menunggu" || status === "ditolak") && (
-          <button
-            type="button"
-            onClick={() => updateStatus("disetujui")}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:scale-105 transition"
-          >
-            Setujui
-          </button>
-        )}
+                    {/* ✅ TOLAK */}
+                    {(status === "draft" || status === "menunggu" || status === "disetujui") && (
+                      <button
+                        type="button"
+                        onClick={() => updateStatus("ditolak")}
+                        className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:scale-105 transition"
+                      >
+                        Tolak
+                      </button>
+                    )}
 
-        {/* ✅ TOLAK */}
-        {(status === "draft" || status === "menunggu" || status === "disetujui") && (
-          <button
-            type="button"
-            onClick={() => updateStatus("ditolak")}
-            className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:scale-105 transition"
-          >
-            Tolak
-          </button>
-        )}
+                    {/* ✅ PUBLIKASI */}
+                    {status === "disetujui" && (
+                      <button
+                        type="button"
+                        onClick={() => updateStatus("dipublikasi")}
+                        className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:scale-105 transition"
+                      >
+                        Publikasi
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
 
-        {/* ✅ PUBLIKASI */}
-        {status === "disetujui" && (
-          <button
-            type="button"
-            onClick={() => updateStatus("dipublikasi")}
-            className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:scale-105 transition"
-          >
-            Publikasi
-          </button>
-        )}
-      </>
-    )}
+              {/* 🔥 RIGHT BUTTON */}
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => navigate('/superadmin/berita')}
+                  className="px-6 py-3 bg-gray-300 rounded-xl"
+                >
+                  Batal
+                </button>
 
-  </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-6 py-3 bg-mu-green text-white rounded-xl flex items-center gap-2 font-bold"
+                >
+                  <Save size={18} />
+                  {loading ? 'Menyimpan...' : 'Update'}
+                </button>
+              </div>
 
-  {/* 🔥 RIGHT BUTTON */}
-  <div className="flex gap-4">
-
-    <button
-      type="button"
-      onClick={() => navigate('/superadmin/berita')}
-      className="px-6 py-3 bg-gray-300 rounded-xl"
-    >
-      Batal
-    </button>
-
-    <button
-      type="submit"
-      disabled={loading}
-      className="px-6 py-3 bg-mu-green text-white rounded-xl flex items-center gap-2 font-bold"
-    >
-      <Save size={18} />
-      {loading ? 'Menyimpan...' : 'Update'}
-    </button>
-
-  </div>
-
-</div>
-
+            </div>
           </form>
         </div>
       </div>
