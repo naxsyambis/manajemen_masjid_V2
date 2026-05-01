@@ -5,6 +5,13 @@ import { X, Save, User, Phone, MapPin, Shield, Info, Users, AlertCircle } from '
 const ModalJamaah = ({ show, onClose, onSubmit, form, setForm, isEdit }) => {
   if (!show) return null;
 
+  const handlePhoneChange = (e) => {
+    const onlyNumbers = e.target.value.replace(/\D/g, '');
+    setForm({ ...form, no_hp: onlyNumbers });
+  };
+
+  const isPhoneInvalid = form.no_hp && !form.no_hp.startsWith('08');
+
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
       {}
@@ -58,11 +65,25 @@ const ModalJamaah = ({ show, onClose, onSubmit, form, setForm, isEdit }) => {
               </label>
               <input
                 required
+                type="tel"
+                inputMode="numeric"
+                pattern="08[0-9]*"
+                title="Nomor HP harus berupa angka dan diawali 08"
                 placeholder="08xxxxxxxxxx"
                 value={form.no_hp}
-                className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-black text-gray-800 shadow-inner focus:ring-2 focus:ring-mu-green/20 transition-all"
-                onChange={e => setForm({...form, no_hp: e.target.value})}
+                className={`w-full px-6 py-4 bg-gray-50 border rounded-2xl outline-none font-black text-gray-800 shadow-inner focus:ring-2 transition-all ${
+                  isPhoneInvalid
+                    ? 'border-red-300 focus:ring-red-200'
+                    : 'border-gray-100 focus:ring-mu-green/20'
+                }`}
+                onChange={handlePhoneChange}
               />
+
+              {isPhoneInvalid && (
+                <p className="text-[10px] font-black text-red-500 ml-2 uppercase tracking-widest">
+                  Nomor HP harus diawali 08
+                </p>
+              )}
             </div>
 
             {}
