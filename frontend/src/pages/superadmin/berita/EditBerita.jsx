@@ -51,18 +51,11 @@ const EditBerita = ({ user, onLogout }) => {
     fetchBerita();
   }, [id, token]);
 
+  // 🔥 FIX: Validasi ini dibikin aman, gak akan crash meskipun tanpa https://
   const isValidYoutubeUrl = (url) => {
-    if (!url.trim()) return true;
-
-    try {
-      const parsed = new URL(url);
-      return (
-        parsed.hostname.includes("youtube.com") ||
-        parsed.hostname.includes("youtu.be")
-      );
-    } catch {
-      return false;
-    }
+    if (!url || !url.trim()) return true;
+    const lowerUrl = url.toLowerCase();
+    return lowerUrl.includes("youtube.com") || lowerUrl.includes("youtu.be");
   };
 
   const fetchBerita = async () => {
@@ -97,7 +90,6 @@ const EditBerita = ({ user, onLogout }) => {
     }
   };
 
-  // 🔥 UPDATE STATUS DINAMIS
   const updateStatus = async (newStatus) => {
     try {
       await axios.patch(
@@ -161,7 +153,7 @@ const EditBerita = ({ user, onLogout }) => {
     const data = new FormData();
     data.append('judul', formData.judul);
     data.append('isi', formData.isi);
-    data.append('youtube_url', formData.youtube_url.trim());
+    data.append('youtube_url', formData.youtube_url || ''); // 🔥 FIX: Pastikan kekirim dengan aman
     data.append('deletedImages', JSON.stringify(deletedImageIds));
 
     newFiles.forEach((file) => {
@@ -261,7 +253,6 @@ const EditBerita = ({ user, onLogout }) => {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-                {/* 🔥 BUG FIX: PERBAIKAN PEMANGGILAN URL GAMBAR LAMA */}
                 {existingImages.map((img) => (
                   <div key={img.gambar_id} className="relative">
                     <img
@@ -287,7 +278,6 @@ const EditBerita = ({ user, onLogout }) => {
                   <div key={index} className="relative">
                     <img
                       src={URL.createObjectURL(file)}
-                      alt="Preview Upload"
                       className="w-full h-32 object-cover rounded-xl"
                       alt="Preview gambar baru"
                     />
@@ -353,8 +343,9 @@ const EditBerita = ({ user, onLogout }) => {
                 Link YouTube <span className="text-gray-400 text-sm font-normal">(Opsional)</span>
               </label>
 
+              {/* 🔥 FIX: Ubah type dari "url" jadi "text" agar tidak diblokir validasi form browser HTML5 */}
               <input
-                type="url"
+                type="text"
                 value={formData.youtube_url}
                 onChange={(e) =>
                   setFormData({ ...formData, youtube_url: e.target.value })
@@ -386,16 +377,6 @@ const EditBerita = ({ user, onLogout }) => {
                       </button>
                     )}
 
-                    {/* ✅ TOLAK */}
-                    {(status === "draft" || status === "menunggu" || status === "disetujui") && (
-                      <button
-                        type="button"
-                        onClick={() => updateStatus("ditolak")}
-                        className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:scale-105 transition"
-                      >
-                        Tolak
-                      </button>
-                    )}
                     {/* ✅ TOLAK */}
                     {(status === "draft" || status === "menunggu" || status === "disetujui") && (
                       <button
