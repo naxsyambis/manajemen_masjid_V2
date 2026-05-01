@@ -9,7 +9,7 @@ import {
   MapPin, Phone, FileText, Image as ImageIcon, ArrowLeft, Edit, 
   Trash2, AlertTriangle, Users, Package, History, 
   FileBarChart, Newspaper, Rocket, ArrowUpCircle, ArrowDownCircle, List, RefreshCcw,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, User as UserIcon
 } from 'lucide-react';
 
 // --- SUB-COMPONENTS ---
@@ -70,7 +70,15 @@ const DataTable = ({
               <tr key={idx} className="hover:bg-gray-50 transition-all group">
                 {dataKeys.map((key, i) => (
                   <td key={i} className="px-8 py-5 text-sm font-medium text-gray-600 group-hover:text-gray-900 whitespace-nowrap">
-                    {key === 'status' || key === 'kondisi' ? (
+                    {key === 'foto' ? (
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+                            {item[key] ? (
+                                <img src={`http://localhost:3000/uploads/kepengurusan/${item[key]}`} alt="avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400"><UserIcon size={20}/></div>
+                            )}
+                        </div>
+                    ) : key === 'status' || key === 'kondisi' ? (
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
                         (item[key] === 'aktif' || item[key] === 'baik') ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
                       }`}>
@@ -145,6 +153,7 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [riwayat, setRiwayat] = useState([]);
   const [berita, setBerita] = useState([]);
   const [program, setProgram] = useState([]);
+  const [kepengurusan, setKepengurusan] = useState([]); 
 
   // State untuk menyimpan kamus data / mapping
   const [userMap, setUserMap] = useState({});
@@ -156,7 +165,8 @@ const DetailMasjid = ({ user, onLogout }) => {
     program: { page: 1, limit: 5 },
     jamaah: { page: 1, limit: 5 },
     inventaris: { page: 1, limit: 5 },
-    riwayat: { page: 1, limit: 5 }
+    riwayat: { page: 1, limit: 5 },
+    kepengurusan: { page: 1, limit: 5 } // Pagination Baru
   });
 
   const paginateData = (data, page, limit) => {
@@ -192,8 +202,6 @@ const DetailMasjid = ({ user, onLogout }) => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       
-      // 1. Ambil data Master (User & Kategori) serta Masjid & Takmir
-      // Perbaikan: Tangkap uRes dan katProgRes untuk digunakan mapping
       const [mRes, tRes, uRes, katProgRes] = await Promise.all([
         axios.get(`http://localhost:3000/superadmin/masjid/${id}`, { headers }),
         axios.get(`http://localhost:3000/superadmin/takmir`, { headers }),
@@ -203,64 +211,55 @@ const DetailMasjid = ({ user, onLogout }) => {
 
       setMasjid(mRes.data);
 
-      // BUAT MAPPING USER: Mengubah ID menjadi Nama
       const usersData = uRes.data.data || uRes.data || [];
       const mapUser = {};
       usersData.forEach(u => { mapUser[u.user_id] = u.nama; });
       setUserMap(mapUser);
 
-      // BUAT MAPPING KATEGORI PROGRAM: Mengubah ID menjadi Nama Kategori
       const katProgData = katProgRes.data.data || katProgRes.data || [];
       const mapKatProg = {};
       katProgData.forEach(k => { mapKatProg[k.kategori_id] = k.nama_kategori; });
       setKategoriProgMap(mapKatProg);
 
-      // Setup Nama Takmir
       const daftarTakmir = tRes.data;
       if (daftarTakmir && Array.isArray(daftarTakmir)) {
         const pengelola = daftarTakmir.find(t => 
           String(t.masjid_id) === String(id) || 
           String(t.masjid?.masjid_id) === String(id)
         );
-        // Cek nama dari inner relasi, atau ambil dari kamus mapUser
         setNamaTakmir(pengelola ? (pengelola.user?.nama || pengelola.nama || mapUser[pengelola.user_id] || "Tanpa Nama") : "Belum Ada Takmir");
       }
 
-      // 2. Ambil data Relasional (Tabel-tabel)
-      const [kRes, jRes, iRes, hRes, bRes, pRes] = await Promise.all([
+      // Ambil data Relasional
+      const [kRes, jRes, iRes, hRes, bRes, pRes, sRes] = await Promise.all([
         axios.get(`http://localhost:3000/superadmin/keuangan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/jamaah?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/inventaris?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/kegiatan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/berita?masjid_id=${id}`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`http://localhost:3000/superadmin/program?masjid_id=${id}`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`http://localhost:3000/superadmin/program?masjid_id=${id}`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`http://localhost:3000/superadmin/kepengurusan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } }))
       ]);
 
-      // 3. Helper function untuk me-replace (mengganti) ID menjadi Nama pada array data
       const formatTableData = (response, mapKategoriManual = null) => {
         const arr = response.data?.data || response.data || response || [];
         if (!Array.isArray(arr)) return [];
         
         return arr.map(item => ({
           ...item,
-          // Ganti user_id dengan nama user (cek relasi ORM dulu, jika gagal pakai kamus userMap)
           nama_user: item.user?.nama || mapUser[item.user_id] || `ID: ${item.user_id}`,
-          
-          // Ganti kategori_id dengan nama kategori
           nama_kategori: item.kategori_keuangan?.nama_kategori || item.kategori_program?.nama_kategori || (mapKategoriManual ? mapKategoriManual[item.kategori_id] : (item.kategori_id ? `ID: ${item.kategori_id}` : '-')),
-          
-          // Ganti approved_by dengan nama user
           nama_approved_by: item.approved_by ? (mapUser[item.approved_by] || `ID: ${item.approved_by}`) : '-'
         }));
       };
 
-      // Terapkan formatter ke state
       const formattedKeuangan = formatTableData(kRes);
       setKeuanganRaw(formattedKeuangan);
       setKeuanganFiltered(formattedKeuangan);
       
       setBerita(formatTableData(bRes));
       setProgram(formatTableData(pRes, mapKatProg));
+      setKepengurusan(sRes.data?.data || sRes.data || []); // Simpan data pengurus
 
       setJamaah(jRes.data?.data || jRes.data || []);
       setInventaris(iRes.data?.data || iRes.data || []);
@@ -360,7 +359,6 @@ const DetailMasjid = ({ user, onLogout }) => {
             title="Riwayat Transaksi" 
             icon={<History className="text-mu-green" size={24}/>} 
             data={paginateData(keuanganFiltered, pagination.keuangan.page, pagination.keuangan.limit)} 
-            // Perhatikan peruabahan "user" menjadi "nama_user" dan "kategori_id" menjadi "nama_kategori" di bawah ini
             columns={['jumlah', 'tanggal', 'deskripsi', 'nama donatur', 'Petugas (User)', 'Kategori']} 
             dataKeys={['jumlah', 'tanggal', 'deskripsi', 'nama_donatur', 'nama_user', 'nama_kategori']} 
             currentLimit={pagination.keuangan.limit}
@@ -388,6 +386,21 @@ const DetailMasjid = ({ user, onLogout }) => {
               </div>
             }
           />
+
+          {/* Struktur Organisasi */}
+          <DataTable 
+            title="Struktur Organisasi Masjid" 
+            icon={<Users className="text-mu-green" size={24}/>} 
+            data={paginateData(kepengurusan, pagination.kepengurusan.page, pagination.kepengurusan.limit)} 
+            columns={['Foto', 'Nama Pengurus', 'Jabatan', 'Periode Mulai', 'Periode Selesai']} 
+            // dataKeys harus sesuai dengan skema strukturOrganisasi milik takmir
+            dataKeys={['foto', 'nama', 'jabatan', 'periode_mulai', 'periode_selesai']} 
+            currentLimit={pagination.kepengurusan.limit}
+            onLimitChange={(val) => handleLimitChange('kepengurusan', val)}
+            currentPage={pagination.kepengurusan.page}
+            totalPages={getTotalPages(kepengurusan, pagination.kepengurusan.limit)}
+            onPageChange={(val) => handlePageChange('kepengurusan', val)}
+        />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <DataTable 
