@@ -174,9 +174,14 @@ const handleMasjidRedirect = () => {
                 </span>
               </a>
 
-              <div className="flex items-center gap-3">
-                <Phone size={18}/> +62 274 123 4567
-              </div>
+              <a
+  href="https://wa.me/6285641692104"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="flex items-center gap-3 hover:text-yellow-400 transition"
+>
+  <Phone size={18}/> 085641692104
+</a>
 
             </div>
 

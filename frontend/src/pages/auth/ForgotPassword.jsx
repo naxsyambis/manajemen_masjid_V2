@@ -6,9 +6,11 @@ import { useNavigate } from 'react-router-dom';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const adminWA = "6281234567890"; // Ganti dengan nomor WA admin yang sesuai
-  const pesanWA = encodeURIComponent("Halo Admin SIM Masjid, saya Takmir ingin reset password akun saya. Mohon bantuan untuk langkah selanjutnya.");
+  const adminWA = "6285641692104";
 
+const pesanWA = encodeURIComponent(
+  "Assalamu'alaikum Admin SIM Masjid, saya ingin melakukan reset password akun. Mohon bantuannya."
+);
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#f4f7fb] to-[#e8f4f8] flex items-center justify-center px-6 animate-fadeIn">
       {/* Overlay halus untuk efek modern */}
@@ -51,11 +53,12 @@ const ForgotPassword = () => {
               </p>
             </div>
             <button 
-              onClick={() => window.open(`https://wa.me/${adminWA}?text=${pesanWA}`, '_blank')}
+  onClick={() => window.open(`https://wa.me/${adminWA}?text=${pesanWA}`, '_blank')}
+
               className="w-full bg-white/95 text-mu-green py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-mu-yellow hover:text-mu-green transition-all shadow-xl active:scale-95 backdrop-blur-sm"
             >
-              <MessageCircle size={20} /> Chat Admin WA Sekarang
-            </button>
+           <MessageCircle size={20} /> Chat Admin WA Sekarang
+</button>
           </div>
         </div>
 

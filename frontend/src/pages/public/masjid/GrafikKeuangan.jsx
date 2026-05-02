@@ -12,11 +12,13 @@ const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
   // 🔥 AMBIL HARI INI (FORMAT YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
 
-  const getExportUrl = () => {
-    if (!masjidId || !startDate || !endDate) return '';
+const getExportUrl = () => {
+  if (!masjidId || !startDate || !endDate) return '';
 
-    return `http://localhost:3000/laporan-keuangan/verifikasi-pdf?masjid_id=${masjidId}&nama_masjid=${encodeURIComponent(namaMasjid || "Masjid")}&startDate=${startDate}&endDate=${endDate}`;
-  };
+  const BASE_URL = "https://masjidmupundong.com";
+
+  return `${BASE_URL}/laporan-keuangan/verifikasi-pdf?masjid_id=${masjidId}&nama_masjid=${encodeURIComponent(namaMasjid || "Masjid")}&startDate=${startDate}&endDate=${endDate}`;
+};
 
   const exportUrl = getExportUrl();
 

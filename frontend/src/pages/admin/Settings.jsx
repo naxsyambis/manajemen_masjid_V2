@@ -180,7 +180,7 @@ const Settings = () => {
 
   const token = localStorage.getItem('token');
 
-  const adminWA = "6281234567890";
+  const adminWA = "6285641692104";
   const pesanWA = encodeURIComponent(`Halo Admin SIM Masjid, saya Takmir ${masjid.nama_masjid || ""} ingin bertanya...`);
 
   const showPopup = ({

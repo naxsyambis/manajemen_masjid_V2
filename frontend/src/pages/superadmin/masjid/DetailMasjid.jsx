@@ -4,16 +4,18 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import GrafikKeuangan from '../../public/masjid/GrafikKeuangan';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer 
+} from 'recharts'; 
 import { 
   MapPin, Phone, FileText, Image as ImageIcon, ArrowLeft, Edit, 
   Trash2, AlertTriangle, Users, Package, History, 
   FileBarChart, Newspaper, Rocket, ArrowUpCircle, ArrowDownCircle, List, RefreshCcw,
   ChevronLeft, ChevronRight, User as UserIcon
 } from 'lucide-react';
+import { formatRupiah } from '../../../utils/formatCurrency';
 
 // --- SUB-COMPONENTS ---
-
 const InfoItem = ({ icon, label, value }) => (
   <div className="flex gap-4 items-start p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
     <div className="p-3 bg-white rounded-xl text-mu-green shadow-sm">
@@ -86,7 +88,7 @@ const DataTable = ({
                       </span>
                     ) : key === 'jumlah' ? (
                       <span className={`font-bold ${parseFloat(item[key]) > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        Rp {Math.abs(item[key]).toLocaleString('id-ID')}
+                        {formatRupiah(item[key])}
                       </span>
                     ) : item[key]}
                   </td>
@@ -131,7 +133,6 @@ const DataTable = ({
 );
 
 // --- MAIN COMPONENT ---
-
 const DetailMasjid = ({ user, onLogout }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -148,6 +149,10 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [keuanganFiltered, setKeuanganFiltered] = useState([]);
   const [filterType, setFilterType] = useState('semua');
   
+  // State untuk Grafik
+  const [chartData, setChartData] = useState([]);
+  const [filterRange, setFilterRange] = useState('minggu');
+  
   const [jamaah, setJamaah] = useState([]);
   const [inventaris, setInventaris] = useState([]);
   const [riwayat, setRiwayat] = useState([]);
@@ -155,7 +160,6 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [program, setProgram] = useState([]);
   const [strukturOrganisasi, setStrukturOrganisasi] = useState([]); // Perbaikan State
 
-  // State untuk menyimpan kamus data / mapping
   const [userMap, setUserMap] = useState({});
   const [kategoriProgMap, setKategoriProgMap] = useState({});
 
@@ -167,6 +171,7 @@ const DetailMasjid = ({ user, onLogout }) => {
     inventaris: { page: 1, limit: 5 },
     riwayat: { page: 1, limit: 5 },
     strukturOrganisasi: { page: 1, limit: 5 } // Perbaikan Pagination
+    kepengurusan: { page: 1, limit: 5 } 
   });
 
   const paginateData = (data, page, limit) => {
@@ -196,6 +201,68 @@ const DetailMasjid = ({ user, onLogout }) => {
   };
 
   const isExpanded = isOpen || isHovered;
+
+  // Logika Grafik Arus Kas
+  const processKeuanganForChart = (rawData, range) => {
+    const now = new Date();
+    let processedData = [];
+
+    if (range === 'tahun') {
+      const monthlyMap = Array(12).fill(0).map((_, i) => ({
+        name: new Date(0, i).toLocaleDateString('id-ID', { month: 'short' }),
+        masuk: 0, keluar: 0
+      }));
+      rawData.forEach((item) => {
+        const d = new Date(item.tanggal);
+        if (d.getFullYear() === now.getFullYear()) {
+          const val = parseFloat(item.jumlah || 0);
+          if (val > 0) monthlyMap[d.getMonth()].masuk += val;
+          else monthlyMap[d.getMonth()].keluar += Math.abs(val);
+        }
+      });
+      processedData = monthlyMap;
+    } else if (range === 'bulan') {
+      const getWeekOfMonth = (date) => {
+        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+        return Math.ceil((date.getDate() + (firstDay === 0 ? 6 : firstDay - 1)) / 7);
+      };
+
+      const weeklyMap = [1, 2, 3, 4, 5].map((w) => ({ name: `Minggu ${w}`, masuk: 0, keluar: 0 }));
+      rawData.forEach((item) => {
+        const d = new Date(item.tanggal);
+        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+          const weekIdx = getWeekOfMonth(d) - 1;
+          const val = parseFloat(item.jumlah || 0);
+          if (weeklyMap[weekIdx]) {
+            if (val > 0) weeklyMap[weekIdx].masuk += val;
+            else weeklyMap[weekIdx].keluar += Math.abs(val);
+          }
+        }
+      });
+      processedData = weeklyMap;
+    } else {
+      const dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+      const dailyMap = dayNames.map((day) => ({ name: day, masuk: 0, keluar: 0 }));
+      const currentDay = now.getDay();
+      const mondayThisWeek = new Date(now);
+      const diffToMonday = now.getDate() - (currentDay === 0 ? 6 : currentDay - 1);
+      mondayThisWeek.setDate(diffToMonday);
+      mondayThisWeek.setHours(0, 0, 0, 0);
+
+      rawData.forEach((item) => {
+        const d = new Date(item.tanggal);
+        if (d >= mondayThisWeek) {
+          const dayIdx = d.getDay();
+          const finalIdx = dayIdx === 0 ? 6 : dayIdx - 1;
+          const val = parseFloat(item.jumlah || 0);
+          if (val > 0) dailyMap[finalIdx].masuk += val;
+          else dailyMap[finalIdx].keluar += Math.abs(val);
+        }
+      });
+      processedData = dailyMap;
+    }
+    setChartData(processedData);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -230,7 +297,6 @@ const DetailMasjid = ({ user, onLogout }) => {
         setNamaTakmir(pengelola ? (pengelola.user?.nama || pengelola.nama || mapUser[pengelola.user_id] || "Tanpa Nama") : "Belum Ada Takmir");
       }
 
-      // Ambil data Relasional
       const [kRes, jRes, iRes, hRes, bRes, pRes, sRes] = await Promise.all([
         axios.get(`http://localhost:3000/superadmin/keuangan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/jamaah?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
@@ -245,7 +311,6 @@ const DetailMasjid = ({ user, onLogout }) => {
       const formatTableData = (response, mapKategoriManual = null) => {
         const arr = response.data?.data || response.data || response || [];
         if (!Array.isArray(arr)) return [];
-        
         return arr.map(item => ({
           ...item,
           nama_user: item.user?.nama || mapUser[item.user_id] || `ID: ${item.user_id}`,
@@ -257,12 +322,14 @@ const DetailMasjid = ({ user, onLogout }) => {
       const formattedKeuangan = formatTableData(kRes);
       setKeuanganRaw(formattedKeuangan);
       setKeuanganFiltered(formattedKeuangan);
+      processKeuanganForChart(formattedKeuangan, filterRange);
       
       setBerita(formatTableData(bRes));
       setProgram(formatTableData(pRes, mapKatProg));
       // Simpan data struktur organisasi
       setStrukturOrganisasi(sRes.data?.data || sRes.data || []); 
 
+      setKepengurusan(sRes.data?.data || sRes.data || []); 
       setJamaah(jRes.data?.data || jRes.data || []);
       setInventaris(iRes.data?.data || iRes.data || []);
       setRiwayat(hRes.data?.data || hRes.data || []);
@@ -277,6 +344,10 @@ const DetailMasjid = ({ user, onLogout }) => {
   useEffect(() => { fetchData(); }, [id]);
 
   useEffect(() => {
+    processKeuanganForChart(keuanganRaw, filterRange);
+  }, [filterRange, keuanganRaw]);
+
+  useEffect(() => {
     if (filterType === 'masuk') {
       setKeuanganFiltered(keuanganRaw.filter(item => parseFloat(item.jumlah) > 0));
     } else if (filterType === 'keluar') {
@@ -286,19 +357,6 @@ const DetailMasjid = ({ user, onLogout }) => {
     }
     handlePageChange('keuangan', 1);
   }, [filterType, keuanganRaw]);
-
-  const processKeuanganForChart = (data) => {
-    if (!Array.isArray(data)) return [];
-    const monthly = {};
-    data.forEach(item => {
-      const monthYear = new Date(item.tanggal).toLocaleString('id-ID', { month: 'short', year: 'numeric' });
-      if (!monthly[monthYear]) monthly[monthYear] = { month: monthYear, pemasukan: 0, pengeluaran: 0 };
-      const val = parseFloat(item.jumlah);
-      if (val > 0) monthly[monthYear].pemasukan += val;
-      else monthly[monthYear].pengeluaran += Math.abs(val);
-    });
-    return Object.values(monthly);
-  };
 
   const handleDeleteMasjid = async () => {
     try {
@@ -352,9 +410,67 @@ const DetailMasjid = ({ user, onLogout }) => {
             </div>
           </div>
 
-          <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
-             <h3 className="text-xl font-black mb-6 flex items-center gap-2"><FileBarChart className="text-mu-green" size={24}/> Grafik Arus Kas</h3>
-             <GrafikKeuangan chartData={processKeuanganForChart(keuanganRaw)} />
+          {/* BAGIAN GRAFIK ARUS KAS (PENGGANTI LAPORAN KEUANGAN) */}
+          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+              <div>
+                <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter flex items-center gap-2">
+                  <FileBarChart className="text-mu-green" size={24}/> Analisis Arus Kas
+                </h3>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                  Filter Aktif: <span className="text-mu-green font-black">{filterRange}</span>
+                </p>
+              </div>
+              
+              <div className="flex p-1.5 bg-gray-100 rounded-2xl gap-1">
+                {['minggu', 'bulan', 'tahun'].map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setFilterRange(range)}
+                    className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                      filterRange === range ? 'bg-white text-mu-green shadow-sm scale-105' : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-[400px] w-full">
+              {chartData.length === 0 ? (
+                <div className="h-full w-full flex flex-col items-center justify-center bg-gray-50 rounded-[2rem]">
+                  <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Belum Ada Data Transaksi</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" fontSize={10} fontWeight={800} axisLine={false} tickLine={false} tickMargin={15} stroke="#94a3b8" />
+                    <YAxis hide domain={[0, 'auto']} />
+                    <RechartsTooltip 
+                      cursor={{ fill: '#f8fafc' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-white p-4 rounded-2xl shadow-2xl border border-gray-50">
+                              <p className="text-[10px] font-black text-gray-400 uppercase mb-2">{payload[0]?.payload?.name}</p>
+                              <div className="space-y-1">
+                                <p className="text-xs font-bold text-mu-green">Masuk: {formatRupiah(payload[0].value)}</p>
+                                <p className="text-xs font-bold text-red-500">Keluar: {formatRupiah(payload[1].value)}</p>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="masuk" fill="#006227" radius={[6, 6, 0, 0]} barSize={filterRange === 'minggu' ? 25 : 15} />
+                    <Bar dataKey="keluar" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={filterRange === 'minggu' ? 25 : 15} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
 
           <DataTable 
