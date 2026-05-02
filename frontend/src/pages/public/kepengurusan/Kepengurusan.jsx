@@ -156,36 +156,65 @@ const Kepengurusan = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-                {pengurus.map((person, index) => (
-                  <div 
-                    key={person.pengurus_id} 
-                    className="bg-white rounded-3xl shadow-lg p-8 text-center hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 group max-w-md w-full"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div className="relative mb-6">
-                      <img
-                        src={person.foto_pengurus ? `http://localhost:3000${person.foto_pengurus}` : 'https://picsum.photos/200/200?random=1'}
-                        alt={person.nama_lengkap}
-                        className="w-36 h-36 rounded-full mx-auto object-cover border-4 border-mu-yellow shadow-xl group-hover:shadow-2xl transition-shadow duration-300"
-                        onError={(e) => { e.target.src = 'https://picsum.photos/200/200?random=1'; }}
-                      />
-                    </div>
-                    <h3 className="text-2xl font-bold text-mu-green mb-3 group-hover:text-green-700 transition-colors duration-300">
-                      {person.nama_lengkap}
-                    </h3>
-                    <p className="text-mu-green font-semibold text-lg mb-4">{person.jabatan}</p>
-                    {person.periode_mulai && person.periode_selesai && (
-                      <p className="text-gray-600 text-sm mb-4 bg-gray-50 py-2 px-4 rounded-full inline-block shadow-sm">
-                        Periode: {new Date(person.periode_mulai).toLocaleDateString('id-ID')} - {new Date(person.periode_selesai).toLocaleDateString('id-ID')}
-                      </p>
-                    )}
-                    <p className="text-gray-500 text-sm leading-relaxed">
-                      Pengurus aktif di ranting Muhammadiyah, berkontribusi untuk kemajuan umat.
-                    </p>
-                  </div>
-                ))}
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center">
+  {pengurus.map((person) => (
+    <div
+      key={person.pengurus_id}
+      className="w-full max-w-sm bg-white rounded-[28px] shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+    >
+      {/* IMAGE */}
+      <div className="relative">
+        <img
+          src={
+            person.foto_pengurus
+              ? `http://localhost:3000${person.foto_pengurus}`
+              : "https://picsum.photos/400/500"
+          }
+          alt={person.nama_lengkap}
+          className="w-full h-[300px] object-cover group-hover:scale-105 transition duration-500"
+          onError={(e) => {
+            e.target.src = "https://picsum.photos/400/500";
+          }}
+        />
+
+        {/* OVERLAY SOFT */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+      </div>
+
+      {/* CONTENT */}
+      <div className="p-5 text-center">
+
+        {/* NAMA */}
+        <h3 className="text-xl md:text-2xl font-bold text-[#006227] mb-3">
+  {person.nama_lengkap}
+</h3>
+
+        {/* JABATAN */}
+        <div className="mb-5">
+          <span className="inline-block bg-gradient-to-r from-slate-50/80 to-gray-50/80 backdrop-blur-sm text-slate-700 px-8 py-3 rounded-2xl text-base font-bold border border-slate-200/60 shadow-lg group-hover:bg-emerald-50/80 group-hover:text-emerald-700 group-hover:border-emerald-200/60 transition-all duration-500">
+            {person.jabatan}
+          </span>
+        </div>
+
+        {/* PERIODE */}
+        {person.periode && (
+          <p className="text-xs text-gray-400 mb-3">
+            Periode: {person.periode}
+          </p>
+        )}
+
+        {/* GARIS HIJAU */}
+        <div className="w-12 h-[2px] bg-[#006227] mx-auto mb-4"></div>
+
+        {/* DESKRIPSI */}
+        <p className="text-sm text-gray-500 leading-relaxed">
+          Pengurus aktif di ranting Muhammadiyah, berkontribusi untuk kemajuan umat
+        </p>
+
+      </div>
+    </div>
+  ))}
+</div>
             )}
           </div>
         </section>
