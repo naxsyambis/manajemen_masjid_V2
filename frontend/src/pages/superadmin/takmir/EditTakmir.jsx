@@ -10,7 +10,6 @@ import {
   X, AlertTriangle, CheckCircle2, XCircle, Info, Calendar 
 } from 'lucide-react';
 
-// --- Komponen AlertPopup ---
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 

@@ -76,7 +76,7 @@ exports.update = async (req, res) => {
             jumlah: req.body.jumlah || keuangan.jumlah,
             tanggal: req.body.tanggal || keuangan.tanggal,
             deskripsi: req.body.deskripsi || keuangan.deskripsi,
-            nama_donatur: req.body.nama_donatur !== undefined ? req.body.nama_donatur : keuangan.nama_donatur, // Sudah Benar
+            nama_donatur: req.body.nama_donatur !== undefined ? req.body.nama_donatur : keuangan.nama_donatur,
             kategori_id: req.body.kategori_id || keuangan.kategori_id
         });
 

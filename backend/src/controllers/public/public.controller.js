@@ -276,7 +276,6 @@ exports.getNearestMasjid = async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
 
-    // VALIDASI INPUT
     if (!latitude || !longitude) {
       return res.status(400).json({
         success: false,
