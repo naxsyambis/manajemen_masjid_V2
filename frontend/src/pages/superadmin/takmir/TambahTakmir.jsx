@@ -10,7 +10,7 @@ import {
   X, AlertTriangle, CheckCircle2, XCircle, Info 
 } from 'lucide-react';
 
-// --- Komponen AlertPopup (Style Konsisten) ---[cite: 1]
+// --- Komponen AlertPopup ---
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -155,11 +155,6 @@ const TambahTakmir = ({ user, onLogout }) => {
     const value = e.target.value;
     setFormData({ ...formData, password: value });
     setPasswordError(validatePassword(value));
-    if (formData.confirmPassword && value !== formData.password) {
-      setConfirmPasswordError('Password tidak cocok.');
-    } else {
-      setConfirmPasswordError('');
-    }
   };
 
   const handleConfirmPasswordChange = (e) => {
@@ -168,16 +163,38 @@ const TambahTakmir = ({ user, onLogout }) => {
     setConfirmPasswordError(value !== formData.password ? 'Password tidak cocok.' : '');
   };
 
+  const validateForm = () => {
+    if (!formData.nama.trim()) {
+      showPopup({ type: "warning", title: "Nama Kosong", message: "Silakan isi nama lengkap takmir." });
+      return false;
+    }
+    if (!formData.email.trim()) {
+      showPopup({ type: "warning", title: "Email Kosong", message: "Alamat email wajib diisi." });
+      return false;
+    }
+    if (!formData.masjid_id) {
+      showPopup({ type: "warning", title: "Masjid Belum Dipilih", message: "Silakan pilih masjid tempat takmir bertugas." });
+      return false;
+    }
+    if (!formData.password) {
+      showPopup({ type: "warning", title: "Password Kosong", message: "Silakan tentukan password akun." });
+      return false;
+    }
+    if (passwordError) {
+      showPopup({ type: "warning", title: "Password Tidak Valid", message: "Perbaiki format password sesuai kriteria keamanan." });
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      showPopup({ type: "warning", title: "Password Tidak Cocok", message: "Konfirmasi password tidak sesuai dengan password utama." });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.masjid_id) {
-      showPopup({ type: "warning", title: "Masjid Belum Dipilih", message: "Silakan pilih masjid terlebih dahulu sebelum menyimpan data." });
-      return;
-    }
-    if (passwordError || confirmPasswordError) {
-      showPopup({ type: "warning", title: "Kesalahan Password", message: "Pastikan password memenuhi kriteria dan konfirmasi password cocok." });
-      return;
-    }
+    if (!validateForm()) return;
+
     setLoading(true);
     try {
       await axios.post('http://localhost:3000/superadmin/takmir', {
@@ -188,16 +205,26 @@ const TambahTakmir = ({ user, onLogout }) => {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      showPopup({ type: "success", title: "Berhasil!", message: "Akun Takmir berhasil ditambahkan ke sistem.", onConfirm: () => navigate('/superadmin/takmir') });
+      
+      showPopup({ 
+        type: "success", 
+        title: "Berhasil!", 
+        message: "Akun Takmir berhasil ditambahkan ke sistem.", 
+        onConfirm: () => navigate('/superadmin/takmir') 
+      });
     } catch (err) {
-      showPopup({ type: "error", title: "Gagal Menyimpan", message: err.response?.data?.message || "Terjadi kesalahan saat menambahkan takmir." });
+      showPopup({ 
+        type: "error", 
+        title: "Gagal Menyimpan", 
+        message: err.response?.data?.message || "Terjadi kesalahan saat menambahkan takmir." 
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="tambah-takmir h-screen bg-gray-50 flex overflow-hidden">
+    <div className="tambah-takmir h-screen bg-gray-50 flex overflow-hidden animate-fadeIn">
       <AlertPopup alertData={alertData} onClose={closePopup} />
 
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
@@ -220,22 +247,45 @@ const TambahTakmir = ({ user, onLogout }) => {
                 <span className="text-mu-green font-black ml-2">{time.toLocaleTimeString('id-ID')}</span>
               </div>
             </div>
+
+            <div className="flex gap-4">
+              <button 
+                type="button"
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all shadow-sm active:scale-95"
+              >
+                <RefreshCcw size={14} />
+                Refresh Halaman
+              </button>
+            </div>
           </div>
 
-          <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
+          {/* PERBAIKAN: Menghapus overflow-hidden pada container putih agar dropdown bisa 'keluar' dari card */}
+          <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm relative">
             <div className="p-10 lg:p-16">
+              <div className="mb-12 text-center">
+                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter mb-4">Tambah Takmir Baru</h2>
+                <p className="text-gray-600 text-lg">Lengkapi informasi akun takmir berikut</p>
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-12">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                   
-                  {/* Kolom Kiri: Profil */}
-                  <div className="space-y-8">
+                  {/* Kolom Kiri: Profil - Menggunakan z-index tinggi agar dropdown menimpa kolom kanan jika perlu */}
+                  <div className="space-y-8 relative z-[60]">
                     <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Profil Takmir</h3>
                     
                     <div className="space-y-2">
                       <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Nama Lengkap</label>
                       <div className="relative">
                         <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type="text" value={formData.nama} onChange={(e) => setFormData({ ...formData, nama: e.target.value })} className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none" placeholder="Contoh: Ahmad Subarjo" required />
+                        <input 
+                          type="text" 
+                          value={formData.nama} 
+                          onChange={(e) => setFormData({ ...formData, nama: e.target.value })} 
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none" 
+                          placeholder="Masukkan nama lengkap" 
+                        />
                       </div>
                     </div>
 
@@ -243,12 +293,18 @@ const TambahTakmir = ({ user, onLogout }) => {
                       <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Alamat Email</label>
                       <div className="relative">
                         <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none" placeholder="takmir@example.com" required />
+                        <input 
+                          type="email" 
+                          value={formData.email} 
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none" 
+                          placeholder="takmir@example.com" 
+                        />
                       </div>
                     </div>
 
-                    {/* PERBAIKAN DROPDOWN DISINI[cite: 1] */}
-                    <div className="space-y-2" ref={dropdownRef}>
+                    {/* Dropdown Masjid yang diperbaiki */}
+                    <div className="space-y-2 relative" ref={dropdownRef}>
                       <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Pilih Masjid</label>
                       <div className="relative">
                         <div 
@@ -263,8 +319,7 @@ const TambahTakmir = ({ user, onLogout }) => {
                         </div>
 
                         {isDropdownOpen && (
-                          <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                            {/* Search Box dengan Padding Internal */}
+                          <div className="absolute left-0 right-0 z-[100] mt-2 bg-white border border-gray-100 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                             <div className="p-4 border-b border-gray-50 bg-gray-50/30">
                               <div className="relative">
                                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-mu-green" />
@@ -278,8 +333,7 @@ const TambahTakmir = ({ user, onLogout }) => {
                                 />
                               </div>
                             </div>
-                            {/* List dengan max-height & padding agar tidak mepet */}
-                            <div className="max-h-72 overflow-y-auto py-2 px-2 custom-scrollbar">
+                            <div className="max-h-64 overflow-y-auto py-2 px-2 custom-scrollbar">
                               {filteredMasjids.length > 0 ? (
                                 filteredMasjids.map((m) => (
                                   <div 
@@ -317,14 +371,20 @@ const TambahTakmir = ({ user, onLogout }) => {
                     </div>
                   </div>
 
-                  {/* Kolom Kanan: Keamanan */}
-                  <div className="space-y-8">
+                  {/* Kolom Kanan: Keamanan - Menggunakan z-index lebih rendah */}
+                  <div className="space-y-8 relative z-10">
                     <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Keamanan Akun</h3>
                     <div className="space-y-2">
                       <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Password</label>
                       <div className="relative">
                         <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type={showPassword ? "text" : "password"} value={formData.password} onChange={handlePasswordChange} className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none" placeholder="••••••••" required />
+                        <input 
+                          type={showPassword ? "text" : "password"} 
+                          value={formData.password} 
+                          onChange={handlePasswordChange} 
+                          className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none" 
+                          placeholder="••••••••" 
+                        />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-mu-green transition-colors">
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -335,7 +395,13 @@ const TambahTakmir = ({ user, onLogout }) => {
                       <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Konfirmasi Password</label>
                       <div className="relative">
                         <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type={showConfirmPassword ? "text" : "password"} value={formData.confirmPassword} onChange={handleConfirmPasswordChange} className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none" placeholder="••••••••" required />
+                        <input 
+                          type={showConfirmPassword ? "text" : "password"} 
+                          value={formData.confirmPassword} 
+                          onChange={handleConfirmPasswordChange} 
+                          className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none" 
+                          placeholder="••••••••" 
+                        />
                         <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-mu-green transition-colors">
                           {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -345,14 +411,31 @@ const TambahTakmir = ({ user, onLogout }) => {
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-gray-100 flex justify-end">
-                  <button type="submit" disabled={loading} className="group relative flex items-center gap-3 bg-mu-green text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-mu-green/20 hover:bg-mu-green/90 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <div className="pt-8 border-t border-gray-100 flex justify-center gap-6">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/superadmin/takmir')}
+                    className="flex items-center px-10 py-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={loading} 
+                    className="group relative flex items-center gap-3 bg-mu-green text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-mu-green/20 hover:bg-mu-green/90 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     {loading ? <RefreshCcw size={20} className="animate-spin" /> : <Save size={20} className="group-hover:scale-110 transition-transform" />}
                     <span>{loading ? 'Menyimpan...' : 'Simpan Data Takmir'}</span>
                   </button>
                 </div>
               </form>
             </div>
+          </div>
+          
+          <div className="flex justify-center items-center gap-4 text-gray-300 py-4">
+            <div className="h-[1px] w-12 bg-gray-100"></div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em]">Integrated Database System v3.0</p>
+            <div className="h-[1px] w-12 bg-gray-100"></div>
           </div>
         </div>
       </div>

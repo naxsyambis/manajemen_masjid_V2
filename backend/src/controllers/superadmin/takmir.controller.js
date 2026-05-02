@@ -130,9 +130,16 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = async (req, res) => {
+  // Gunakan Transaction agar jika salah satu gagal, database tidak "pincang"
+  const t = await sequelize.transaction();
+
   try {
-    const takmir = await MasjidTakmir.findByPk(req.params.id);
-    if (!takmir) return res.status(404).json({ message: "Takmir tidak ditemukan" });
+    const { id } = req.params;
+
+    const takmir = await MasjidTakmir.findByPk(id);
+    if (!takmir) {
+      return res.status(404).json({ message: "Takmir tidak ditemukan" });
+    }
 
     const user = await User.findByPk(takmir.user_id);
 
@@ -141,22 +148,29 @@ exports.delete = async (req, res) => {
       user: user ? user.toJSON() : null
     };
 
-    await takmir.destroy();
-    if (user) await user.destroy();
+    await takmir.destroy({ transaction: t });
+
+    if (user) {
+      await user.destroy({ transaction: t });
+    }
+
+    await t.commit();
 
     await logActivity({
       req,
       action: "DELETE",
       nama_tabel: "takmir",
       data_lama: oldData,
-      record_id: req.params.id
+      record_id: id
     });
 
-    res.json({ message: "Takmir berhasil dihapus" });
+    res.json({ message: "Takmir dan akun User terkait berhasil dihapus" });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
+    if (t) await t.rollback();
+    
+    console.error("DELETE TAKMIR ERROR:", err);
+    res.status(500).json({ message: "Gagal menghapus data: " + err.message });
   }
 };
 
