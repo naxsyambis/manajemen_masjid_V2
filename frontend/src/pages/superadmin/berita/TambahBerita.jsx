@@ -14,7 +14,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info
+  Info,
+  Camera,
+  Upload
 } from 'lucide-react';
 
 // --- Komponen AlertPopup (Sesuai source v3.0) ---[cite: 3, 7, 9]
@@ -67,7 +69,6 @@ const TambahBerita = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
-  // --- State Alert ---[cite: 3, 7]
   const [alertData, setAlertData] = useState({
     show: false,
     type: "info",
@@ -90,7 +91,6 @@ const TambahBerita = ({ user, onLogout }) => {
 
   const isExpanded = isOpen || isHovered;
 
-  // --- Fungsi Helper Alert ---[cite: 3, 7]
   const showPopup = ({ type = "info", title = "Informasi", message = "", confirmText = "", onConfirm = null }) => {
     setAlertData({ show: true, type, title, message, confirmText, onConfirm });
   };
@@ -114,7 +114,6 @@ const TambahBerita = ({ user, onLogout }) => {
     }
   };
 
-  // --- Fungsi Validasi Form (DIKEMBALIKAN) ---[cite: 3, 7]
   const validateForm = () => {
     if (!formData.judul.trim()) {
       showPopup({ type: "warning", title: "Judul Kosong", message: "Judul berita wajib diisi." });
@@ -133,12 +132,9 @@ const TambahBerita = ({ user, onLogout }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Jalankan validasi sebelum kirim data[cite: 3, 7]
     if (!validateForm()) return;
 
     setLoading(true);
-
     const data = new FormData();
     data.append('judul', formData.judul);
     data.append('isi', formData.isi);
@@ -149,7 +145,6 @@ const TambahBerita = ({ user, onLogout }) => {
       await axios.post('http://localhost:3000/superadmin/berita', data, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
       showPopup({
         type: "success",
         title: "Berhasil!",
@@ -169,7 +164,10 @@ const TambahBerita = ({ user, onLogout }) => {
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files);
-    // Validasi ukuran file[cite: 3, 7]
+    if (files.length + selected.length > 5) {
+        showPopup({ type: "warning", title: "Limit Gambar", message: "Maksimal 5 gambar diperbolehkan." });
+        return;
+    }
     if (selected.some(file => file.size > 5 * 1024 * 1024)) {
       showPopup({ type: "warning", title: "File Terlalu Besar", message: "Maksimal ukuran gambar adalah 5MB." });
       return;
@@ -191,7 +189,6 @@ const TambahBerita = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
@@ -229,16 +226,41 @@ const TambahBerita = ({ user, onLogout }) => {
                   <div className="space-y-10">
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Gambar Berita</h3>
+                      
                       <div className="space-y-4">
                         <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" id="gambar-upload" />
+                        
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {/* PREVIEW FILES DENGAN OVERLAY INTERAKTIF[cite: 13, 16] */}
                           {files.map((file, index) => (
-                            <div key={index} className="relative group">
-                              <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-32 object-cover rounded-xl shadow-md" />
-                              <button type="button" onClick={() => handleRemoveFile(index)} className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center">✕</button>
+                            <div key={index} className="relative group aspect-square">
+                              <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-gray-100 shadow-sm relative">
+                                <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                
+                                <label htmlFor="gambar-upload" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white gap-2 backdrop-blur-sm">
+                                  <Camera size={24} />
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-center px-2">Ganti/Tambah</span>
+                                </label>
+                              </div>
+                              
+                              <button type="button" onClick={() => handleRemoveFile(index)} className="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center shadow-md hover:bg-red-600 transition z-10">✕</button>
                             </div>
                           ))}
-                          <label htmlFor="gambar-upload" className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-xl h-32 cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition">+</label>
+
+                          {/* TOMBOL TAMBAH (+)[cite: 13, 16] */}
+                          {files.length < 5 && (
+                            <label htmlFor="gambar-upload" className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl aspect-square cursor-pointer hover:bg-mu-green/5 hover:border-mu-green transition-all group">
+                              <div className="bg-gray-100 p-3 rounded-full group-hover:bg-mu-green/10 transition-colors">
+                                <Upload size={24} className="text-gray-400 group-hover:text-mu-green transition-colors" />
+                              </div>
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2 group-hover:text-mu-green">Tambah Foto</span>
+                            </label>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-2 mt-4 text-xs text-gray-400 font-medium italic">
+                            <Info size={14} className="text-mu-green" />
+                            <span>Klik pada gambar atau tombol "+" untuk mengelola koleksi foto (Maks. 5 foto, @5MB).</span>
                         </div>
                       </div>
                     </div>
@@ -253,7 +275,7 @@ const TambahBerita = ({ user, onLogout }) => {
                           type="text"
                           value={formData.judul}
                           onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
-                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50"
+                          className="w-full px-6 py-4 border border-gray-200 p-3 rounded-xl mt-2 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all bg-gray-50 focus:bg-white"
                           placeholder="Masukkan judul berita"
                         />
                       </div>
@@ -262,7 +284,7 @@ const TambahBerita = ({ user, onLogout }) => {
                         <textarea
                           value={formData.isi}
                           onChange={(e) => setFormData({ ...formData, isi: e.target.value })}
-                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 resize-none"
+                          className="w-full px-6 py-4 border border-gray-200 p-3 rounded-xl mt-2 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all bg-gray-50 focus:bg-white resize-none"
                           placeholder="Masukkan isi berita"
                           rows="8"
                         />
@@ -273,7 +295,7 @@ const TambahBerita = ({ user, onLogout }) => {
                           type="url"
                           value={formData.youtube_url}
                           onChange={(e) => setFormData({ ...formData, youtube_url: e.target.value })}
-                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50"
+                          className="w-full px-6 py-4 border border-gray-200 p-3 rounded-xl mt-2 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all bg-gray-50 focus:bg-white"
                           placeholder="https://www.youtube.com/watch?v=xxxx"
                         />
                       </div>

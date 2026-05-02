@@ -163,18 +163,6 @@ const DetailKepengurusan = ({ user, onLogout }) => {
                   <div className="absolute inset-0 bg-mu-green/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <h2 className="text-2xl font-black text-gray-800 tracking-tight leading-tight">{pengurus?.nama_lengkap}</h2>
-                <div className="mt-3 px-4 py-1.5 bg-mu-green/10 rounded-full flex items-center gap-2">
-                  <ShieldCheck size={14} className="text-mu-green" />
-                  <span className="text-[10px] font-black text-mu-green uppercase tracking-[0.1em]">Struktural Verified</span>
-                </div>
-                
-                <div className="w-full mt-10 pt-10 border-t border-gray-50">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Status Kepengurusan</p>
-                  <div className="flex items-center justify-center gap-2 text-mu-green font-bold">
-                    <Award size={18} />
-                    <span className="text-sm">Aktif Menjabat</span>
-                  </div>
-                </div>
               </div>
             </div>
 

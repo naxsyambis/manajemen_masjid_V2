@@ -253,7 +253,6 @@ const DataKepengurusan = ({ user, onLogout }) => {
                         </td>
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="text-lg font-bold text-gray-800 group-hover:text-mu-green transition-colors">{p.nama_lengkap}</div>
-                          <div className="text-xs text-gray-400 font-black uppercase tracking-tighter mt-1">ID: {p.pengurus_id}</div>
                         </td>
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="text-sm text-gray-600 font-bold bg-gray-100/50 w-fit px-3 py-2 rounded-xl">
