@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
-const { User, Masjid, MasjidTakmir } = require("../../models");
+const { User, Masjid, MasjidTakmir } = require("../../models"); 
+const sequelize = require("../../config/database"); 
 const { logActivity } = require("../../services/auditLog.service");
-
 
 exports.create = async (req, res) => {
   try {
@@ -130,7 +130,7 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = async (req, res) => {
-  // Gunakan Transaction agar jika salah satu gagal, database tidak "pincang"
+  // Menggunakan instance sequelize dari config untuk transaksi
   const t = await sequelize.transaction();
 
   try {
@@ -138,20 +138,22 @@ exports.delete = async (req, res) => {
 
     const takmir = await MasjidTakmir.findByPk(id);
     if (!takmir) {
-      return res.status(404).json({ message: "Takmir tidak ditemukan" });
+      await t.rollback();
+      return res.status(404).json({ message: "Data Takmir tidak ditemukan" });
     }
 
-    const user = await User.findByPk(takmir.user_id);
+    const targetUserId = takmir.user_id;
+    const oldData = takmir.toJSON();
 
-    const oldData = {
-      takmir: takmir.toJSON(),
-      user: user ? user.toJSON() : null
-    };
-
+    // Hapus relasi takmir di masjid_takmir
     await takmir.destroy({ transaction: t });
 
-    if (user) {
-      await user.destroy({ transaction: t });
+    // Hapus akun login di user_app
+    if (targetUserId) {
+      await User.destroy({ 
+        where: { user_id: targetUserId }, 
+        transaction: t 
+      });
     }
 
     await t.commit();
@@ -159,16 +161,15 @@ exports.delete = async (req, res) => {
     await logActivity({
       req,
       action: "DELETE",
-      nama_tabel: "takmir",
-      data_lama: oldData,
-      record_id: id
+      nama_tabel: "takmir & user_app",
+      record_id: id,
+      data_lama: oldData
     });
 
-    res.json({ message: "Takmir dan akun User terkait berhasil dihapus" });
+    res.json({ message: "Takmir dan akun login user_app berhasil dihapus secara permanen" });
 
   } catch (err) {
     if (t) await t.rollback();
-    
     console.error("DELETE TAKMIR ERROR:", err);
     res.status(500).json({ message: "Gagal menghapus data: " + err.message });
   }

@@ -26,7 +26,7 @@ const HapusTakmir = ({ user, onLogout }) => {
       setTakmir(res.data);
     } catch (err) {
       console.error('Error fetching takmir:', err);
-      alert('Gagal memuat data takmir');
+      alert('Gagal memuat data takmir atau data tidak ditemukan.');
       navigate('/superadmin/takmir');
     } finally {
       setLoading(false);
@@ -34,38 +34,39 @@ const HapusTakmir = ({ user, onLogout }) => {
   };
 
   const handleDelete = async () => {
-    // Konfirmasi tambahan via browser untuk keamanan ganda
+    const namaTakmir = takmir?.user?.nama || "Takmir ini";
+    const emailTakmir = takmir?.user?.email || "";
+
     const confirmDelete = window.confirm(
-      `Apakah Anda yakin ingin menghapus Takmir "${takmir.user?.nama}"? Akun login user juga akan dihapus secara permanen.`
+      `PERINGATAN KRUSIAL!\n\nApakah Anda yakin ingin menghapus "${namaTakmir}"?\n\nTindakan ini akan menghapus secara permanen:\n1. Profil Takmir (masjid_takmir)\n2. Akun Login (${emailTakmir}) dari database utama.\n\nUser ini tidak akan bisa login kembali ke sistem. Lanjutkan?`
     );
 
     if (!confirmDelete) return;
 
     setDeleting(true);
     try {
-      // Endpoint ini akan memicu fungsi exports.delete di backend yang sudah menggunakan transaction
       const response = await axios.delete(`http://localhost:3000/superadmin/takmir/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      alert(response.data.message || 'Takmir dan akun login berhasil dihapus');
+      alert(response.data.message || 'Takmir dan akun login berhasil dihapus.');
       navigate('/superadmin/takmir');
     } catch (err) {
       console.error('Error deleting takmir:', err);
-      // Menampilkan pesan error spesifik dari backend jika ada
-      const errorMessage = err.response?.data?.message || 'Gagal menghapus takmir';
+      const errorMessage = err.response?.data?.message || 'Terjadi kesalahan sistem saat mencoba menghapus data.';
       alert(errorMessage);
     } finally {
       setDeleting(false);
     }
   };
 
+
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-mu-green border-t-transparent rounded-full animate-spin shadow-lg"></div>
-          <p className="text-sm font-bold text-mu-green uppercase tracking-wider">Memuat Data Takmir...</p>
+          <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Memuat Data Takmir...</p>
         </div>
       </div>
     );
@@ -74,102 +75,106 @@ const HapusTakmir = ({ user, onLogout }) => {
   if (!takmir) return null;
 
   return (
-    <div className="super-admin-dashboard min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+
+
       <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} />
       
-      {/* Spacer untuk Sidebar desktop */}
-      <div className="hidden lg:block transition-all duration-300 ease-in-out shrink-0 pointer-events-none" style={{ width: isOpen ? '256px' : '80px' }} />
-      
-      <div className="main-content lg:ml-0 p-6 min-h-screen overflow-y-auto">
-        <div className="max-w-6xl mx-auto">
-          
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-            <div className="bg-gradient-to-r from-red-500 to-red-600 p-10 text-white">
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
-                <div className="flex items-center space-x-6 mb-6 lg:mb-0">
-                  <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                    <User size={40} className="text-white/80" />
+      <div className={`flex-1 transition-all duration-300 ${isOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
+        <div className="p-6 lg:p-10 mt-16">
+          <div className="max-w-4xl mx-auto">
+            
+            <div className="bg-white rounded-t-3xl shadow-sm border-x border-t border-gray-200 overflow-hidden">
+              <div className="bg-red-600 p-8 text-white">
+                <div className="flex items-center gap-6">
+                  <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+                    <User size={40} />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-bold mb-2">{takmir.user?.nama}</h1>
-                    <p className="text-red-100 text-lg">ID Takmir: {takmir.id}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <AlertTriangle size={48} className="text-white animate-pulse" />
-                  <div>
-                    <h2 className="text-2xl font-bold">Konfirmasi Hapus</h2>
-                    <p className="text-red-100">Tindakan ini menghapus profil & akun login</p>
+                    <h1 className="text-3xl font-bold">{takmir.user?.nama}</h1>
+                    <p className="text-red-100 uppercase tracking-widest text-sm font-semibold mt-1">ID Takmir: {id}</p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-8 mb-8 shadow-lg">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
-                <AlertTriangle size={32} className="text-red-600 animate-pulse" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-red-800">Peringatan Penting</h3>
-                <p className="text-red-600">Menghapus takmir akan menghilangkan profil dan akun aplikasi secara permanen.</p>
+
+            <div className="bg-white border-x border-gray-200 p-8">
+              <div className="bg-red-50 border-l-4 border-red-600 p-6 rounded-r-xl flex gap-4">
+                <AlertTriangle className="text-red-600 shrink-0" size={28} />
+                <div>
+                  <h3 className="text-red-800 font-bold text-lg">Peringatan Penghapusan Akun</h3>
+                  <p className="text-red-700 mt-1">
+                    Menghapus takmir ini akan mengakibatkan akun login terkait (<b>{takmir.user?.email}</b>) 
+                    dihapus secara permanen dari sistem. Tindakan ini tidak dapat dibatalkan.
+                  </p>
+                </div>
               </div>
             </div>
-            <p className="text-red-700 leading-relaxed">
-              Pastikan Anda benar-benar ingin menghapus takmir ini. Setelah dihapus, user bersangkutan <strong>tidak akan bisa login kembali</strong> ke aplikasi karena data di tabel <code>user_app</code> ikut dihapus.
+
+            <div className="bg-white border-x border-b border-gray-200 rounded-b-3xl p-8 shadow-sm">
+              <h2 className="text-gray-400 font-bold uppercase text-xs tracking-widest mb-6">Detail Data yang Akan Dihapus</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Nama Box */}
+                <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div className="p-2 bg-white rounded-lg shadow-sm text-red-600">
+                    <User size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-semibold uppercase">Nama Lengkap</p>
+                    <p className="text-gray-800 font-bold">{takmir.user?.nama || '-'}</p>
+                  </div>
+                </div>
+
+                {/* Email Box */}
+                <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div className="p-2 bg-white rounded-lg shadow-sm text-red-600">
+                    <Mail size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-semibold uppercase">Email Login</p>
+                    <p className="text-gray-800 font-bold">{takmir.user?.email || '-'}</p>
+                  </div>
+                </div>
+
+                {/* Masjid Box */}
+                <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 md:col-span-2">
+                  <div className="p-2 bg-white rounded-lg shadow-sm text-red-600">
+                    <Building size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-semibold uppercase">Masjid Penugasan</p>
+                    <p className="text-gray-800 font-bold">
+                      {takmir.masjid?.nama_masjid || 'Tidak Terikat Masjid'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row justify-end gap-4 mt-10 pt-8 border-t border-gray-100">
+                <button
+                  onClick={() => navigate('/superadmin/takmir')}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-bold"
+                >
+                  <X size={20} />
+                  Batalkan
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex items-center justify-center gap-2 px-8 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                >
+                  <Trash2 size={20} />
+                  {deleting ? 'Sedang Menghapus...' : 'Ya, Hapus Permanen'}
+                </button>
+              </div>
+            </div>
+
+            <p className="text-center text-gray-400 text-sm mt-8">
+              Sistem Manajemen Masjid v2.0 - Superadmin Authorization Required
             </p>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                  <User size={24} className="text-red-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-800">Nama Takmir</h3>
-              </div>
-              <p className="text-gray-600 font-medium">{takmir.user?.nama}</p>
-            </div>
-            
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                  <Mail size={24} className="text-red-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-800">Email (Akun Login)</h3>
-              </div>
-              <p className="text-gray-600 font-medium">{takmir.user?.email}</p>
-            </div>
-            
-            <div className="bg-white rounded-2xl shadow-lg p-8 lg:col-span-2">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                  <Building size={24} className="text-red-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-800">Masjid</h3>
-              </div>
-              <p className="text-gray-600 font-medium">{takmir.masjid?.nama_masjid}</p>
-            </div>
-          </div>
-          
-          <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">
-            <button
-              onClick={() => navigate(`/superadmin/takmir`)}
-              className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors flex items-center font-medium shadow-lg"
-            >
-              <X size={20} className="mr-2" />
-              Batal
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="px-8 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            >
-              <Trash2 size={20} className="mr-2" />
-              {deleting ? 'Sedang Menghapus...' : 'Ya, Hapus Permanen'}
-            </button>
           </div>
         </div>
       </div>
