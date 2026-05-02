@@ -9,6 +9,9 @@ const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // 🔥 AMBIL HARI INI (FORMAT YYYY-MM-DD)
+  const today = new Date().toISOString().split('T')[0];
+
   const getExportUrl = () => {
     if (!masjidId || !startDate || !endDate) return '';
 
@@ -38,6 +41,7 @@ const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
           {/* FILTER */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
 
+            {/* TANGGAL MULAI */}
             <div>
               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
                 <Calendar size={16} />
@@ -46,11 +50,13 @@ const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
               <input
                 type="date"
                 value={startDate}
+                max={today} // 🔥 BATAS MAKSIMAL
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
               />
             </div>
 
+            {/* TANGGAL AKHIR */}
             <div>
               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
                 <Calendar size={16} />
@@ -59,6 +65,7 @@ const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
               <input
                 type="date"
                 value={endDate}
+                max={today} // 🔥 BATAS MAKSIMAL
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
               />
@@ -92,7 +99,7 @@ const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
                   Scan QR ini untuk mengunduh laporan keuangan.
                 </p>
 
-                {/* OPTIONAL BUTTON */}
+                {/* BUTTON DOWNLOAD */}
                 <a
                   href={exportUrl}
                   target="_blank"
