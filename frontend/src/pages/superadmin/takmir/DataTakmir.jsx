@@ -242,7 +242,6 @@ const DataTakmir = ({ user, onLogout }) => {
                       <tr key={takmir.id} className="hover:bg-gray-50/80 transition-colors group">
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="text-lg font-bold text-gray-800 group-hover:text-mu-green transition-colors">{takmir.nama}</div>
-                          <div className="text-xs text-gray-400 font-black uppercase tracking-tighter mt-1">ID: {takmir.id}</div>
                         </td>
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="text-sm text-gray-600 font-medium">{takmir.email}</div>
