@@ -243,7 +243,6 @@ const DataKegiatan = ({ user, onLogout }) => {
                         </td>
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="text-lg font-bold text-gray-800 group-hover:text-mu-green transition-colors max-w-[200px] truncate" title={k.nama_kegiatan}>{k.nama_kegiatan}</div>
-                          <div className="text-xs text-gray-400 font-black uppercase tracking-tighter mt-1">ID: {k.kegiatan_id}</div>
                         </td>
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="flex items-center gap-2 text-sm text-gray-800 font-black bg-gray-100/50 w-fit px-3 py-2 rounded-xl">
