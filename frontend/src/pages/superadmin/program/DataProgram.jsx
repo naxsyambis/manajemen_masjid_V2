@@ -225,6 +225,7 @@ const DataProgram = ({ user, onLogout }) => {
                     <th className="px-6 py-6 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Gambar</th>
                     <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Nama Program</th>
                     <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Jadwal</th>
+                    <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Deskripsi</th>
                     <th className="px-6 py-6 text-left text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Kategori</th>
                     <th className="px-6 py-6 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">Aksi</th>
                   </tr>
@@ -239,10 +240,12 @@ const DataProgram = ({ user, onLogout }) => {
                       </td>
                       <td className="px-6 py-6 border-b border-gray-50">
                         <div className="text-lg font-bold text-gray-800 group-hover:text-mu-green transition-colors">{p.nama_program}</div>
-                        <div className="text-xs text-gray-400 font-black uppercase tracking-tighter mt-1">ID: #{p.program_id}</div>
                       </td>
                       <td className="px-6 py-6 border-b border-gray-50">
                         <div className="text-sm text-gray-800 font-black bg-gray-100/50 w-fit px-3 py-2 rounded-xl border border-gray-100">{p.jadwal_rutin}</div>
+                      </td>
+                      <td className="px-6 py-6 border-b border-gray-50">
+                        <div className="text-sm text-gray-800 font-black bg-gray-100/50 w-fit px-3 py-2 rounded-xl border border-gray-100">{p.deskripsi}</div>
                       </td>
                       <td className="px-6 py-6 border-b border-gray-50">
                         <span className="px-4 py-1.5 bg-mu-green/10 text-mu-green rounded-full text-[10px] font-black uppercase tracking-widest border border-mu-green/10">{p.kategori_program?.nama_kategori || "-"}</span>
