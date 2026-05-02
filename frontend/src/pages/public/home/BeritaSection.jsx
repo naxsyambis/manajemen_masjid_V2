@@ -73,7 +73,6 @@ const BeritaSection = () => {
     <section id="berita" className="py-20">
       <div className="container mx-auto px-6">
 
-        {/* HEADER */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-[#006227] mb-4">
             Berita Terbaru
@@ -83,7 +82,6 @@ const BeritaSection = () => {
           </p>
         </div>
 
-        {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {beritaTerbaru.map((item) => {
 
@@ -104,8 +102,6 @@ const BeritaSection = () => {
                 key={item.berita_id}
                 className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col h-full"
               >
-
-                {/* GAMBAR */}
                 <div className="h-56 overflow-hidden">
                   <img
                     src={gambarUrl}
@@ -114,7 +110,6 @@ const BeritaSection = () => {
                   />
                 </div>
 
-                {/* CONTENT */}
                 <div className="p-5 flex flex-col flex-grow">
 
                   <h3 className="font-bold text-lg text-[#006227] mb-2 line-clamp-2 min-h-[48px]">
@@ -125,7 +120,6 @@ const BeritaSection = () => {
                     {getExcerpt(item.isi)}
                   </p>
 
-                  {/* FOOTER */}
                   <div className="text-sm text-gray-500 space-y-1">
                     <div className="font-semibold text-[#006227]">
                       {namaMasjid}
@@ -135,7 +129,6 @@ const BeritaSection = () => {
                     </div>
                   </div>
 
-                  {/* 🔥 BUTTON SELENGKAPNYA */}
                   <div className="mt-4 flex justify-end">
                     <Link
                       to={`/berita/${item.berita_id}`}
@@ -144,15 +137,12 @@ const BeritaSection = () => {
                       Selengkapnya
                     </Link>
                   </div>
-
                 </div>
-
               </div>
             );
           })}
         </div>
 
-        {/* BUTTON SEMUA */}
         <div className="text-center mt-10">
           <Link
             to="/berita"

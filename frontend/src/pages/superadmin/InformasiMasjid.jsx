@@ -1,22 +1,20 @@
-// frontend/src/pages/superadmin/InformasiMasjid.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SuperAdminNavbar from '../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../components/SuperAdminSidebar';
-import { Calendar, RefreshCcw, AlertCircle, Package, Users, UserCheck, UserX } from 'lucide-react'; // Tambahkan UserCheck dan UserX untuk ikon jamaah
-import GrafikKeuangan from '../public/masjid/GrafikKeuangan'; // Import komponen GrafikKeuangan dari public/masjid
+import { Calendar, RefreshCcw, AlertCircle, Package, Users, UserCheck, UserX } from 'lucide-react'; 
+import GrafikKeuangan from '../public/masjid/GrafikKeuangan'; 
 
 const InformasiMasjid = ({ user, onLogout }) => {
-  const { masjid_id } = useParams(); // Diperbaiki: parameter route adalah :masjid_id, bukan masjidId
+  const { masjid_id } = useParams(); 
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [masjid, setMasjid] = useState(null);
   const [keuanganData, setKeuanganData] = useState([]);
-  const [inventarisData, setInventarisData] = useState([]); // State untuk inventaris
-  const [jamaahData, setJamaahData] = useState([]); // State untuk jamaah
+  const [inventarisData, setInventarisData] = useState([]); 
+  const [jamaahData, setJamaahData] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
@@ -30,20 +28,17 @@ const InformasiMasjid = ({ user, onLogout }) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Fungsi untuk memproses data keuangan menjadi format grafik bulanan
   const processKeuanganData = (data) => {
     const monthlyData = {};
 
     data.forEach(item => {
       const date = new Date(item.tanggal);
-      const monthYear = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' }); // e.g., 'Jan 2023'
+      const monthYear = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' });
 
       if (!monthlyData[monthYear]) {
-        monthlyData[monthYear] = { month: monthYear, pemasukan: 0, pengeluaran: 0 }; // Diperbaiki: ubah 'bulan' ke 'month' untuk konsistensi
+        monthlyData[monthYear] = { month: monthYear, pemasukan: 0, pengeluaran: 0 }; 
       }
 
-      // Asumsi: jumlah > 0 adalah pemasukan, < 0 adalah pengeluaran
-      // Jika ada kategori_id, bisa ditambahkan logika untuk membedakan berdasarkan kategori
       if (parseFloat(item.jumlah) > 0) {
         monthlyData[monthYear].pemasukan += parseFloat(item.jumlah);
       } else {
@@ -51,7 +46,6 @@ const InformasiMasjid = ({ user, onLogout }) => {
       }
     });
 
-    // Konversi ke array dan urutkan berdasarkan bulan
     return Object.values(monthlyData).sort((a, b) => {
       const [monthA, yearA] = a.month.split(' ');
       const [monthB, yearB] = b.month.split(' ');
@@ -66,22 +60,18 @@ const InformasiMasjid = ({ user, onLogout }) => {
       setRefreshing(true);
       setError(null);
 
-      // Fetch data masjid
       const masjidRes = await axios.get(`http://localhost:3000/superadmin/masjid/${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } });
       setMasjid(masjidRes.data);
 
-      // Fetch data keuangan, inventaris, dan jamaah secara paralel
       const [keuanganRes, inventarisRes, jamaahRes] = await Promise.all([
         axios.get(`http://localhost:3000/superadmin/keuangan?masjid_id=${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`http://localhost:3000/superadmin/inventaris?masjid_id=${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`http://localhost:3000/superadmin/jamaah?masjid_id=${masjid_id}`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       
-      // Proses data keuangan untuk grafik
-      const processedData = processKeuanganData(keuanganRes.data.data); // Asumsi response.data.data adalah array keuangan
+      const processedData = processKeuanganData(keuanganRes.data.data); 
       setKeuanganData(processedData);
 
-      // Set data inventaris dan jamaah
       setInventarisData(inventarisRes.data.data || []);
       setJamaahData(jamaahRes.data.data || []);
     } catch (err) {
@@ -103,7 +93,6 @@ const InformasiMasjid = ({ user, onLogout }) => {
     fetchMasjidData();
   };
 
-  // Hitung total jamaah aktif dan tidak aktif
   const totalJamaahAktif = jamaahData.filter(item => item.status === 'aktif').length;
   const totalJamaahTidakAktif = jamaahData.filter(item => item.status === 'tidak aktif').length;
 
@@ -138,7 +127,6 @@ const InformasiMasjid = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
@@ -165,10 +153,8 @@ const InformasiMasjid = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Panggil GrafikKeuangan dengan chartData yang sudah diproses */}
           <GrafikKeuangan chartData={keuanganData} />
           
-          {/* Bagian Jamaah - Diperbaiki: tampilkan jumlah keseluruhan aktif dan tidak aktif */}
           <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
             <div className="mb-6">
               <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter flex items-center gap-3">
@@ -207,7 +193,6 @@ const InformasiMasjid = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Bagian Inventaris */}
           <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
             <div className="mb-6">
               <h3 className="text-xl font-black text-gray-800 uppercase tracking-tighter flex items-center gap-3">

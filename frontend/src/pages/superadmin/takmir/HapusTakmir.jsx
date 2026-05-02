@@ -71,7 +71,6 @@ const HapusTakmir = ({ user, onLogout }) => {
       <div className="main-content lg:ml-0 p-6 min-h-screen overflow-y-auto">
         <div className="max-w-6xl mx-auto">
           
-          {/* Header Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
             <div className="bg-gradient-to-r from-red-500 to-red-600 p-10 text-white">
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
@@ -95,7 +94,6 @@ const HapusTakmir = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Warning Card */}
           <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-8 mb-8 shadow-lg">
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
@@ -111,9 +109,7 @@ const HapusTakmir = ({ user, onLogout }) => {
             </p>
           </div>
           
-          {/* Detail Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Card Nama */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -124,7 +120,6 @@ const HapusTakmir = ({ user, onLogout }) => {
               <p className="text-gray-600">{takmir.user?.nama}</p>
             </div>
             
-            {/* Card Email */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -135,7 +130,6 @@ const HapusTakmir = ({ user, onLogout }) => {
               <p className="text-gray-600">{takmir.user?.email}</p>
             </div>
             
-            {/* Card Masjid */}
             <div className="bg-white rounded-2xl shadow-lg p-8 lg:col-span-2">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -147,7 +141,6 @@ const HapusTakmir = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Tombol Aksi */}
           <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">
             <button
               onClick={() => navigate(`/superadmin/takmir/detail/${id}`)}

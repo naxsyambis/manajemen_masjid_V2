@@ -1,12 +1,9 @@
-// frontend/src/pages/public/masjid/DeskripsiMasjid.jsx
-
 import React from 'react';
 import { MapPin, Phone } from 'lucide-react';
 
 const DeskripsiMasjid = ({ masjid }) => {
   return (
     <>
-      {/* Header Masjid */}
       <div className="mb-8">
         <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight leading-tight">
           {masjid.nama_masjid}
@@ -22,8 +19,6 @@ const DeskripsiMasjid = ({ masjid }) => {
           </div>
         </div>
       </div>
-
-      {/* Gambar Logo Masjid */}
       {masjid.logo_foto && (
         <div className="mb-8 flex justify-center">
           <img
@@ -31,13 +26,12 @@ const DeskripsiMasjid = ({ masjid }) => {
             alt={masjid.nama_masjid}
             className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-2xl shadow-lg"
             onError={(e) => { 
-              e.target.src = 'https://picsum.photos/800/400?random=1'; // Ganti dengan placeholder yang lebih stabil
+              e.target.src = 'https://picsum.photos/800/400?random=1'; 
             }}
           />
         </div>
       )}
 
-      {/* Isi Masjid */}
       <div className="prose prose-lg max-w-none text-[#1e293b] leading-relaxed mb-12 text-justify">
         <div className="whitespace-pre-wrap">{masjid.deskripsi || 'Deskripsi masjid belum tersedia.'}</div>
       </div>

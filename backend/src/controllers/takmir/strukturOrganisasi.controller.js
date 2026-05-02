@@ -24,7 +24,6 @@ exports.getAllStruktur = async (req, res) => {
 exports.createStruktur = async (req, res) => {
     try {
         const { nama, jabatan, masjid_id, periode_mulai, periode_selesai } = req.body;
-        // Menggunakan req.files
         const foto = req.files && req.files['foto'] ? req.files['foto'][0].filename : null;
         const ttd = req.files && req.files['ttd'] ? req.files['ttd'][0].filename : null;
 
@@ -39,7 +38,7 @@ exports.createStruktur = async (req, res) => {
             periode_mulai: periode_mulai || null,
             periode_selesai: periode_selesai || null,
             foto,
-            ttd // Simpan nama file ttd
+            ttd 
         });
 
         await logActivity(
@@ -65,7 +64,6 @@ exports.updateStruktur = async (req, res) => {
     try {
         const { id } = req.params;
         const { nama, jabatan, periode_mulai, periode_selesai } = req.body;
-        // Menggunakan req.files
         const fotoBaru = req.files && req.files['foto'] ? req.files['foto'][0].filename : null;
         const ttdBaru = req.files && req.files['ttd'] ? req.files['ttd'][0].filename : null;
 
@@ -76,7 +74,6 @@ exports.updateStruktur = async (req, res) => {
 
         const dataLama = { ...struktur.toJSON() };
 
-        // Hapus foto lama jika ada foto baru
         if (fotoBaru && struktur.foto) {
             const oldPhotoPath = path.join(__dirname, '../../../uploads/kepengurusan', struktur.foto);
             if (fs.existsSync(oldPhotoPath)) {
@@ -84,7 +81,6 @@ exports.updateStruktur = async (req, res) => {
             }
         }
         
-        // Hapus ttd lama jika ada ttd baru
         if (ttdBaru && struktur.ttd) {
             const oldTtdPath = path.join(__dirname, '../../../uploads/ttd', struktur.ttd);
             if (fs.existsSync(oldTtdPath)) {
@@ -131,7 +127,6 @@ exports.deleteStruktur = async (req, res) => {
 
         const dataLama = { ...struktur.toJSON() };
 
-        // Hapus foto
         if (struktur.foto) {
             const photoPath = path.join(__dirname, '../../../uploads/kepengurusan', struktur.foto);
             if (fs.existsSync(photoPath)) {
@@ -139,7 +134,6 @@ exports.deleteStruktur = async (req, res) => {
             }
         }
         
-        // Hapus ttd
         if (struktur.ttd) {
             const ttdPath = path.join(__dirname, '../../../uploads/ttd', struktur.ttd);
             if (fs.existsSync(ttdPath)) {

@@ -1,11 +1,10 @@
 const Berita = require("../../models/Berita");
 const BeritaGambar = require("../../models/BeritaGambar");
-const MasjidTakmir = require("../../models/masjid_takmir"); // 🔥 Import model relasi takmir
+const MasjidTakmir = require("../../models/masjid_takmir"); 
 const { logActivity } = require("../../services/auditLog.service");
 const fs = require("fs");
 const path = require("path");
 
-// 🔥 FUNGSI HELPER: Ambil masjid_id berdasarkan takmir yang lagi login
 const getTakmirMasjidId = async (userId) => {
     const takmir = await MasjidTakmir.findOne({ where: { user_id: userId } });
     return takmir ? takmir.masjid_id : null;
@@ -15,12 +14,10 @@ exports.getAllBerita = async (req, res) => {
     try {
         const masjid_id = await getTakmirMasjidId(req.user.user_id);
         
-        // Kalau dia gak terdaftar di masjid mana-mana, tolak aksesnya
         if (!masjid_id) {
             return res.status(403).json({ message: "Anda tidak terdaftar di masjid manapun." });
         }
 
-        // 🔥 FIX: Cuma ambil berita yang sesuai dengan masjid_id takmir
         const berita = await Berita.findAll({ 
             where: { masjid_id: masjid_id },
             order: [['tanggal', 'DESC']] 
@@ -36,7 +33,6 @@ exports.getById = async (req, res) => {
   try {
     const masjid_id = await getTakmirMasjidId(req.user.user_id);
 
-    // 🔥 FIX: Keamanan tambahan, filter ID Berita DAN masjid_id-nya
     const data = await Berita.findOne({
       where: { 
           berita_id: req.params.id,
@@ -62,7 +58,6 @@ exports.createBerita = async (req, res) => {
     try {
         const { judul, isi, youtube_url } = req.body;
         
-        // 🔥 FIX: Ambil otomatis masjid_id dari takmir yang login
         const masjid_id = await getTakmirMasjidId(req.user.user_id);
         if (!masjid_id) return res.status(403).json({ message: "Anda tidak terdaftar di masjid manapun." });
 
@@ -74,7 +69,7 @@ exports.createBerita = async (req, res) => {
         const newBerita = await Berita.create({
             judul,
             isi,
-            masjid_id: masjid_id, // Paksa pakai masjid_id si takmir
+            masjid_id: masjid_id, 
             youtube_url: youtube_url || null, 
             gambar: gambarUtama, 
             user_id: req.user.user_id,
@@ -101,7 +96,6 @@ exports.updateBerita = async (req, res) => {
         const { judul, isi, youtube_url } = req.body;
         const masjid_id = await getTakmirMasjidId(req.user.user_id);
 
-        // 🔥 FIX: Cuma bisa update kalau berita_id dan masjid_id cocok!
         const berita = await Berita.findOne({ 
             where: { berita_id: id, masjid_id: masjid_id } 
         });
@@ -140,7 +134,6 @@ exports.deleteBerita = async (req, res) => {
         const { id } = req.params;
         const masjid_id = await getTakmirMasjidId(req.user.user_id);
 
-        // 🔥 FIX: Cuma bisa hapus kalau berita_id dan masjid_id cocok!
         const berita = await Berita.findOne({ 
             where: { berita_id: id, masjid_id: masjid_id } 
         });

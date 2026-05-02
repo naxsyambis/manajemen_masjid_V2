@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/riwayat/Riwayat.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -10,33 +8,28 @@ import {
 } from 'lucide-react';
 
 const Riwayat = ({ user, onLogout }) => {
-  // UI State[cite: 1, 7]
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Data State[cite: 7]
   const [auditLogs, setAuditLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Pagination State[cite: 1, 7]
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // 1. Clock Effect[cite: 1]
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 2. Fetch Data Function[cite: 7]
   const fetchAuditLogs = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -64,7 +57,6 @@ const Riwayat = ({ user, onLogout }) => {
     fetchAuditLogs();
   }, [fetchAuditLogs]);
 
-  // 3. Search & Filter Effect[cite: 7]
   useEffect(() => {
     const filtered = auditLogs.filter(log => 
       log.nama_tabel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -75,7 +67,6 @@ const Riwayat = ({ user, onLogout }) => {
     setCurrentPage(1);
   }, [searchTerm, auditLogs]);
 
-  // 4. Pagination Logic[cite: 1, 7]
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
   const currentItems = filteredLogs.slice(indexOfFirstItem, indexOfLastItem);
@@ -118,7 +109,6 @@ const Riwayat = ({ user, onLogout }) => {
     }
   };
 
-  // 6. Loading State[cite: 1]
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
@@ -146,7 +136,6 @@ const Riwayat = ({ user, onLogout }) => {
         
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-8">
           
-          {/* Header Section[cite: 1] */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-black text-gray-800 uppercase tracking-tighter">
@@ -169,10 +158,8 @@ const Riwayat = ({ user, onLogout }) => {
             </button>
           </div>
           
-          {/* Table Container[cite: 1, 7] */}
           <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
             
-            {/* Toolbar[cite: 1] */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
               <div className="flex items-center gap-6 w-full md:w-auto">
                 <div className="hidden sm:block">
@@ -217,10 +204,9 @@ const Riwayat = ({ user, onLogout }) => {
                             hover:border-gray-400
                             transition-all duration-200"
                 />
-</div>
-            </div>
+                  </div>
+                              </div>
 
-            {/* Content List[cite: 7] */}
             <div className="space-y-4">
               {currentItems.length > 0 ? (
                 currentItems.map((log) => (
@@ -265,7 +251,6 @@ const Riwayat = ({ user, onLogout }) => {
               )}
             </div>
 
-            {/* Pagination[cite: 1] */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-12 gap-6">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
                 Menampilkan <span className="text-mu-green">{filteredLogs.length > 0 ? indexOfFirstItem + 1 : 0}</span> - <span className="text-mu-green">{Math.min(indexOfLastItem, filteredLogs.length)}</span> dari {filteredLogs.length} data

@@ -170,7 +170,6 @@ const EditKegiatan = ({ user, onLogout }) => {
           <form onSubmit={handleSubmit} className="bg-white p-8 lg:p-12 rounded-3xl shadow-sm border border-gray-100 space-y-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               
-              {/* PHOTO SECTION DENGAN OVERLAY[cite: 13, 15] */}
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-gray-800 border-b-2 border-mu-green pb-2">Poster Kegiatan</h3>
                 <div className="relative group w-full aspect-[3/4] max-h-[500px]">

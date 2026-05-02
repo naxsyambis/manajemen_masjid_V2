@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/kepengurusan/DetailKepengurusan.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -11,7 +9,6 @@ import {
   Clock, Fingerprint, Briefcase, Award
 } from 'lucide-react';
 
-// Sub-component untuk baris informasi yang konsisten[cite: 10]
 const DetailRow = ({ icon, label, value }) => (
   <div className="flex items-center justify-between p-5 hover:bg-gray-50/80 transition-all border-b border-gray-100 last:border-0 group">
     <div className="flex items-center gap-4">
@@ -106,7 +103,6 @@ const DetailKepengurusan = ({ user, onLogout }) => {
         
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-10">
           
-          {/* Header & Navigasi[cite: 10] */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <button 
@@ -147,7 +143,6 @@ const DetailKepengurusan = ({ user, onLogout }) => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* Kartu Profil Utama (Kiri)[cite: 10] */}
             <div className="lg:col-span-4 space-y-8">
               <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col items-center text-center">
                 <div className="w-40 h-40 bg-gray-50 rounded-[2.5rem] border-4 border-gray-50 flex items-center justify-center shadow-inner mb-6 relative overflow-hidden group">
@@ -166,7 +161,6 @@ const DetailKepengurusan = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* Informasi Detail & Jabatan (Kanan)[cite: 10] */}
             <div className="lg:col-span-8 space-y-8">
               <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50 h-full">
                 <div className="flex items-center gap-4 mb-10">
@@ -196,7 +190,6 @@ const DetailKepengurusan = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Delete Modal[cite: 10] */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/20">

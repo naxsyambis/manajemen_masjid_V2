@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom'; // Wajib untuk Portal Alert[cite: 3, 7]
+import ReactDOM from 'react-dom'; 
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -13,7 +13,6 @@ import {
   Briefcase,
   Camera,
   Upload,
-  // Icon tambahan untuk Alert[cite: 7, 9]
   X,
   AlertTriangle,
   CheckCircle2,
@@ -23,7 +22,6 @@ import {
 
 const BASE_URL = "http://localhost:3000";
 
-// --- Komponen AlertPopup (Sesuai source v3.0) ---[cite: 3, 7, 9]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -84,7 +82,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
-  // --- State Alert ---[cite: 3, 7, 9, 14]
   const [alertData, setAlertData] = useState({ show: false, type: 'info', title: '', message: '', confirmText: '', onConfirm: null });
 
   const [formData, setFormData] = useState({
@@ -108,7 +105,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // --- Helper Alert ---[cite: 3, 7, 9, 14]
   const showPopup = ({ type = 'info', title = 'Informasi', message = '', confirmText = '', onConfirm = null }) => {
     setAlertData({ show: true, type, title, message, confirmText, onConfirm });
   };
@@ -186,7 +182,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
     if (fileInput) fileInput.value = '';
   };
 
-  // --- Fungsi Validasi Form ---[cite: 3, 7, 14]
   const validateForm = () => {
     if (!formData.nama_lengkap.trim()) {
       showPopup({ type: 'warning', title: 'Nama Kosong', message: 'Nama lengkap pengurus wajib diisi.' });
@@ -205,7 +200,7 @@ const EditKepengurusan = ({ user, onLogout }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return; // Jalankan validasi sebelum kirim[cite: 3, 7, 14]
+    if (!validateForm()) return; 
 
     setLoading(true);
     const data = new FormData();
@@ -234,7 +229,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
 
   return (
     <div className="h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex overflow-hidden animate-fadeIn">
-      {/* Implementasi AlertPopup[cite: 3, 7, 9, 14] */}
       <AlertPopup alertData={alertData} onClose={closePopup} />
 
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
@@ -243,7 +237,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="p-8 overflow-y-auto space-y-8">
-          {/* HEADER[cite: 13, 14] */}
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">Edit <span className="text-mu-green">Pengurus</span></h1>
@@ -257,10 +250,8 @@ const EditKepengurusan = ({ user, onLogout }) => {
             </button>
           </div>
 
-          {/* CARD FORM[cite: 13, 14] */}
           <form onSubmit={handleSubmit} className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 space-y-10">
             
-            {/* FOTO SECTION DENGAN INTERACTIVE OVERLAY[cite: 13, 14] */}
             <div className="flex flex-col items-center lg:items-start gap-6">
               <h3 className="text-xl font-bold border-b-2 border-mu-green pb-2 text-gray-800">Foto Profil Pengurus</h3>
               
@@ -279,7 +270,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
                     </div>
                   )}
 
-                  {/* OVERLAY INTERAKTIF SAAT HOVER[cite: 13] */}
                   <label 
                     htmlFor="foto-upload" 
                     className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white gap-2 backdrop-blur-sm"
@@ -289,7 +279,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
                   </label>
                 </div>
 
-                {/* TOMBOL BATAL PILIH FILE (X)[cite: 13, 14] */}
                 {newFile && (
                   <button 
                     type="button" 
@@ -300,7 +289,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
                   </button>
                 )}
                 
-                {/* INDIKATOR VISUAL UPLOAD[cite: 13] */}
                 <div className="absolute -bottom-2 -right-2 bg-mu-green text-white p-2 rounded-lg shadow-lg pointer-events-none border-2 border-white">
                   <Upload size={14} />
                 </div>
@@ -316,7 +304,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
               <p className="text-xs text-gray-400 font-medium italic">Klik gambar untuk mengunggah foto baru (Maks. 5MB)</p>
             </div>
 
-            {/* FORM DATA[cite: 13, 14] */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-gray-50">
               <div className="space-y-4">
                 <label className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
@@ -364,7 +351,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* ACTION BUTTONS[cite: 13, 14] */}
             <div className="flex justify-between items-center pt-6 border-t border-gray-100">
               <button 
                 type="button" 
@@ -384,7 +370,6 @@ const EditKepengurusan = ({ user, onLogout }) => {
             </div>
           </form>
 
-          {/* SYSTEM FOOTER BRANDING[cite: 13, 14] */}
           <div className="flex justify-center items-center gap-4 text-gray-300 py-4 opacity-50">
             <div className="h-[1px] w-12 bg-gray-200"></div>
             <p className="text-[10px] font-black uppercase tracking-[0.4em]">Integrated Database System v3.0</p>

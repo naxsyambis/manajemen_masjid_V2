@@ -5,10 +5,10 @@ import PublicApp from './PublicApp';
 import AdminApp from './AdminApp';
 import SuperAdminApp from './SuperAdminApp';
 import Login from './pages/auth/Login';
-import ForgotPassword from './pages/auth/ForgotPassword'; // Tambahkan import untuk ForgotPassword
+import ForgotPassword from './pages/auth/ForgotPassword'; 
 
 const AppWrapper = () => {
-  const [currentApp, setCurrentApp] = useState('public'); // 'public', 'admin', 'superadmin'
+  const [currentApp, setCurrentApp] = useState('public'); 
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -22,10 +22,10 @@ const AppWrapper = () => {
           });
           if (res.data.role === 'takmir') {
             setCurrentApp('admin');
-            navigate('/admin'); // Navigasi otomatis ke admin
+            navigate('/admin'); 
           } else if (res.data.role === 'super admin') {
             setCurrentApp('superadmin');
-            navigate('/superadmin'); // Navigasi otomatis ke superadmin
+            navigate('/superadmin'); 
           } else {
             setCurrentApp('public');
             localStorage.clear();
@@ -58,7 +58,6 @@ const AppWrapper = () => {
   } else if (currentApp === 'superadmin') {
     return <SuperAdminApp />;
   } else {
-    // Render PublicApp untuk public (default)
     return <PublicApp />;
   }
 };
@@ -67,12 +66,11 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/*" element={<PublicApp />} /> {/* Ubah dari "/" ke "/*" agar parent match semua path dan child routes di PublicApp bisa render tanpa warning */}
-        <Route path="/login" element={<Login />} /> {/* Halaman login */}
-        <Route path="/forgot-password" element={<ForgotPassword />} /> {/* Tambahkan route untuk halaman lupa password */}
-        <Route path="/admin/*" element={<AdminApp />} /> {/* Panggil AdminApp untuk route admin */}
-        <Route path="/superadmin/*" element={<SuperAdminApp />} /> {/* Panggil SuperAdminApp untuk route superadmin */}
-        {/* Hapus fallback <Route path="/*" element={<PublicApp />} /> karena sudah digantikan di atas */}
+        <Route path="/*" element={<PublicApp />} /> 
+        <Route path="/login" element={<Login />} /> 
+        <Route path="/forgot-password" element={<ForgotPassword />} /> 
+        <Route path="/admin/*" element={<AdminApp />} /> 
+        <Route path="/superadmin/*" element={<SuperAdminApp />} />
       </Routes>
     </Router>
   );

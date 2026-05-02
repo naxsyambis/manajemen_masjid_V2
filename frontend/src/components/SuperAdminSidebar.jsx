@@ -1,23 +1,21 @@
-// frontend/src/components/SuperAdminSidebar.jsx
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom'; // Tambah untuk navigasi dan highlight aktif
+import { Link, useLocation } from 'react-router-dom'; 
 import { 
   Home, LayoutGrid, Users, Calendar, FileText, LogOut, Menu, Activity, History 
-} from 'lucide-react'; // Tambah History untuk Riwayat
+} from 'lucide-react'; 
 
 const SuperAdminSidebar = ({ isOpen, setIsOpen, onLogout, user, setIsHovered, isExpanded }) => {
-  const location = useLocation(); // Untuk menentukan menu aktif berdasarkan path
+  const location = useLocation(); 
 
   const menus = [
     { title: "Dashboard", path: "/superadmin", icon: <Home size={20} /> },
     { title: "Data Masjid", path: "/superadmin/masjid", icon: <LayoutGrid size={20} /> },
     { title: "Data Takmir", path: "/superadmin/takmir", icon: <Users size={20} /> },
-    { title: "Kepengurusan", path: "/superadmin/kepengurusan", icon: <Users size={20} /> }, // Icon sama dengan Data Takmir, bisa ganti jika perlu
+    { title: "Kepengurusan", path: "/superadmin/kepengurusan", icon: <Users size={20} /> }, 
     { title: "Program", path: "/superadmin/program", icon: <Calendar size={20} /> },
     { title: "Berita", path: "/superadmin/berita", icon: <FileText size={20} /> },
     { title: "Kegiatan", path: "/superadmin/kegiatan", icon: <Activity size={20} /> },
-    { title: "Riwayat", path: "/superadmin/riwayat", icon: <History size={20} /> }, // Menu baru untuk Riwayat
+    { title: "Riwayat", path: "/superadmin/riwayat", icon: <History size={20} /> }, 
   ];
 
   return (
@@ -46,13 +44,13 @@ const SuperAdminSidebar = ({ isOpen, setIsOpen, onLogout, user, setIsHovered, is
         </div>
         <nav className="flex-1 mt-6 px-3 space-y-2 overflow-y-auto no-scrollbar">
           {menus.map((item) => {
-            const isActive = location.pathname === item.path; // Highlight berdasarkan path saat ini
+            const isActive = location.pathname === item.path; 
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => {
-                  if (window.innerWidth < 1024) setIsOpen(false); // Tutup sidebar di mobile
+                  if (window.innerWidth < 1024) setIsOpen(false); 
                 }}
                 className={`w-full flex items-center p-3 rounded-xl transition-all duration-200 group relative
                   ${isActive ? 'bg-mu-yellow text-mu-green font-bold shadow-lg' : 'hover:bg-green-800 text-white/70 hover:text-white'}`}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from "react-dom"; // Tambahkan ini untuk Portal Alert
+import ReactDOM from "react-dom"; 
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -13,7 +13,6 @@ import {
   FileText, 
   Type,
   Image as ImageIcon,
-  // Icon tambahan untuk Alert
   X,
   AlertTriangle,
   CheckCircle2,
@@ -23,7 +22,6 @@ import {
 
 const BASE_URL = "http://localhost:3000";
 
-// --- Komponen AlertPopup (Sesuai source CreateBerita.jsx) ---[cite: 3]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -68,7 +66,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // --- State Alert ---[cite: 3]
   const [alertData, setAlertData] = useState({
     show: false,
     type: "info",
@@ -97,7 +94,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // --- Fungsi Helper Alert ---[cite: 3]
   const showPopup = ({ type = "info", title = "Informasi", message = "", confirmText = "", onConfirm = null }) => {
     setAlertData({ show: true, type, title, message, confirmText, onConfirm });
   };
@@ -140,7 +136,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validasi menggunakan Alert[cite: 3]
     if (!formData.nama_kegiatan || !formData.waktu_kegiatan || !formData.lokasi) {
       showPopup({
         type: "warning",
@@ -168,7 +163,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
         }
       });
 
-      // Sukses menggunakan Alert[cite: 3]
       showPopup({
         type: "success",
         title: "Berhasil!",
@@ -190,7 +184,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
 
   return (
     <div className="tambah-kegiatan h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
-      {/* Komponen Alert diletakkan di sini */}
       <AlertPopup alertData={alertData} onClose={closePopup} />
 
       <SuperAdminSidebar 
@@ -206,7 +199,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
 
         <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
@@ -229,7 +221,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
             </button>
           </div>
 
-          {/* Form Card */}
           <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
             <div className="p-10 lg:p-16">
               <div className="mb-12 text-center">
@@ -239,7 +230,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
 
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                  {/* Bagian Input Form tetap sama sesuai struktur[cite: 4] */}
                   <div className="space-y-10">
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Poster Kegiatan</h3>
@@ -310,7 +300,6 @@ const TambahKegiatan = ({ user, onLogout }) => {
                   </div>
                 </div>
 
-                {/* Tombol Aksi */}
                 <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
                   <button
                     type="button"

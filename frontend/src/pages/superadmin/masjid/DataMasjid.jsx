@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/masjid/DataMasjid.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +10,6 @@ import {
 } from 'lucide-react';
 
 const DataMasjid = ({ user, onLogout }) => {
-  // UI State[cite: 1]
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -20,7 +17,6 @@ const DataMasjid = ({ user, onLogout }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   
-  // Data State[cite: 1]
   const [masjids, setMasjids] = useState([]);
   const [filteredMasjids, setFilteredMasjids] = useState([]);
   const [selectedMasjid, setSelectedMasjid] = useState(null);
@@ -28,7 +24,6 @@ const DataMasjid = ({ user, onLogout }) => {
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
   
-  // Pagination State[cite: 1]
   const [entriesPerPage, setEntriesPerPage] = useState(5); 
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -36,13 +31,11 @@ const DataMasjid = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // 1. Clock Effect[cite: 1]
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 2. Fetch Data Function[cite: 1]
   const fetchMasjids = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -64,7 +57,6 @@ const DataMasjid = ({ user, onLogout }) => {
     fetchMasjids();
   }, [fetchMasjids]);
 
-  // 3. Search & Filter Effect[cite: 1]
   useEffect(() => {
     const filtered = masjids.filter(masjid =>
       masjid.nama_masjid?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,7 +66,6 @@ const DataMasjid = ({ user, onLogout }) => {
     setCurrentPage(1);
   }, [masjids, searchTerm]);
 
-  // 4. Pagination Logic[cite: 1]
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
   const currentItems = filteredMasjids.slice(indexOfFirstItem, indexOfLastItem);
@@ -92,7 +83,6 @@ const DataMasjid = ({ user, onLogout }) => {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
-  // 5. Actions[cite: 1]
   const handleDelete = async () => {
     if (!selectedMasjid) return;
     setDeleting(true);
@@ -120,7 +110,6 @@ const DataMasjid = ({ user, onLogout }) => {
     setSelectedMasjid(null);
   };
 
-  // 6. Loading State[cite: 1]
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
@@ -147,8 +136,6 @@ const DataMasjid = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-8">
-          
-          {/* Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-black text-gray-800 uppercase tracking-tighter">
@@ -180,10 +167,8 @@ const DataMasjid = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Table Container[cite: 1] */}
           <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
             
-            {/* Toolbar */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
               <div className="flex items-center gap-6 w-full md:w-auto">
                 <div className="hidden sm:block">
@@ -231,7 +216,6 @@ const DataMasjid = ({ user, onLogout }) => {
                 </div>
             </div>
             
-            {/* Table[cite: 1] */}
             <div className="overflow-x-auto">
               <table className="min-w-full border-separate border-spacing-0">
                 <thead>
@@ -261,14 +245,12 @@ const DataMasjid = ({ user, onLogout }) => {
                           <div className="text-lg font-bold text-gray-800 group-hover:text-mu-green transition-colors">{masjid.nama_masjid}</div>
                           <div className="text-xs text-gray-400 font-black uppercase tracking-tighter mt-1">ID: {masjid.masjid_id}</div>
                         </td>
-                        {/* Kolom Alamat Terpisah */}
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="flex items-start gap-2 text-sm text-gray-600 max-w-[200px]">
                             <MapPin size={16} className="text-mu-green flex-shrink-0 mt-0.5" />
                             <span className="leading-relaxed">{masjid.alamat}</span>
                           </div>
                         </td>
-                        {/* Kolom Kontak Terpisah */}
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="flex items-center gap-2 text-sm text-gray-800 font-black bg-gray-100/50 w-fit px-3 py-2 rounded-xl">
                             <Phone size={14} className="text-mu-green flex-shrink-0" />
@@ -323,7 +305,6 @@ const DataMasjid = ({ user, onLogout }) => {
               </table>
             </div>
 
-            {/* Pagination[cite: 1] */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-12 gap-6">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
                 Menampilkan <span className="text-mu-green">{filteredMasjids.length > 0 ? indexOfFirstItem + 1 : 0}</span> - <span className="text-mu-green">{Math.min(indexOfLastItem, filteredMasjids.length)}</span> dari {filteredMasjids.length} data
@@ -367,7 +348,6 @@ const DataMasjid = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Delete Modal[cite: 1] */}
       {showDeleteModal && selectedMasjid && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/20">

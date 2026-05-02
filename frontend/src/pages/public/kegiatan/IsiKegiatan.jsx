@@ -57,7 +57,6 @@ const IsiKegiatan = () => {
       <section id="kegiatan" className="py-20">
         <div className="container mx-auto px-6">
 
-          {/* HEADER */}
           <div className="mb-12 text-center mt-10">
             <h1 className="text-4xl font-bold text-[#006227] mb-4 break-words">
               {kegiatan.nama_kegiatan}
@@ -80,10 +79,8 @@ const IsiKegiatan = () => {
             </p>
           </div>
 
-          {/* 🔥 FIX LAYOUT DI SINI */}
           <div className="flex flex-col md:flex-row justify-center items-start gap-8 max-w-5xl mx-auto mb-12">
 
-            {/* POSTER */}
             {kegiatan.poster && (
               <div className="md:w-[320px] flex-shrink-0">
                 <img
@@ -94,7 +91,6 @@ const IsiKegiatan = () => {
               </div>
             )}
 
-            {/* DESKRIPSI */}
             <div className="flex-1 text-justify leading-relaxed text-[#1e293b] max-w-2xl">
               <div className="whitespace-pre-wrap break-words">
                 {kegiatan.deskripsi || 'Deskripsi kegiatan belum tersedia.'}
@@ -103,7 +99,6 @@ const IsiKegiatan = () => {
 
           </div>
 
-          {/* BUTTON */}
           <div className="text-center mt-10">
             <a
               href="/kegiatan"
@@ -115,7 +110,6 @@ const IsiKegiatan = () => {
 
         </div>
       </section>
-
       <FooterPublic />
     </>
   );

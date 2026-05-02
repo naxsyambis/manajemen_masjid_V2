@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/program/DataProgram.jsx
-
 import React, { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import axios from "axios";
@@ -148,7 +146,6 @@ const DataProgram = ({ user, onLogout }) => {
 
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-10">
           
-          {/* HEADER SECTION */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-black text-gray-800 uppercase tracking-tighter">
@@ -171,7 +168,6 @@ const DataProgram = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* TABLE PROGRAM */}
           <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
               <div className="flex items-center gap-6 w-full md:w-auto">
@@ -263,7 +259,6 @@ const DataProgram = ({ user, onLogout }) => {
               </table>
             </div>
 
-            {/* Pagination Program */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-12 gap-6">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Halaman <span className="text-mu-green">{pageProgram}</span> dari {totalPageProgram || 1}</p>
               <div className="flex items-center gap-2">
@@ -278,7 +273,6 @@ const DataProgram = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* TABLE KATEGORI */}
           <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/30">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
               <div className="flex items-center gap-6 w-full md:w-auto">
@@ -312,7 +306,6 @@ const DataProgram = ({ user, onLogout }) => {
               </table>
             </div>
 
-            {/* Pagination Kategori */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-12 gap-6">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Halaman <span className="text-mu-green">{pageKategori}</span> dari {totalPageKategori || 1}</p>
               <div className="flex items-center gap-2">

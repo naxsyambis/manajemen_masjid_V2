@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom'; // Wajib untuk Portal Alert[cite: 9]
+import { createPortal } from 'react-dom'; 
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -17,7 +17,6 @@ import {
 
 const BASE_URL = "http://localhost:3000";
 
-// --- Komponen AlertPopup (Identik dengan HapusStruktur.jsx) ---[cite: 9]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -73,14 +72,12 @@ const HapusKepengurusan = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   
-  // --- State Alert ---[cite: 9]
   const [alertData, setAlertData] = useState({ show: false, type: 'info', title: '', message: '', confirmText: '', onConfirm: null });
 
   const navigate = useNavigate();
   const { id } = useParams();
   const token = localStorage.getItem('token');
 
-  // --- Helper Alert ---[cite: 9]
   const showPopup = ({ type = 'info', title = 'Informasi', message = '', confirmText = '', onConfirm = null }) => {
     setAlertData({ show: true, type, title, message, confirmText, onConfirm });
   };
@@ -113,7 +110,6 @@ const HapusKepengurusan = ({ user, onLogout }) => {
     }
   };
 
-  // --- Logika Konfirmasi Hapus ---[cite: 9]
   const confirmDelete = () => {
     showPopup({
       type: 'confirm',
@@ -165,7 +161,6 @@ const HapusKepengurusan = ({ user, onLogout }) => {
       
       <div className="main-content p-8 min-h-screen overflow-y-auto">
         <div className="max-w-6xl mx-auto">
-          {/* CARD HEADER - Style Identik HapusStruktur[cite: 9, 18] */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
             <div className="bg-gradient-to-r from-red-500 to-red-600 p-10 text-white">
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
@@ -193,7 +188,6 @@ const HapusKepengurusan = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* PERINGATAN[cite: 18] */}
           <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-8 mb-8 shadow-lg">
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
@@ -209,7 +203,6 @@ const HapusKepengurusan = ({ user, onLogout }) => {
             </p>
           </div>
 
-          {/* DETAIL GRID[cite: 18] */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center space-x-4 mb-6">
@@ -235,7 +228,6 @@ const HapusKepengurusan = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* FOOTER BUTTONS[cite: 18] */}
           <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">
             <button
               onClick={() => navigate('/superadmin/kepengurusan')}
@@ -244,7 +236,7 @@ const HapusKepengurusan = ({ user, onLogout }) => {
               <X size={20} className="mr-2" /> Batal
             </button>
             <button
-              onClick={confirmDelete} // Menggunakan helper confirmDelete[cite: 9]
+              onClick={confirmDelete} 
               disabled={deleting}
               className="px-8 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center font-medium disabled:opacity-50 shadow-lg active:scale-95"
             >

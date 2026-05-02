@@ -7,10 +7,6 @@ import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
 import { AlertTriangle, X, CheckCircle2, XCircle, Info } from 'lucide-react';
 
 const BASE_URL = "http://localhost:3000";
-
-/* ==========================================================================
-   KOMPONEN ALERT POPUP (DESAIN IDENTIK DENGAN FOTO & EFEK BLUR)
-   ========================================================================== */
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -19,21 +15,16 @@ const AlertPopup = ({ alertData, onClose }) => {
 
   return createPortal(
     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
-      {/* Overlay Backdrop dengan Efek Blur Maksimal sesuai referensi */}
       <div 
         className="fixed inset-0 bg-black/60 backdrop-blur-md animate-fadeIn" 
         onClick={onClose} 
       />
-      
-      {/* Modal Container */}
       <div className="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden animate-scaleIn text-center border border-white/20">
         
-        {/* Header Merah dengan Icon Peringatan */}
         <div className={`${headerBg} py-10 flex justify-center items-center shadow-inner`}>
           <AlertTriangle size={64} className="text-white drop-shadow-md" strokeWidth={2} />
         </div>
 
-        {/* Konten Teks */}
         <div className="p-10">
           <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight mb-4">
             {alertData.title}
@@ -44,7 +35,6 @@ const AlertPopup = ({ alertData, onClose }) => {
             <p className="text-sm font-bold text-gray-400 mt-2">Data yang dihapus tidak bisa dikembalikan.</p>
           </div>
 
-          {/* Tombol Aksi */}
           <div className="mt-10 flex gap-4">
             <button
               type="button"
@@ -71,9 +61,6 @@ const AlertPopup = ({ alertData, onClose }) => {
   );
 };
 
-/* ==========================================================================
-   MAIN COMPONENT
-   ========================================================================== */
 const HapusProgram = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -120,14 +107,12 @@ const HapusProgram = ({ user, onLogout }) => {
 
   return (
     <div className="super-admin-dashboard min-h-screen bg-gray-100 relative">
-      {/* Background di bawah Modal yang tetap terlihat ter-blur */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} />
         
         <div className="main-content p-6 filter blur-[2px]">
            <div className="max-w-6xl mx-auto opacity-50 pointer-events-none">
-              {/* Dummy Layout untuk simulasi latar belakang ter-blur */}
               <div className="bg-white rounded-2xl h-40 mb-8 shadow-sm" />
               <div className="grid grid-cols-2 gap-8">
                 <div className="bg-white rounded-2xl h-64 shadow-sm" />
@@ -137,7 +122,6 @@ const HapusProgram = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Alert yang Muncul Otomatis dengan backdrop-blur-md tersendiri */}
       <AlertPopup 
         alertData={{
           show: true,

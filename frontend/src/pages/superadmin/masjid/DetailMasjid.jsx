@@ -1,4 +1,3 @@
-// frontend/src/pages/superadmin/masjid/DetailMasjid.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 import { formatRupiah } from '../../../utils/formatCurrency';
 
-// --- SUB-COMPONENTS ---
 const InfoItem = ({ icon, label, value }) => (
   <div className="flex gap-4 items-start p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
     <div className="p-3 bg-white rounded-xl text-mu-green shadow-sm">
@@ -132,7 +130,6 @@ const DataTable = ({
   </div>
 );
 
-// --- MAIN COMPONENT ---
 const DetailMasjid = ({ user, onLogout }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -149,7 +146,6 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [keuanganFiltered, setKeuanganFiltered] = useState([]);
   const [filterType, setFilterType] = useState('semua');
   
-  // State untuk Grafik
   const [chartData, setChartData] = useState([]);
   const [filterRange, setFilterRange] = useState('minggu');
   
@@ -158,7 +154,7 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [riwayat, setRiwayat] = useState([]);
   const [berita, setBerita] = useState([]);
   const [program, setProgram] = useState([]);
-  const [strukturOrganisasi, setStrukturOrganisasi] = useState([]); // Perbaikan State
+  const [kepengurusan, setKepengurusan] = useState([]); 
 
   const [userMap, setUserMap] = useState({});
   const [kategoriProgMap, setKategoriProgMap] = useState({});
@@ -170,7 +166,6 @@ const DetailMasjid = ({ user, onLogout }) => {
     jamaah: { page: 1, limit: 5 },
     inventaris: { page: 1, limit: 5 },
     riwayat: { page: 1, limit: 5 },
-    strukturOrganisasi: { page: 1, limit: 5 } // Perbaikan Pagination
     kepengurusan: { page: 1, limit: 5 } 
   });
 
@@ -202,7 +197,6 @@ const DetailMasjid = ({ user, onLogout }) => {
 
   const isExpanded = isOpen || isHovered;
 
-  // Logika Grafik Arus Kas
   const processKeuanganForChart = (rawData, range) => {
     const now = new Date();
     let processedData = [];
@@ -304,8 +298,7 @@ const DetailMasjid = ({ user, onLogout }) => {
         axios.get(`http://localhost:3000/superadmin/kegiatan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } })),
         axios.get(`http://localhost:3000/superadmin/berita?masjid_id=${id}`, { headers }).catch(() => ({ data: [] })),
         axios.get(`http://localhost:3000/superadmin/program?masjid_id=${id}`, { headers }).catch(() => ({ data: [] })),
-        // Perbaikan Fetch API untuk Struktur Organisasi
-        axios.get(`http://localhost:3000/superadmin/struktur-organisasi?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } }))
+        axios.get(`http://localhost:3000/superadmin/kepengurusan?masjid_id=${id}`, { headers }).catch(() => ({ data: { data: [] } }))
       ]);
 
       const formatTableData = (response, mapKategoriManual = null) => {
@@ -326,9 +319,6 @@ const DetailMasjid = ({ user, onLogout }) => {
       
       setBerita(formatTableData(bRes));
       setProgram(formatTableData(pRes, mapKatProg));
-      // Simpan data struktur organisasi
-      setStrukturOrganisasi(sRes.data?.data || sRes.data || []); 
-
       setKepengurusan(sRes.data?.data || sRes.data || []); 
       setJamaah(jRes.data?.data || jRes.data || []);
       setInventaris(iRes.data?.data || iRes.data || []);
@@ -382,7 +372,6 @@ const DetailMasjid = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <main className="flex-1 overflow-y-auto p-8 space-y-10">
-          {/* Header Profil */}
           <div className="bg-white rounded-[2rem] p-10 shadow-sm border border-gray-100 grid grid-cols-1 lg:grid-cols-3 gap-10">
             <div className="flex flex-col items-center space-y-4">
               <div className="w-48 h-48 bg-gray-50 rounded-[2rem] overflow-hidden border-2 border-mu-green/20 flex items-center justify-center">
@@ -410,7 +399,6 @@ const DetailMasjid = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* BAGIAN GRAFIK ARUS KAS (PENGGANTI LAPORAN KEUANGAN) */}
           <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
               <div>
@@ -505,18 +493,17 @@ const DetailMasjid = ({ user, onLogout }) => {
             }
           />
 
-          {/* Perbaikan Struktur Organisasi */}
           <DataTable 
             title="Struktur Organisasi Masjid" 
             icon={<Users className="text-mu-green" size={24}/>} 
-            data={paginateData(strukturOrganisasi, pagination.strukturOrganisasi.page, pagination.strukturOrganisasi.limit)} 
+            data={paginateData(kepengurusan, pagination.kepengurusan.page, pagination.kepengurusan.limit)} 
             columns={['Foto', 'Nama Pengurus', 'Jabatan', 'Periode Mulai', 'Periode Selesai']} 
             dataKeys={['foto', 'nama', 'jabatan', 'periode_mulai', 'periode_selesai']} 
-            currentLimit={pagination.strukturOrganisasi.limit}
-            onLimitChange={(val) => handleLimitChange('strukturOrganisasi', val)}
-            currentPage={pagination.strukturOrganisasi.page}
-            totalPages={getTotalPages(strukturOrganisasi, pagination.strukturOrganisasi.limit)}
-            onPageChange={(val) => handlePageChange('strukturOrganisasi', val)}
+            currentLimit={pagination.kepengurusan.limit}
+            onLimitChange={(val) => handleLimitChange('kepengurusan', val)}
+            currentPage={pagination.kepengurusan.page}
+            totalPages={getTotalPages(kepengurusan, pagination.kepengurusan.limit)}
+            onPageChange={(val) => handlePageChange('kepengurusan', val)}
         />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -587,7 +574,6 @@ const DetailMasjid = ({ user, onLogout }) => {
         </main>
       </div>
 
-      {/* Modal Hapus */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white p-8 rounded-[2.5rem] max-w-sm w-full text-center shadow-2xl animate-in zoom-in duration-200">

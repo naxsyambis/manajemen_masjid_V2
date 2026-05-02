@@ -1,7 +1,7 @@
 import React from 'react';
 import NavbarPublic from '../../../components/NavbarPublic';
 import FooterPublic from '../../../components/FooterPublic';
-import ProgramLengkap from './ProgramLengkap'; // sesuaikan path
+import ProgramLengkap from './ProgramLengkap'; 
 
 const ListProgram = () => {
   return (

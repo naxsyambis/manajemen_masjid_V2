@@ -156,7 +156,6 @@ exports.uploadTtd = async (req, res) => {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    // Hapus TTD lama jika sudah ada
     if (user.foto_tanda_tangan) {
       const oldPath = path.join(uploadDir, path.basename(user.foto_tanda_tangan));
       if (fs.existsSync(oldPath)) {
@@ -167,13 +166,11 @@ exports.uploadTtd = async (req, res) => {
     const filename = `ttd_${user.user_id}_${Date.now()}.webp`;
     const outputPath = path.join(uploadDir, filename);
 
-    // 🔥 FIX: sharp harus membaca dari req.file.path karena multer menggunakan diskStorage
     await sharp(req.file.path)
       .resize(500)
       .toFormat("webp", { quality: 70 })
       .toFile(outputPath);
 
-    // 🔥 FIX: Hapus file original yang baru diupload oleh multer agar tidak makan memori
     if (fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
@@ -217,7 +214,6 @@ exports.deleteTtd = async (req, res) => {
     const oldData = user.toJSON();
 
     if (user.foto_tanda_tangan) {
-      // 🔥 FIX: Path yang presisi supaya physical file juga beneran kehapus
       const filePath = path.join(__dirname, "../../../uploads/ttd", path.basename(user.foto_tanda_tangan));
 
       if (fs.existsSync(filePath)) {

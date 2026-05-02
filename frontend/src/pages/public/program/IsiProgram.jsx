@@ -58,7 +58,6 @@ const IsiProgram = () => {
       <section className="py-20">
         <div className="container mx-auto px-6">
 
-          {/* HEADER */}
           <div className="text-center mb-12 mt-8">
             <h1 className="text-4xl md:text-5xl font-bold text-[#006227] leading-tight mb-3">
               {program.nama_program}
@@ -69,10 +68,8 @@ const IsiProgram = () => {
             </p>
           </div>
 
-          {/* CONTENT */}
           <div className="flex flex-col md:flex-row items-start justify-center gap-10 max-w-5xl mx-auto">
 
-            {/* GAMBAR */}
             {program.gambar && (
               <div className="md:w-1/3 flex justify-center">
                 <img
@@ -83,7 +80,6 @@ const IsiProgram = () => {
               </div>
             )}
 
-            {/* DESKRIPSI */}
             <div className="md:w-2/3 text-justify text-[#1e293b] leading-relaxed">
               <div className="whitespace-pre-wrap break-words">
                 {program.deskripsi || 'Deskripsi belum tersedia.'}
@@ -92,7 +88,6 @@ const IsiProgram = () => {
 
           </div>
 
-          {/* BUTTON */}
           <div className="text-center mt-12">
             <a
               href="/program"
@@ -104,7 +99,6 @@ const IsiProgram = () => {
 
         </div>
       </section>
-
       <FooterPublic />
     </>
   );

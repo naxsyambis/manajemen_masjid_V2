@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
 import { Save, RefreshCcw, Calendar, Upload, Type, Clock, FileText, Tag, CheckCircle2, XCircle, AlertTriangle, Info, X, Pencil, Plus, ChevronDown } from 'lucide-react';
-import ModalKategoriProgram from './ModalKategoriProgram'; // IMPORT MODAL
+import ModalKategoriProgram from './ModalKategoriProgram'; 
 
 const BASE_URL = "http://localhost:3000";
 
@@ -45,7 +45,6 @@ const TambahProgram = ({ user, onLogout }) => {
   const [time, setTime] = useState(new Date());
   const [alertData, setAlertData] = useState({ show: false, type: "info", title: "", message: "", confirmText: "", onConfirm: null });
 
-  // STATE UNTUK MODAL KATEGORI & DROPDOWN
   const [showModalKategori, setShowModalKategori] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -69,7 +68,6 @@ const TambahProgram = ({ user, onLogout }) => {
       const dataCat = res.data?.data || [];
       setKategoriList(dataCat);
       
-      // Auto select jika kategori tersedia tapi belum terpilih
       if (dataCat.length > 0 && !formData.kategori_id) {
         setFormData(prev => ({ ...prev, kategori_id: dataCat[0].kategori_id }));
       }
@@ -169,7 +167,6 @@ const TambahProgram = ({ user, onLogout }) => {
                   <input value={formData.jadwal_rutin} onChange={(e)=>setFormData({...formData,jadwal_rutin:e.target.value})} className="w-full px-6 py-5 bg-gray-50 border-none rounded-3xl outline-none text-sm font-bold shadow-inner focus:bg-gray-100 transition-all" placeholder="Misal: Setiap Ahad Ba'da Subuh" />
                 </div>
 
-                {/* KATEGORI DROPDOWN (SAMA SEPERTI KEUANGAN) */}
                 <div className="space-y-3 group relative" ref={dropdownRef}>
                   <div className="flex justify-between items-center pr-2">
                     <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors">

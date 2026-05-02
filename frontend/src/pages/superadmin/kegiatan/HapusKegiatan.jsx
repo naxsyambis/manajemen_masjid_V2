@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom'; // Wajib untuk Portal Alert[cite: 9]
+import { createPortal } from 'react-dom'; 
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -19,7 +19,6 @@ import {
 
 const BASE_URL = "http://localhost:3000";
 
-// --- Komponen AlertPopup (Sesuai source HapusStruktur.jsx secara verbatim) ---[cite: 9]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -163,7 +162,6 @@ const HapusKegiatan = ({ user, onLogout }) => {
 
         <div className="main-content p-8 min-h-screen overflow-y-auto">
           <div className="max-w-6xl mx-auto">
-            {/* CARD HEADER - Identik dengan HapusStruktur[cite: 9] */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
               <div className="bg-gradient-to-r from-red-500 to-red-600 p-10 text-white">
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
@@ -187,7 +185,6 @@ const HapusKegiatan = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* PERINGATAN - Identik dengan HapusStruktur[cite: 9] */}
             <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-8 mb-8 shadow-lg">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
@@ -204,7 +201,6 @@ const HapusKegiatan = ({ user, onLogout }) => {
               </p>
             </div>
 
-            {/* DETAIL GRID - Identik dengan HapusStruktur[cite: 9] */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <div className="flex items-center space-x-4 mb-6">
@@ -227,7 +223,6 @@ const HapusKegiatan = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* FOOTER BUTTONS - Identik dengan HapusStruktur[cite: 9] */}
             <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">
               <button
                 onClick={() => navigate('/superadmin/kegiatan')}

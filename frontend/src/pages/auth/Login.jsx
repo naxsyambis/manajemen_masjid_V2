@@ -1,14 +1,12 @@
-// frontend/src/pages/auth/Login.jsx
-
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Tambah import untuk redirect
+import { useNavigate } from 'react-router-dom'; 
 
-const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
+const Login = () => { 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // Hook untuk navigasi
+  const navigate = useNavigate(); 
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,7 +19,7 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
 
       if (response.data.token) {
         const token = response.data.token;
-        const payload = JSON.parse(window.atob(token.split('.')[1])); // Parse token untuk data dasar
+        const payload = JSON.parse(window.atob(token.split('.')[1])); 
 
         localStorage.setItem('token', token);
         localStorage.setItem('user_session', JSON.stringify({ 
@@ -29,27 +27,21 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
           role: payload.role,
           masjid_id: payload.masjid_id,
           user_id: payload.user_id
-          // Nama akan diambil dari profile nanti
         }));
 
-        // Hapus onLogin(); karena AppWrapper akan handle fetch profile otomatis saat mount
-
-        // Redirect berdasarkan role setelah login sukses
         if (payload.role === 'super admin') {
-          navigate('/superadmin'); // Redirect ke dashboard super admin
+          navigate('/superadmin'); 
         } else if (payload.role === 'takmir') {
-          navigate('/admin'); // Asumsikan admin path adalah /admin, sesuaikan jika berbeda
+          navigate('/admin'); 
         } else {
-          // Jika role tidak valid, redirect ke home publik
           alert("Role tidak valid. Anda akan diarahkan ke halaman utama.");
           navigate('/');
         }
       }
     } catch (err) {
-      // Perbaiki error handling: lebih spesifik
       const errorMessage = err.response?.data?.message || "Login gagal. Periksa email/password atau koneksi server.";
       alert(errorMessage);
-      console.error("Login error:", err); // Tambah logging untuk debug
+      console.error("Login error:", err); 
     } finally {
       setLoading(false);
     }
@@ -57,7 +49,6 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
 
   return (
     <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2 bg-[#f4f7fb]">
-      {/* ================= LEFT IMAGE ================= */}
       <div 
         className="hidden md:flex relative items-center justify-center text-white"
         style={{
@@ -66,10 +57,8 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
           backgroundPosition: "center"
         }}
       >
-        {/* overlay */}
         <div className="absolute inset-0 bg-black/55"></div>
 
-        {/* content */}
         <div className="relative z-10 max-w-xl px-12 space-y-8 text-center">
           <h1 className="text-5xl font-black tracking-tight leading-tight">
             SIM MASJID
@@ -90,10 +79,8 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
         </div>
       </div>
 
-      {/* ================= RIGHT FORM ================= */}
       <div className="flex items-center justify-center px-6">
         <div className="w-full max-w-md bg-white px-10 py-14 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)]">
-          {/* brand */}
           <div className="mb-10 space-y-3">
             <p className="text-xs tracking-[0.3em] text-mu-green font-bold uppercase">
               Panel Takmir
@@ -106,7 +93,6 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
             </p>
           </div>
 
-          {/* form */}
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
@@ -143,7 +129,6 @@ const Login = () => { // Hapus prop { onLogin } karena tidak digunakan
             </button>
           </form>
 
-          {/* Tambahan: Link Lupa Password */}
           <div className="mt-6 text-center">
             <button 
               onClick={() => navigate('/forgot-password')}

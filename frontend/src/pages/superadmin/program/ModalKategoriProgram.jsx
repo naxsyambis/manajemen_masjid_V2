@@ -17,7 +17,7 @@ const ModalKategoriProgram = ({ show, onClose, onSuccess, editData }) => {
   const [namaKategori, setNamaKategori] = useState('');
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem('token');
-  const masjidId = localStorage.getItem('masjid_id'); // Ambil masjid_id
+  const masjidId = localStorage.getItem('masjid_id'); 
 
   useEffect(() => {
     if (show) {
@@ -34,7 +34,6 @@ const ModalKategoriProgram = ({ show, onClose, onSuccess, editData }) => {
     try {
       setLoading(true);
       if (editData) {
-        // UPDATE KATEGORI
         await axios.put(`http://localhost:3000/superadmin/kategori-program/${editData.kategori_id}`, {
           nama_kategori: namaKategori
         }, {
@@ -42,10 +41,9 @@ const ModalKategoriProgram = ({ show, onClose, onSuccess, editData }) => {
         });
         onSuccess(editData.kategori_id);
       } else {
-        // CREATE KATEGORI BARU
         const res = await axios.post('http://localhost:3000/superadmin/kategori-program', {
           nama_kategori: namaKategori,
-          masjid_id: masjidId // Wajib dikirim untuk program
+          masjid_id: masjidId 
         }, {
           headers: { Authorization: `Bearer ${token}` }
         });
