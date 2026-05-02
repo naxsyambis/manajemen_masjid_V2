@@ -481,10 +481,9 @@ const DataInventaris = () => {
         const totalAwalRusak = barang.rusak;
         const totalHilang = barang.hilang;
 
-        const sisaLayak = Math.max(totalAwalLayak - totalHilang, 0);
+        const sisaLayak = Math.max(totalAwalLayak - totalHilang - totalAwalRusak, 0);
 
-        const sisaHilangSetelahKurangiLayak = Math.max(totalHilang - totalAwalLayak, 0);
-        const sisaRusak = Math.max(totalAwalRusak - sisaHilangSetelahKurangiLayak, 0);
+        const sisaRusak = totalAwalRusak;
 
         const totalAsetAktif = sisaLayak + sisaRusak;
 
