@@ -192,15 +192,32 @@ const Riwayat = ({ user, onLogout }) => {
               </div>
               
               <div className="relative w-full md:w-80">
-                <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search
+                  size={20}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"
+                />
+                
                 <input
                   type="text"
                   placeholder="Cari user, tabel, atau aksi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 pr-6 py-4 border-2 border-gray-50 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all bg-gray-50 text-sm w-full font-medium"
+                  className="pl-12 pr-6 py-4 
+                            border border-gray-300 
+                            rounded-2xl 
+                            bg-white text-gray-700 text-sm font-medium w-full
+                            
+                            shadow-sm
+                            placeholder-gray-400
+                            
+                            focus:outline-none 
+                            focus:ring-2 focus:ring-mu-green/20 
+                            focus:border-mu-green
+                            
+                            hover:border-gray-400
+                            transition-all duration-200"
                 />
-              </div>
+</div>
             </div>
 
             {/* Content List[cite: 7] */}
@@ -218,7 +235,6 @@ const Riwayat = ({ user, onLogout }) => {
                             <p className="text-lg font-bold text-gray-800 group-hover:text-mu-green transition-colors uppercase tracking-tight">
                               {log.nama_tabel || 'System'} - <span className="font-black">{log.action}</span>
                             </p>
-                            <p className="text-xs text-gray-400 font-black uppercase tracking-widest">Record ID: {log.record_id || 'N/A'}</p>
                           </div>
                         </div>
 
@@ -231,10 +247,6 @@ const Riwayat = ({ user, onLogout }) => {
                                 {log.User?.role}
                               </span>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <FileText size={16} className="text-mu-green" />
-                            <span className="text-sm font-bold text-gray-500 tracking-wider">{log.ip_address || 'N/A'}</span>
                           </div>
                         </div>
                       </div>

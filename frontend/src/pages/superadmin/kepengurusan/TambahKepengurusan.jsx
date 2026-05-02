@@ -1,15 +1,76 @@
 // frontend/src/pages/superadmin/kepengurusan/TambahKepengurusan.jsx
 
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom'; // Ditambahkan untuk AlertPopup
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { Upload, Save, User, Calendar, RefreshCcw, AlertCircle } from 'lucide-react';
+import { 
+  Upload, Save, User, Calendar, RefreshCcw, 
+  X, AlertTriangle, CheckCircle2, XCircle, Info 
+} from 'lucide-react';
+
+// --- Komponen AlertPopup (Sesuai gaya TambahBerita.jsx) ---[cite: 1]
+const AlertPopup = ({ alertData, onClose }) => {
+  if (!alertData.show) return null;
+
+  const isSuccess = alertData.type === "success";
+  const isError = alertData.type === "error";
+  const isWarning = alertData.type === "warning";
+
+  const Icon = isSuccess ? CheckCircle2 : isError ? XCircle : isWarning ? AlertTriangle : Info;
+
+  const iconClass = isSuccess ? "bg-green-100 text-green-600" : 
+                    isError ? "bg-red-100 text-red-600" : 
+                    isWarning ? "bg-yellow-100 text-yellow-600" : "bg-blue-100 text-blue-600";
+
+  const buttonClass = isSuccess ? "bg-green-600 hover:bg-green-700 text-white" : 
+                      isError ? "bg-red-600 hover:bg-red-700 text-white" : 
+                      isWarning ? "bg-mu-yellow hover:bg-yellow-400 text-mu-green" : "bg-mu-green hover:bg-green-700 text-white";
+
+  const handleConfirm = () => {
+    if (alertData.onConfirm) alertData.onConfirm();
+    onClose();
+  };
+
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
+        <button type="button" onClick={onClose} className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all">
+          <X size={20} />
+        </button>
+        <div className="p-8 text-center">
+          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}>
+            <Icon size={42} strokeWidth={2.5} />
+          </div>
+          <h3 className="text-2xl font-black text-gray-800 leading-tight">{alertData.title}</h3>
+          <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">{alertData.message}</p>
+          <button type="button" onClick={handleConfirm} className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}>
+            {alertData.confirmText || "Mengerti"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const TambahKepengurusan = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  
+  // --- State untuk AlertPopup ---[cite: 1]
+  const [alertData, setAlertData] = useState({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+    confirmText: "",
+    onConfirm: null
+  });
+
   const [formData, setFormData] = useState({
     nama_lengkap: '',
     jabatan: '',
@@ -26,6 +87,15 @@ const TambahKepengurusan = ({ user, onLogout }) => {
 
   const isExpanded = isOpen || isHovered;
 
+  // --- Fungsi Helper Alert ---[cite: 1]
+  const showPopup = ({ type = "info", title = "Informasi", message = "", confirmText = "", onConfirm = null }) => {
+    setAlertData({ show: true, type, title, message, confirmText, onConfirm });
+  };
+
+  const closePopup = () => {
+    setAlertData({ ...alertData, show: false });
+  };
+
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -33,14 +103,27 @@ const TambahKepengurusan = ({ user, onLogout }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Alert Validasi Input[cite: 1, 2]
     if (!formData.nama_lengkap || !formData.jabatan || !formData.periode_mulai || !formData.periode_selesai) {
-      alert('Harap isi semua field yang diperlukan.');
+      showPopup({ 
+        type: "warning", 
+        title: "Data Tidak Lengkap", 
+        message: "Harap isi semua field yang diperlukan." 
+      });
       return;
     }
+    
+    // Alert Validasi Ukuran File[cite: 1, 2]
     if (file && file.size > 3 * 1024 * 1024) {
-      alert('Ukuran file maksimal 3MB.');
+      showPopup({ 
+        type: "warning", 
+        title: "File Terlalu Besar", 
+        message: "Ukuran file foto maksimal adalah 3MB." 
+      });
       return;
     }
+
     setLoading(true);
     setError(null);
     const data = new FormData();
@@ -54,7 +137,15 @@ const TambahKepengurusan = ({ user, onLogout }) => {
       await axios.post('http://localhost:3000/superadmin/kepengurusan', data, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Pengurus berhasil ditambahkan');
+      
+      // Alert Berhasil[cite: 1, 2]
+      showPopup({
+        type: "success",
+        title: "Berhasil!",
+        message: "Data pengurus telah berhasil ditambahkan ke sistem.",
+        onConfirm: () => navigate('/superadmin/kepengurusan')
+      });
+
       setFormData({
         nama_lengkap: '',
         jabatan: '',
@@ -63,10 +154,15 @@ const TambahKepengurusan = ({ user, onLogout }) => {
       });
       setFile(null);
       setPreviewUrl(null);
-      navigate('/superadmin/kepengurusan');
     } catch (err) {
       console.error('Error adding pengurus:', err);
-      setError('Gagal menambahkan pengurus. Silakan coba lagi.');
+      // Alert Gagal[cite: 1, 2]
+      showPopup({
+        type: "error",
+        title: "Gagal Menyimpan",
+        message: "Terjadi kesalahan saat menambahkan pengurus. Silakan coba lagi."
+      });
+      setError('Gagal menambahkan pengurus.');
     } finally {
       setLoading(false);
     }
@@ -74,8 +170,12 @@ const TambahKepengurusan = ({ user, onLogout }) => {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile && selectedFile.size > 3 * 1024 * 1024) {
-      alert('Ukuran file maksimal 3MB.');
+    if (selectedFile && selectedFile.size > 5 * 1024 * 1024) {
+      showPopup({ 
+        type: "warning", 
+        title: "File Terlalu Besar", 
+        message: "Ukuran file foto maksimal adalah 5MB." 
+      });
       return;
     }
     setFile(selectedFile);
@@ -92,6 +192,9 @@ const TambahKepengurusan = ({ user, onLogout }) => {
 
   return (
     <div className="tambah-kepengurusan h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
+      {/* Implementasi AlertPopup[cite: 1] */}
+      <AlertPopup alertData={alertData} onClose={closePopup} />
+
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
       
       <div className="flex-1 flex flex-col">
@@ -123,18 +226,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4 shadow-lg">
-              <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
-              <div>
-                <p className="text-red-700 font-medium">Error</p>
-                <p className="text-red-600 text-sm mt-1">{error}</p>
-              </div>
-            </div>
-          )}
-          
-          {/* Form Tambah Pengurus Modern dan Elegan */}
           <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
             <div className="p-10 lg:p-16">
               <div className="mb-12 text-center">
@@ -148,13 +239,7 @@ const TambahKepengurusan = ({ user, onLogout }) => {
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Foto Pengurus</h3>
                       <div className="space-y-4">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="hidden"
-                          id="foto-upload"
-                        />
+                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="foto-upload" />
                         <label htmlFor="foto-upload" className="block">
                           <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:border-mu-green hover:bg-mu-green/5 transition-all duration-300 shadow-lg hover:shadow-xl">
                             {previewUrl ? (
@@ -176,7 +261,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
                             )}
                           </div>
                         </label>
-                        <p className="text-sm text-gray-500">Upload foto pengurus (opsional)</p>
                       </div>
                     </div>
                   </div>
@@ -195,10 +279,8 @@ const TambahKepengurusan = ({ user, onLogout }) => {
                             onChange={(e) => setFormData({ ...formData, nama_lengkap: e.target.value })}
                             className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
                             placeholder="Masukkan nama lengkap"
-                            required
                           />
                         </div>
-                        <p className="text-sm text-gray-500">Isi dengan nama resmi pengurus</p>
                       </div>
                       
                       <div className="space-y-3">
@@ -209,57 +291,45 @@ const TambahKepengurusan = ({ user, onLogout }) => {
                           onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
                           className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
                           placeholder="Masukkan jabatan"
-                          required
                         />
-                        <p className="text-sm text-gray-500">Contoh: Ketua, Sekretaris, dll.</p>
                       </div>
                       
-                      <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Mulai</label>
-                        <div className="relative">
-                          <Calendar size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Mulai</label>
                           <input
                             type="date"
                             value={formData.periode_mulai}
                             onChange={(e) => setFormData({ ...formData, periode_mulai: e.target.value })}
-                            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
-                            required
+                            className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 shadow-sm"
                           />
                         </div>
-                        <p className="text-sm text-gray-500">Tanggal mulai periode jabatan</p>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Selesai</label>
-                        <div className="relative">
-                          <Calendar size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <div className="space-y-3">
+                          <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Selesai</label>
                           <input
                             type="date"
                             value={formData.periode_selesai}
                             onChange={(e) => setFormData({ ...formData, periode_selesai: e.target.value })}
-                            className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
-                            required
+                            className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 shadow-sm"
                           />
                         </div>
-                        <p className="text-sm text-gray-500">Tanggal selesai periode jabatan</p>
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Tombol Aksi dengan Efek Hover */}
                 <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
                   <button
                     type="button"
                     onClick={() => navigate('/superadmin/kepengurusan')}
-                    className="flex items-center px-8 py-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 rounded-2xl hover:from-gray-300 hover:to-gray-400 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
+                    className="flex items-center px-8 py-4 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 rounded-2xl font-semibold shadow-xl hover:scale-105 transition-all"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center px-8 py-4 bg-mu-green text-white rounded-2xl hover:bg-green-700 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center px-8 py-4 bg-mu-green text-white rounded-2xl font-semibold shadow-xl hover:scale-105 transition-all disabled:opacity-50"
                   >
                     <Save size={22} className="mr-3" />
                     {loading ? 'Menyimpan...' : 'Simpan Pengurus'}
