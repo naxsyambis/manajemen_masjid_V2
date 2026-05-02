@@ -395,7 +395,6 @@ const CreateBerita = () => {
             </div>
           </div>
 
-          {/* Form Tambah Berita Modern dan Elegan */}
           <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
             <div className="p-10 lg:p-16">
               <div className="mb-12 text-center">
@@ -531,7 +530,6 @@ const CreateBerita = () => {
                   </div>
                 </div>
 
-                {/* Tombol Aksi dengan Efek Hover */}
                 <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
                   <button
                     type="button"

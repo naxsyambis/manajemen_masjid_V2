@@ -1,5 +1,3 @@
-// frontend/src/pages/public/masjid/Inventaris.jsx
-
 import React from 'react';
 import { Package, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 

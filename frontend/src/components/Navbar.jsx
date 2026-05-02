@@ -45,7 +45,6 @@ const Navbar = ({ setIsOpen }) => {
       
       {}
       <div></div>
-
     </header>
   );
 };

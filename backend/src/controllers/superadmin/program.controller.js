@@ -103,7 +103,7 @@ exports.getById = async (req, res) => {
       include: [
         { 
           model: KategoriProgram, 
-          as: 'kategori_program', // Sesuai dengan as di models/index.js
+          as: 'kategori_program', 
           attributes: ['nama_kategori'] 
         }
       ]
@@ -113,7 +113,6 @@ exports.getById = async (req, res) => {
       return res.status(404).json({ message: "Program tidak ditemukan" });
     }
 
-    // Pastikan mengirim dalam bentuk JSON murni agar include-nya terbaca
     res.json(data.toJSON()); 
 
   } catch (err) {

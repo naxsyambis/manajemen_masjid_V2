@@ -1,7 +1,5 @@
-// frontend/src/pages/superadmin/Carimasjid.jsx
-
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Ditambahkan: gunakan axios untuk konsistensi dengan komponen lain
+import axios from 'axios'; 
 import { Search, MapPin, AlertCircle } from 'lucide-react';
 
 const Carimasjid = ({ onMasjidClick }) => {
@@ -14,8 +12,8 @@ const Carimasjid = ({ onMasjidClick }) => {
 
   const fetchMosques = async () => {
     try {
-      setError(null); // Reset error sebelum fetch
-      const response = await axios.get('http://localhost:3000/public/masjid'); // Diperbaiki: gunakan axios untuk konsistensi
+      setError(null); 
+      const response = await axios.get('http://localhost:3000/public/masjid'); 
       if (!Array.isArray(response.data)) {
         throw new Error('Data yang diterima bukan array. Periksa endpoint API.');
       }
@@ -39,7 +37,6 @@ const Carimasjid = ({ onMasjidClick }) => {
       setSearchResults([]);
       return;
     }
-    // Filter dengan check aman untuk nama_masjid (diperbaiki: tambah check untuk alamat juga jika diperlukan)
     const filtered = mosques.filter(mosque => 
       mosque && mosque.nama_masjid && mosque.nama_masjid.toLowerCase().includes(query)
     );
@@ -103,7 +100,6 @@ const Carimasjid = ({ onMasjidClick }) => {
         />
       </div>
       
-      {/* Dropdown Results */}
       <div id="searchResults" className={`absolute top-full mt-2 w-full bg-white rounded-xl shadow-lg border border-gray-200 max-h-80 overflow-y-auto ${showResults ? '' : 'hidden'} z-50`}>
         {searchResults.length === 0 ? (
           <div className="px-4 py-3 text-gray-500 text-center text-sm">Tidak ada masjid ditemukan</div>

@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/berita/HapusBerita.jsx
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -97,17 +95,14 @@ const HapusBerita = ({ user, onLogout }) => {
       <div className="main-content lg:ml-0 p-6 min-h-screen overflow-y-auto">
         <div className="max-w-6xl mx-auto">
           
-          {/* Header Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
             <div className="bg-gradient-to-r from-red-500 to-red-600 p-10 text-white">
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
                 <div className="flex items-center space-x-6 mb-6 lg:mb-0">
                   <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm overflow-hidden">
                     {berita.gambar ? (
-                      // ✅ PERBAIKAN PATH GAMBAR:
                       <img src={`http://localhost:3000/uploads/berita/${berita.gambar}`} alt="Gambar" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
                     ) : null}
-                    {/* Fallback */}
                     <ImageIcon size={40} className="text-white/80" style={{ display: berita.gambar ? 'none' : 'block' }}/>
                   </div>
                   <div>
@@ -126,7 +121,6 @@ const HapusBerita = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Warning Card */}
           <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-8 mb-8 shadow-lg">
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
@@ -142,9 +136,7 @@ const HapusBerita = ({ user, onLogout }) => {
             </p>
           </div>
           
-          {/* Detail Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Card Tanggal */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -155,7 +147,6 @@ const HapusBerita = ({ user, onLogout }) => {
               <p className="text-gray-600">{new Date(berita.tanggal).toLocaleDateString('id-ID')}</p>
             </div>
             
-            {/* Card Isi */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -166,7 +157,6 @@ const HapusBerita = ({ user, onLogout }) => {
               <p className="text-gray-600 leading-relaxed">{berita.isi || 'Tidak ada isi yang tersedia untuk berita ini.'}</p>
             </div>
 
-            {/* Card YouTube */}
             <div className="bg-white rounded-2xl shadow-lg p-8 lg:col-span-2">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -192,7 +182,6 @@ const HapusBerita = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Tombol Aksi */}
           <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">
             <button
               onClick={() => navigate(`/superadmin/berita/detail/${id}`)}

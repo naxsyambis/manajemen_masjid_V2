@@ -1,5 +1,3 @@
-// backend/src/controllers/superadmin/berita.controller.js
-
 const Berita = require("../../models/Berita");
 const BeritaGambar = require("../../models/BeritaGambar");
 const { logActivity } = require("../../services/auditLog.service");
@@ -10,7 +8,6 @@ exports.create = async (req, res) => {
   try {
     let gambarUtama = null;
     
-    // Sama seperti takmir, langsung ambil filename dari multer
     if (req.files && req.files.length > 0) {
       gambarUtama = req.files[0].filename; 
     }
@@ -19,8 +16,8 @@ exports.create = async (req, res) => {
       judul: req.body.judul,
       isi: req.body.isi,
       tanggal: new Date(),
-      gambar: gambarUtama, // Menyimpan "namafile.jpg" saja
-      youtube_url: req.body.youtube_url || null, // 🔥 FIX: Pastikan tersimpan saat create
+      gambar: gambarUtama, 
+      youtube_url: req.body.youtube_url || null, 
       user_id: req.user.user_id,
       masjid_id: req.body.masjid_id,
       status: "dipublikasi",
@@ -30,7 +27,7 @@ exports.create = async (req, res) => {
     if (req.files && req.files.length > 0) {
       const gambarData = req.files.map(file => ({
         berita_id: data.berita_id,
-        path_gambar: file.filename // Menyimpan "namafile.jpg" saja
+        path_gambar: file.filename 
       }));
       await BeritaGambar.bulkCreate(gambarData);
     }
@@ -58,7 +55,6 @@ exports.update = async (req, res) => {
     const oldData = berita.toJSON();
     let gambarPath = berita.gambar;
 
-    // Hapus gambar lama jika ada request penghapusan
     if (req.body.deletedImages) {
       const deletedIds = JSON.parse(req.body.deletedImages);
 
@@ -68,7 +64,6 @@ exports.update = async (req, res) => {
         });
 
         for (const img of imagesToDelete) {
-          // Penyesuaian path hapus file
           const filePath = path.join(__dirname, "../../../uploads/berita", img.path_gambar);
           if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
@@ -81,7 +76,6 @@ exports.update = async (req, res) => {
       }
     }
 
-    // Jika ada upload gambar baru
     if (req.files && req.files.length > 0) {
       const gambarData = req.files.map(file => ({
         berita_id: berita.berita_id,
@@ -90,7 +84,6 @@ exports.update = async (req, res) => {
       await BeritaGambar.bulkCreate(gambarData);
     }
 
-    // Set gambar utama dari sisa gambar yang ada
     const remainingImages = await BeritaGambar.findAll({
       where: { berita_id: berita.berita_id },
       order: [["gambar_id", "ASC"]]
@@ -98,7 +91,6 @@ exports.update = async (req, res) => {
 
     gambarPath = remainingImages.length ? remainingImages[0].path_gambar : null;
 
-    // 🔥 FIX: Aman menerima URL kosong atau URL baru dari Superadmin
     await berita.update({
       judul: req.body.judul,
       isi: req.body.isi,
@@ -128,14 +120,11 @@ exports.delete = async (req, res) => {
     const berita = await Berita.findByPk(req.params.id);
     if (!berita) return res.status(404).json({ message: "Berita tidak ditemukan" });
 
-    // Hapus file fisik gambar utama
     if (berita.gambar) {
-      // Penyesuaian path karena kita hanya menyimpan nama filenya saja
       const filePath = path.join(__dirname, "../../../uploads/berita", berita.gambar);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
-    // Hapus file fisik galeri
     const gallery = await BeritaGambar.findAll({
       where: { berita_id: req.params.id }
     });

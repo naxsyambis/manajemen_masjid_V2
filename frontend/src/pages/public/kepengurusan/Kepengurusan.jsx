@@ -1,5 +1,3 @@
-// frontend/src/pages/public/kepengurusan/Kepengurusan.jsx
-
 import React, { useState, useEffect } from 'react';
 import NavbarPublic from '/src/components/NavbarPublic';
 import FooterPublic from '/src/components/FooterPublic';
@@ -9,7 +7,6 @@ const Kepengurusan = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch data dari backend
   const fetchPengurus = async () => {
     try {
       const apiUrl = 'http://localhost:3000';
@@ -27,7 +24,6 @@ const Kepengurusan = () => {
       setPengurus(data);
     } catch (err) {
       console.error('Fetch error:', err);
-      // Fallback: Gunakan data dummy jika error 404
       if (err.message.includes('404') || err.message.includes('Data kepengurusan tidak ditemukan')) {
         setPengurus([
           {
@@ -67,14 +63,12 @@ const Kepengurusan = () => {
     fetchPengurus();
   }, []);
 
-  // Fungsi untuk retry fetch
   const handleRetry = () => {
     setLoading(true);
     setError(null);
     fetchPengurus();
   };
 
-  // Loading State
   if (loading) {
     return (
       <div className="font-sans overflow-x-hidden bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -90,7 +84,6 @@ const Kepengurusan = () => {
     );
   }
 
-  // Error State
   if (error) {
     return (
       <div className="font-sans overflow-x-hidden bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -117,12 +110,10 @@ const Kepengurusan = () => {
     );
   }
 
-  // Main Content
   return (
     <div className="font-sans overflow-x-hidden bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       <NavbarPublic />
       <main className="pt-32 pb-20">
-        {/* Hero Section */}
         <section className="py-16 px-6 text-gray-800">
           <div className="container mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4 tracking-tight">
@@ -134,7 +125,6 @@ const Kepengurusan = () => {
           </div>
         </section>
 
-        {/* Struktur Kepengurusan */}
         <section className="py-24 px-6">
           <div className="container mx-auto">
             {pengurus.length === 0 ? (
@@ -162,7 +152,6 @@ const Kepengurusan = () => {
       key={person.pengurus_id}
       className="w-full max-w-sm bg-white rounded-[28px] shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
     >
-      {/* IMAGE */}
       <div className="relative">
         <img
           src={
@@ -177,44 +166,37 @@ const Kepengurusan = () => {
           }}
         />
 
-        {/* OVERLAY SOFT */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
       </div>
 
-      {/* CONTENT */}
       <div className="p-5 text-center">
 
-        {/* NAMA */}
         <h3 className="text-xl md:text-2xl font-bold text-[#006227] mb-3">
-  {person.nama_lengkap}
-</h3>
+          {person.nama_lengkap}
+        </h3>
 
-        {/* JABATAN */}
         <div className="mb-5">
           <span className="inline-block bg-gradient-to-r from-slate-50/80 to-gray-50/80 backdrop-blur-sm text-slate-700 px-8 py-3 rounded-2xl text-base font-bold border border-slate-200/60 shadow-lg group-hover:bg-emerald-50/80 group-hover:text-emerald-700 group-hover:border-emerald-200/60 transition-all duration-500">
             {person.jabatan}
           </span>
         </div>
 
-        {/* PERIODE */}
         {person.periode && (
           <p className="text-xs text-gray-400 mb-3">
             Periode: {person.periode}
           </p>
         )}
 
-        {/* GARIS HIJAU */}
         <div className="w-12 h-[2px] bg-[#006227] mx-auto mb-4"></div>
 
-        {/* DESKRIPSI */}
         <p className="text-sm text-gray-500 leading-relaxed">
           Pengurus aktif di ranting Muhammadiyah, berkontribusi untuk kemajuan umat
         </p>
 
-      </div>
+          </div>
+        </div>
+      ))}
     </div>
-  ))}
-</div>
             )}
           </div>
         </section>

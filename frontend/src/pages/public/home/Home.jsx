@@ -1,4 +1,3 @@
-// src/pages/public/home/Home.jsx
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import NavbarPublic from '/src/components/NavbarPublic';
@@ -24,10 +23,7 @@ const Home = () => {
   return (
     <div className="font-sans min-h-screen bg-gray-50 overflow-x-hidden">
 
-      {/* NAVBAR */}
       <NavbarPublic />
-
-      {/* CONTENT */}
       <main className="w-full overflow-x-hidden">
 
         <section id="home" className="w-full overflow-hidden">
@@ -51,8 +47,6 @@ const Home = () => {
         </section>
 
       </main>
-
-      {/* FOOTER */}
       <FooterPublic />
     </div>
   );

@@ -13,20 +13,11 @@ const {
 
 const router = express.Router();
 
-// =======================================
-// PATH KOP SURAT BACKEND
-// Path ini mengambil kop dari frontend.
-// Pastikan file ini benar-benar ada:
-// frontend/src/assets/kop-surat.jpeg
-// =======================================
 const KOP_SURAT_PATH = path.join(
   __dirname,
   "../../../frontend/src/assets/kop-surat.jpeg"
 );
 
-// =======================================
-// FORMAT RUPIAH
-// =======================================
 const formatRupiah = (angka) => {
   const number = Number(angka || 0);
 
@@ -37,9 +28,6 @@ const formatRupiah = (angka) => {
   }).format(number);
 };
 
-// =======================================
-// FORMAT TANGGAL
-// =======================================
 const formatTanggalIndonesia = (tanggal) => {
   if (!tanggal) return "-";
 
@@ -54,9 +42,6 @@ const formatTanggalIndonesia = (tanggal) => {
   }
 };
 
-// =======================================
-// AMBIL TRANSAKSI KEUANGAN PERIODE
-// =======================================
 const getTransaksiPeriode = async ({ masjidId, startDate, endDate }) => {
   try {
     const data = await Keuangan.findAll({
@@ -84,9 +69,6 @@ const getTransaksiPeriode = async ({ masjidId, startDate, endDate }) => {
   }
 };
 
-// =======================================
-// AMBIL KETUA & BENDAHARA DARI STRUKTUR ORGANISASI
-// =======================================
 const getStrukturPenandatangan = async (masjidId) => {
   try {
     const struktur = await StrukturOrganisasi.findAll({
@@ -120,9 +102,6 @@ const getStrukturPenandatangan = async (masjidId) => {
   }
 };
 
-// =======================================
-// AMBIL REKENING MASJID
-// =======================================
 const getRekeningMasjid = async (masjidId) => {
   try {
     const rekening = await RekeningMasjid.findAll({
@@ -152,16 +131,10 @@ const getRekeningMasjid = async (masjidId) => {
   }
 };
 
-// =======================================
-// AMBIL NOMINAL ASLI DARI KEUANGAN
-// =======================================
 const getNominalRaw = (item) => {
   return Number(item.jumlah || 0);
 };
 
-// =======================================
-// AMBIL INFO KATEGORI
-// =======================================
 const getKategoriText = (item) => {
   const kategori = item.kategori_keuangan || {};
 
@@ -178,9 +151,6 @@ const getKategoriText = (item) => {
   ).toLowerCase();
 };
 
-// =======================================
-// NOMINAL BERTANDA
-// =======================================
 const getNominalSigned = (item) => {
   const rawNumber = getNominalRaw(item);
 
@@ -210,33 +180,19 @@ const getNominalSigned = (item) => {
   return rawNumber;
 };
 
-// =======================================
-// JENIS TRANSAKSI
-// =======================================
 const getJenisTransaksi = (item) => {
   const signed = getNominalSigned(item);
   return signed < 0 ? "KELUAR" : "MASUK";
 };
 
-// =======================================
-// DESKRIPSI
-// =======================================
 const getDeskripsi = (item) => {
   return item.deskripsi || "-";
 };
 
-// =======================================
-// PIHAK / DONATUR
-// =======================================
 const getPihak = (item) => {
   return item.nama_donatur || "Hamba Allah";
 };
 
-// =======================================
-// PATH FILE TTD
-// Upload controller menyimpan di backend/uploads/ttd
-// Field DB hanya nama file: ttd
-// =======================================
 const getTtdImagePath = (ttd) => {
   if (!ttd) return null;
 
@@ -253,9 +209,6 @@ const getTtdImagePath = (ttd) => {
   return path.join(__dirname, "../../uploads/ttd", cleanPath);
 };
 
-// =======================================
-// GAMBAR KOP FULL PAGE
-// =======================================
 const drawPageTemplate = (doc) => {
   try {
     if (fs.existsSync(KOP_SURAT_PATH)) {
@@ -271,9 +224,6 @@ const drawPageTemplate = (doc) => {
   }
 };
 
-// =======================================
-// HEADER PDF
-// =======================================
 const drawHeader = ({ doc, namaMasjid, startDate, endDate }) => {
   drawPageTemplate(doc);
 
@@ -315,9 +265,6 @@ const drawHeader = ({ doc, namaMasjid, startDate, endDate }) => {
     );
 };
 
-// =======================================
-// RINGKASAN
-// =======================================
 const drawRingkasan = ({ doc, totalMasuk, totalKeluar, saldoAkhir }) => {
   doc
     .roundedRect(40, 220, 515, 70, 8)
@@ -358,9 +305,6 @@ const drawRingkasan = ({ doc, totalMasuk, totalKeluar, saldoAkhir }) => {
   });
 };
 
-// =======================================
-// DEFINISI KOLOM TABEL
-// =======================================
 const getTableColumns = () => {
   return {
     tableX: 40,
@@ -374,9 +318,6 @@ const getTableColumns = () => {
   };
 };
 
-// =======================================
-// TABLE HEADER
-// =======================================
 const drawTableHeader = (doc, y) => {
   const col = getTableColumns();
   const headerHeight = 20;
@@ -421,9 +362,6 @@ const drawTableHeader = (doc, y) => {
   return y + headerHeight;
 };
 
-// =======================================
-// TABLE ROW
-// =======================================
 const drawTableRow = (doc, item, index, y) => {
   const signedNominal = getNominalSigned(item);
   const jenis = getJenisTransaksi(item);
@@ -443,10 +381,8 @@ const drawTableRow = (doc, item, index, y) => {
 
   const rowHeight = Math.max(28, deskripsiHeight + 14);
 
-  // Border row
   doc.rect(col.tableX, y, col.tableWidth, rowHeight).stroke("#dddddd");
 
-  // Garis vertikal antar kolom
   doc
     .moveTo(col.tanggal.x, y)
     .lineTo(col.tanggal.x, y + rowHeight)
@@ -491,13 +427,11 @@ const drawTableRow = (doc, item, index, y) => {
     align: "center"
   });
 
-  // INI SUDAH DI-TENGAHKAN
   doc.text(pihak, col.pihak.x + paddingX, centerTextY, {
     width: col.pihak.width - paddingX * 2,
     align: "center"
   });
 
-  // INI SUDAH DI-TENGAHKAN
   doc.text(formatRupiah(Math.abs(signedNominal)), col.nominal.x + paddingX, centerTextY, {
     width: col.nominal.width - paddingX * 2,
     align: "center"
@@ -511,11 +445,6 @@ const drawTableRow = (doc, item, index, y) => {
   return y + rowHeight;
 };
 
-// =======================================
-// TANDA TANGAN BIASA
-// KIRI: KETUA
-// KANAN: BENDAHARA
-// =======================================
 const drawTandaTangan = ({
   doc,
   y,
@@ -544,7 +473,6 @@ const drawTandaTangan = ({
     align: "center"
   });
 
-  // TTD Ketua
   if (ketua?.ttd) {
     try {
       const ketuaTtdPath = getTtdImagePath(ketua.ttd);
@@ -565,7 +493,6 @@ const drawTandaTangan = ({
     doc.moveTo(ketuaX + 25, y + 61).lineTo(ketuaX + 95, y + 61).stroke();
   }
 
-  // TTD Bendahara
   if (bendahara?.ttd) {
     try {
       const bendaharaTtdPath = getTtdImagePath(bendahara.ttd);
@@ -620,16 +547,10 @@ const drawTandaTangan = ({
   });
 };
 
-// =======================================
-// TEST ROUTE
-// =======================================
 router.get("/laporan-keuangan/test", (req, res) => {
   res.send("Route laporan keuangan aktif ✅");
 });
 
-// =======================================
-// ROUTE PDF LAPORAN ASLI
-// =======================================
 router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
   try {
     const { masjid_id, nama_masjid, startDate, endDate } = req.query;

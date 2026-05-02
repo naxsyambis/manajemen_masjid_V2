@@ -19,7 +19,6 @@ import {
   Upload
 } from 'lucide-react';
 
-// --- Komponen AlertPopup (Sesuai source v3.0) ---[cite: 3, 7, 9]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -231,7 +230,6 @@ const TambahBerita = ({ user, onLogout }) => {
                         <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" id="gambar-upload" />
                         
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {/* PREVIEW FILES DENGAN OVERLAY INTERAKTIF[cite: 13, 16] */}
                           {files.map((file, index) => (
                             <div key={index} className="relative group aspect-square">
                               <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-gray-100 shadow-sm relative">
@@ -247,7 +245,6 @@ const TambahBerita = ({ user, onLogout }) => {
                             </div>
                           ))}
 
-                          {/* TOMBOL TAMBAH (+)[cite: 13, 16] */}
                           {files.length < 5 && (
                             <label htmlFor="gambar-upload" className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl aspect-square cursor-pointer hover:bg-mu-green/5 hover:border-mu-green transition-all group">
                               <div className="bg-gray-100 p-3 rounded-full group-hover:bg-mu-green/10 transition-colors">

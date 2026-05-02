@@ -4,9 +4,6 @@ import { formatRupiah } from "./formatCurrency";
 import { generateQrTtd } from "./scanTtd";
 import logoKop from "../assets/kop-surat.jpeg";
 
-// =================================
-// HELPER: URL IMAGE → BASE64
-// =================================
 const imageUrlToBase64 = async (url) => {
   const img = new Image();
   img.crossOrigin = "anonymous";
@@ -31,19 +28,12 @@ const imageUrlToBase64 = async (url) => {
   return canvas.toDataURL("image/png");
 };
 
-// =================================
-// HELPER: URL TTD
-// =================================
 const getTtdUrl = (ttd) => {
   if (!ttd) return null;
   if (ttd.startsWith("http")) return ttd;
   return `http://localhost:3000/uploads/ttd/${ttd}`;
 };
 
-// =================================
-// HELPER: AMBIL KETUA & BENDAHARA
-// DARI STRUKTUR ORGANISASI
-// =================================
 const getStrukturPenandatangan = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -89,10 +79,6 @@ const getStrukturPenandatangan = async () => {
   }
 };
 
-// =================================
-// HELPER: AMBIL REKENING MASJID
-// DARI SETTINGS / REKENING MASJID
-// =================================
 const getRekeningMasjid = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -132,23 +118,16 @@ const getRekeningMasjid = async () => {
   }
 };
 
-// =================================
-// GENERATE KWITANSI PDF
-// =================================
 export const generateKwitansiPDF = async (data, savedTtd) => {
   const doc = new jsPDF("p", "mm", "a4");
 
   const namaMasjid = localStorage.getItem("namaMasjid") || "MASJID MUHAMMADIYAH";
   const masjidId = localStorage.getItem("masjid_id");
 
-  // Ambil data lengkap ketua dan bendahara dari struktur organisasi
   const { ketua, bendahara } = await getStrukturPenandatangan();
 
-  // Ambil rekening masjid
   const rekeningMasjid = await getRekeningMasjid();
 
-  // Buat QR Ketua hanya kalau ketua punya field ttd.
-  // QR ini kalau discan akan membuka PDF verifikasi.
   const qrKetua = await generateQrTtd({
     role: "ketua",
     nomorDokumen: data.id,
@@ -157,8 +136,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
     ttd: ketua?.ttd
   });
 
-  // Buat QR Bendahara hanya kalau bendahara punya field ttd.
-  // QR ini kalau discan akan membuka PDF verifikasi.
   const qrBendahara = await generateQrTtd({
     role: "bendahara",
     nomorDokumen: data.id,
@@ -166,10 +143,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
     masjidId,
     ttd: bendahara?.ttd
   });
-
-  // =================================
-  // TEMPLATE KOP SURAT
-  // =================================
   const addPageTemplate = () => {
     try {
       doc.addImage(logoKop, "PNG", 0, 0, 210, 297);
@@ -180,17 +153,11 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
 
   addPageTemplate();
 
-  // ==========================================
-  // NAMA MASJID
-  // ==========================================
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(0, 98, 39);
   doc.text(namaMasjid.toUpperCase(), 105, 48, { align: "center" });
 
-  // ==========================================
-  // JUDUL KWITANSI
-  // ==========================================
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(0, 98, 39);
@@ -205,9 +172,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
   doc.setTextColor(100);
   doc.text(`Nomor: ${data.id || "-"}`, 105, 63, { align: "center" });
 
-  // ==========================================
-  // KONTEN KWITANSI
-  // ==========================================
   doc.setDrawColor(230);
   doc.setFillColor(255, 255, 255);
   doc.roundedRect(20, 75, 170, 100, 5, 5, "FD");
@@ -219,12 +183,10 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
   const startX = 30;
   let startY = 90;
 
-  // Tanggal
   doc.text("Tanggal", startX, startY);
   doc.setFont("helvetica", "normal");
   doc.text(`:  ${data.tanggal || "-"}`, startX + 40, startY);
 
-  // Nama pihak
   startY += 12;
   doc.setFont("helvetica", "bold");
   doc.text(
@@ -235,14 +197,12 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
   doc.setFont("helvetica", "normal");
   doc.text(`:  ${(data.donatur || "-").toUpperCase()}`, startX + 40, startY);
 
-  // Kategori
   startY += 12;
   doc.setFont("helvetica", "bold");
   doc.text("Kategori", startX, startY);
   doc.setFont("helvetica", "normal");
   doc.text(`:  ${data.kategori || "-"}`, startX + 40, startY);
 
-  // Deskripsi
   startY += 12;
   doc.setFont("helvetica", "bold");
   doc.text("Keperluan", startX, startY);
@@ -252,9 +212,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
   doc.text(":", startX + 40, startY);
   doc.text(splitDeskripsi, startX + 43, startY);
 
-  // ==========================================
-  // NOMINAL
-  // ==========================================
   startY += 25;
   doc.setFillColor(0, 98, 39);
   doc.roundedRect(startX, startY - 7, 150, 15, 2, 2, "F");
@@ -267,11 +224,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
     align: "right"
   });
 
-  // ==========================================
-  // TANDA TANGAN 2 KOLOM
-  // KIRI: KETUA
-  // KANAN: BENDAHARA
-  // ==========================================
   const signY = 190;
   const ketuaX = 60;
   const bendaharaX = 150;
@@ -280,12 +232,10 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
   doc.setTextColor(0);
   doc.setFont("helvetica", "normal");
 
-  // Tanggal di atas tanda tangan
   doc.text(`Yogyakarta, ${data.tanggal || "-"}`, bendaharaX, signY, {
     align: "center"
   });
 
-  // Label jabatan
   doc.text("Ketua,", ketuaX, signY + 12, {
     align: "center"
   });
@@ -294,9 +244,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
     align: "center"
   });
 
-  // ==========================================
-  // QR TTD KETUA
-  // ==========================================
   if (qrKetua) {
     doc.addImage(qrKetua, "PNG", ketuaX - 13, signY + 18, 26, 26);
 
@@ -311,9 +258,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
     doc.line(ketuaX - 28, signY + 42, ketuaX + 28, signY + 42);
   }
 
-  // ==========================================
-  // QR TTD BENDAHARA
-  // ==========================================
   if (qrBendahara) {
     doc.addImage(qrBendahara, "PNG", bendaharaX - 13, signY + 18, 26, 26);
 
@@ -328,9 +272,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
     doc.line(bendaharaX - 28, signY + 42, bendaharaX + 28, signY + 42);
   }
 
-  // ==========================================
-  // NAMA PENANDATANGAN
-  // ==========================================
   doc.setFontSize(10);
   doc.setTextColor(0);
   doc.setFont("helvetica", "bold");
@@ -354,9 +295,6 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
     align: "center"
   });
 
-  // ==========================================
-  // FOOTER: REKENING KIRI + CATATAN KANAN
-  // ==========================================
   doc.setTextColor(80);
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
@@ -373,6 +311,5 @@ export const generateKwitansiPDF = async (data, savedTtd) => {
     align: "right"
   });
 
-  // Save PDF
   doc.save(`Kwitansi_${data.id || "Dokumen"}_${data.donatur || "Transaksi"}.pdf`);
 };

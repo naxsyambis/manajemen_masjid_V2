@@ -56,7 +56,6 @@ const ProgramSection = () => {
     <section id="program" className="py-20">
       <div className="container mx-auto px-6">
 
-        {/* HEADER */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4">
             Program Ranting
@@ -66,7 +65,6 @@ const ProgramSection = () => {
           </p>
         </div>
 
-        {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {programTerbaru.length > 0 ? (
             programTerbaru.map((item) => (
@@ -75,7 +73,6 @@ const ProgramSection = () => {
                 className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col h-full"
               >
 
-                {/* GAMBAR */}
                 <div className="h-64 overflow-hidden">
                   <img
                     src={
@@ -88,7 +85,6 @@ const ProgramSection = () => {
                   />
                 </div>
 
-                {/* CONTENT */}
                 <div className="p-5 flex flex-col flex-grow">
 
                   <h3 className="font-bold text-lg text-[#006227] line-clamp-2 leading-tight mb-3">
@@ -99,7 +95,6 @@ const ProgramSection = () => {
                     {item.jadwal_rutin || '-'}
                   </p>
 
-                  {/* DESKRIPSI */}
                   <p className="text-sm text-gray-600 line-clamp-3 flex-grow">
                     {getExcerpt(item.deskripsi)}
                   </p>
@@ -124,7 +119,6 @@ const ProgramSection = () => {
           )}
         </div>
 
-        {/* BUTTON */}
         <div className="text-center mt-10">
           <Link
             to="/program"
@@ -133,7 +127,6 @@ const ProgramSection = () => {
             Lihat Semua Program
           </Link>
         </div>
-
       </div>
     </section>
   );

@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/berita/DataBerita.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -21,9 +19,6 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-/**
- * Fungsi pembantu untuk menangani URL gambar dari berbagai sumber database
- */
 const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
   if (imagePath.startsWith('http')) return imagePath;
@@ -31,9 +26,6 @@ const getImageUrl = (imagePath) => {
   return `http://localhost:3000/uploads/berita/${imagePath}`;
 };
 
-/**
- * Fungsi pembantu untuk menangani URL YouTube
- */
 const getYoutubeUrl = (youtubeUrl) => {
   if (!youtubeUrl) return null;
 
@@ -48,7 +40,6 @@ const getYoutubeUrl = (youtubeUrl) => {
 };
 
 const DataBerita = ({ user, onLogout }) => {
-  // --- UI & Navigation State ---
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -56,7 +47,6 @@ const DataBerita = ({ user, onLogout }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // --- Data State ---
   const [beritas, setBeritas] = useState([]);
   const [filteredBeritas, setFilteredBeritas] = useState([]);
   const [selectedBerita, setSelectedBerita] = useState(null);
@@ -64,7 +54,6 @@ const DataBerita = ({ user, onLogout }) => {
   const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
 
-  // --- Pagination State ---
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -72,13 +61,11 @@ const DataBerita = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // 1. Digital Clock Effect
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 2. Fetch Data dari API
   const fetchBeritas = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -108,7 +95,6 @@ const DataBerita = ({ user, onLogout }) => {
     fetchBeritas();
   }, [fetchBeritas]);
 
-  // 3. Search & Filter Logic
   useEffect(() => {
     const filtered = beritas.filter((berita) =>
       berita.judul?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -120,7 +106,6 @@ const DataBerita = ({ user, onLogout }) => {
     setCurrentPage(1);
   }, [beritas, searchTerm]);
 
-  // 4. Pagination Logic
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
   const currentItems = filteredBeritas.slice(indexOfFirstItem, indexOfLastItem);
@@ -139,7 +124,6 @@ const DataBerita = ({ user, onLogout }) => {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
-  // 5. Action Handlers
   const handleDelete = async () => {
     if (!selectedBerita) return;
 
@@ -199,7 +183,6 @@ const DataBerita = ({ user, onLogout }) => {
     );
   };
 
-  // 6. Loading State
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
@@ -228,7 +211,6 @@ const DataBerita = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
 
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-8">
-          {/* Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-black text-gray-800 uppercase tracking-tighter">
@@ -279,9 +261,7 @@ const DataBerita = ({ user, onLogout }) => {
             </div>
           )}
 
-          {/* Main Table Card */}
           <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
-            {/* Table Toolbar */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
               <div className="flex items-center gap-6 w-full md:w-auto">
                 <div className="hidden sm:block">
@@ -344,7 +324,6 @@ const DataBerita = ({ user, onLogout }) => {
                 </div>
             </div>
 
-            {/* Table Content */}
             <div className="overflow-x-auto">
               <table className="min-w-full border-separate border-spacing-0">
                 <thead>
@@ -474,7 +453,6 @@ const DataBerita = ({ user, onLogout }) => {
               </table>
             </div>
 
-            {/* Pagination Controls */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-12 gap-6">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
                 Menampilkan{' '}
@@ -529,7 +507,6 @@ const DataBerita = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Delete Modal */}
       {showDeleteModal && selectedBerita && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/20">

@@ -1,5 +1,3 @@
-// frontend/src/AdminApp.jsx
-
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useRoutes, useNavigate } from 'react-router-dom';
@@ -29,7 +27,6 @@ const AdminApp = () => {
 
   const navigate = useNavigate();
 
-  // 🔥 Sync ke localStorage
   const syncUserContext = (data) => {
     if (data.nama) localStorage.setItem('userName', data.nama);
     if (data.nama_masjid) localStorage.setItem('namaMasjid', data.nama_masjid);
@@ -37,7 +34,6 @@ const AdminApp = () => {
     if (data.foto_tanda_tangan) localStorage.setItem('ttdImage', data.foto_tanda_tangan);
 };
 
-  // 🔥 LOGOUT
   const handleLogout = () => {
     if (window.confirm("Apakah anda yakin ingin keluar dari sistem Takmir?")) {
       localStorage.clear();
@@ -47,7 +43,6 @@ const AdminApp = () => {
     }
   };
 
-  // 🔥 ROUTES
   const routesArray = useMemo(() => [
     { path: '/', element: <Dashboard /> },
     { path: '/keuangan', element: <Keuangan /> },
@@ -55,24 +50,21 @@ const AdminApp = () => {
     { path: '/jamaah', element: <DataJamaah /> },
     { path: '/inventaris', element: <DataInventaris /> },
 
-    // ✅ BERITA
     { path: '/berita', element: <ListBerita /> },
     { path: '/berita/tambah', element: <CreateBerita /> },
     { path: '/berita/edit/:id', element: <EditBerita /> }, 
     { path: '/berita/detail/:id', element: <DetailBerita /> },
 
-    // ✅ STRUKTUR ORGANISASI
-  { path: '/struktur-organisasi', element: <DataStruktur /> },
-  { path: '/struktur-organisasi/tambah', element: <TambahStruktur /> },
-  { path: '/struktur-organisasi/edit/:id', element: <EditStruktur /> },
-  { path: '/struktur-organisasi/hapus/:id', element: <HapusStruktur /> },
+    { path: '/struktur-organisasi', element: <DataStruktur /> },
+    { path: '/struktur-organisasi/tambah', element: <TambahStruktur /> },
+    { path: '/struktur-organisasi/edit/:id', element: <EditStruktur /> },
+    { path: '/struktur-organisasi/hapus/:id', element: <HapusStruktur /> },
 
     { path: '/settings', element: <Settings /> },
   ], []);
 
   const routes = useRoutes(routesArray);
 
-  // 🔥 INIT APP (CEK TOKEN)
   useEffect(() => {
     const initApp = async () => {
       const token = localStorage.getItem('token');
@@ -108,7 +100,6 @@ const AdminApp = () => {
     initApp();
   }, [navigate]);
 
-  // 🔥 HANDLE LOGIN
   const handleLoginSuccess = async () => {
     const token = localStorage.getItem('token');
 
@@ -130,7 +121,6 @@ const AdminApp = () => {
     }
   };
 
-  // 🔥 LOADING SCREEN
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
@@ -144,12 +134,10 @@ const AdminApp = () => {
     );
   }
 
-  // 🔥 BELUM LOGIN
   if (!isLoggedIn) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // 🔥 APP UTAMA
   return (
     <MainLayout
       activeMenu="dashboard"

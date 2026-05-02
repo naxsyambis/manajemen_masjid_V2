@@ -10,9 +10,6 @@ const {
 
 const router = express.Router();
 
-// =======================================
-// HELPER FORMAT RUPIAH
-// =======================================
 const formatRupiah = (angka) => {
   const number = Number(angka || 0);
 
@@ -23,9 +20,6 @@ const formatRupiah = (angka) => {
   }).format(number);
 };
 
-// =======================================
-// HELPER FORMAT TANGGAL INDONESIA
-// =======================================
 const formatTanggalIndonesia = (tanggal) => {
   if (!tanggal) return "-";
 
@@ -40,11 +34,6 @@ const formatTanggalIndonesia = (tanggal) => {
   }
 };
 
-// =======================================
-// HELPER AMBIL PENANDATANGAN
-// role: ketua / bendahara
-// Ambil dari StrukturOrganisasi sesuai masjid_id
-// =======================================
 const getPenandatangan = async ({ role, masjidId }) => {
   try {
     const jabatanDicari = String(role || "").toLowerCase();
@@ -66,11 +55,6 @@ const getPenandatangan = async ({ role, masjidId }) => {
   }
 };
 
-// =======================================
-// HELPER AMBIL DATA KWITANSI / KEUANGAN
-// Sesuai controller keuangan kamu:
-// model Keuangan, primary key: keuangan_id
-// =======================================
 const getDataKwitansi = async ({ nomorDokumen, masjidId }) => {
   try {
     const kwitansi = await Keuangan.findOne({
@@ -94,9 +78,6 @@ const getDataKwitansi = async ({ nomorDokumen, masjidId }) => {
   }
 };
 
-// =======================================
-// HELPER AMBIL KATEGORI
-// =======================================
 const getKategoriText = (item) => {
   if (!item) return "-";
 
@@ -112,9 +93,6 @@ const getKategoriText = (item) => {
   );
 };
 
-// =======================================
-// HELPER AMBIL JENIS TRANSAKSI
-// =======================================
 const getJenisTransaksi = (item) => {
   if (!item) return "-";
 
@@ -142,28 +120,15 @@ const getJenisTransaksi = (item) => {
   return jumlah < 0 ? "KELUAR" : "MASUK";
 };
 
-// =======================================
-// HELPER NOMINAL
-// =======================================
 const getNominal = (item) => {
   if (!item) return 0;
   return Number(item.jumlah || item.nominal || 0);
 };
 
-// =======================================
-// TEST ROUTE
-// =======================================
 router.get("/verifikasi-ttd/test", (req, res) => {
   res.send("Route verifikasi TTD aktif ✅");
 });
 
-// =======================================
-// GET PDF VERIFIKASI TTD
-//
-// Contoh URL hasil scan QR:
-// /verifikasi-ttd/kwitansi/12/ketua?masjid_id=1&nama_masjid=MASJID%20AHMAD%20DAHLAN
-// /verifikasi-ttd/kwitansi/12/bendahara?masjid_id=1&nama_masjid=MASJID%20AHMAD%20DAHLAN
-// =======================================
 router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res) => {
   try {
     const { jenisDokumen, nomorDokumen, role } = req.params;
@@ -223,9 +188,6 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
 
     doc.pipe(res);
 
-    // =======================================
-    // HEADER
-    // =======================================
     doc
       .font("Helvetica-Bold")
       .fontSize(17)
@@ -263,9 +225,6 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
 
     doc.moveDown(1.5);
 
-    // =======================================
-    // PERNYATAAN AWAL
-    // =======================================
     doc
       .font("Helvetica")
       .fontSize(10.5)
@@ -279,9 +238,6 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
 
     doc.moveDown(1);
 
-    // =======================================
-    // DATA PENANDATANGAN
-    // =======================================
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
@@ -301,9 +257,6 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
 
     doc.moveDown(1);
 
-    // =======================================
-    // DATA DOKUMEN
-    // =======================================
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
@@ -332,9 +285,6 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
 
     doc.moveDown(1);
 
-    // =======================================
-    // STATUS VERIFIKASI
-    // =======================================
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
@@ -350,9 +300,6 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
 
     doc.moveDown(1.5);
 
-    // =======================================
-    // PERNYATAAN RESMI INTERNAL
-    // =======================================
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
@@ -372,9 +319,6 @@ router.get("/verifikasi-ttd/:jenisDokumen/:nomorDokumen/:role", async (req, res)
 
     doc.moveDown(2);
 
-    // =======================================
-    // PENUTUP
-    // =======================================
     doc
       .font("Helvetica")
       .fontSize(10)

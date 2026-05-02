@@ -1,9 +1,6 @@
 import QRCode from "qrcode";
 import { formatTanggal } from "./formatDate";
 
-// =================================
-// HELPER: DOWNLOAD DATA URL
-// =================================
 const downloadDataUrl = (dataUrl, filename) => {
   const link = document.createElement("a");
   link.href = dataUrl;
@@ -13,9 +10,6 @@ const downloadDataUrl = (dataUrl, filename) => {
   document.body.removeChild(link);
 };
 
-// =================================
-// HELPER: BIKIN GAMBAR QR
-// =================================
 const createQrLaporanImage = async ({
   namaMasjid,
   startDate,
@@ -110,11 +104,6 @@ const createQrLaporanImage = async ({
   return canvas.toDataURL("image/png");
 };
 
-// =================================
-// EXPORT LAPORAN KEUANGAN
-// HASIL DOWNLOAD: PNG QR
-// QR DIBUKA: PDF LAPORAN ASLI
-// =================================
 export const generateLaporanKeuanganPDF = async (
   transaksi,
   startDate,
@@ -128,7 +117,6 @@ export const generateLaporanKeuanganPDF = async (
     return;
   }
 
-  // Kalau mau discan HP, pakai IP laptop / ngrok, jangan localhost.
   const backendUrl = "https://masjidmupundong.com";
 
   const urlLaporanPdf =

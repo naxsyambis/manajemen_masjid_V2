@@ -1,4 +1,4 @@
-const Keuangan = require("../../models/Keuangan");
+const { Keuangan, KategoriKeuangan } = require("../../models");
 
 exports.getAll = async (req, res) => {
     try {
@@ -12,6 +12,13 @@ exports.getAll = async (req, res) => {
 
         const data = await Keuangan.findAll({
             where: { masjid_id },
+            include: [
+                {
+                    model: KategoriKeuangan,
+                    as: "kategori_keuangan", 
+                    attributes: ["kategori_id", "nama_kategori", "jenis"]
+                }
+            ],
             order: [["tanggal", "DESC"]]
         });
 

@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/keuangan/KeuanganMasjid.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -49,20 +47,17 @@ const KeuanganMasjid = ({ user, onLogout }) => {
     const fetchData = async () => {
       try {
         setError(null);
-        // Fetch masjid details
         const masjidRes = await axios.get(`http://localhost:3000/superadmin/masjid/${masjid_id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setMasjid(masjidRes.data);
 
-        // Fetch keuangan data
         const keuanganRes = await axios.get(`http://localhost:3000/superadmin/keuangan?masjid_id=${masjid_id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = keuanganRes.data.data || [];
         setKeuanganData(data);
 
-        // Calculate stats
         let pemasukan = 0;
         let pengeluaran = 0;
         data.forEach(item => {
@@ -75,7 +70,6 @@ const KeuanganMasjid = ({ user, onLogout }) => {
         const total = pemasukan - pengeluaran;
         setStats({ pemasukan, pengeluaran, total });
 
-        // Prepare chart data (group by month)
         const grouped = data.reduce((acc, item) => {
           const date = new Date(item.tanggal);
           const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -98,7 +92,6 @@ const KeuanganMasjid = ({ user, onLogout }) => {
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Gagal memuat data keuangan masjid. Pastikan masjid_id valid dan coba lagi.');
-        // Fallback data kosong
         setMasjid(null);
         setKeuanganData([]);
         setStats({ pemasukan: 0, pengeluaran: 0, total: 0 });
@@ -144,7 +137,6 @@ const KeuanganMasjid = ({ user, onLogout }) => {
           <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
           
           <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-            {/* Error Message */}
             <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center gap-4">
               <AlertCircle size={24} className="text-red-500 flex-shrink-0" />
               <div>
@@ -172,7 +164,6 @@ const KeuanganMasjid = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
@@ -195,7 +186,6 @@ const KeuanganMasjid = ({ user, onLogout }) => {
             </button>
           </div>
           
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-gradient-to-br from-mu-green to-green-700 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group">
               <div className="relative z-10">
@@ -240,7 +230,6 @@ const KeuanganMasjid = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Chart */}
           <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
               <div>

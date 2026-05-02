@@ -4,7 +4,6 @@ import { MapPin, CalendarDays } from 'lucide-react';
 import NavbarPublic from '../../../components/NavbarPublic';
 import FooterPublic from '../../../components/FooterPublic';
 
-// 🔥 IMAGE HANDLER
 const getImageUrl = (path) => {
   if (!path) return 'https://via.placeholder.com/800x400?text=No+Image';
   if (path.startsWith('http')) return path;
@@ -12,7 +11,6 @@ const getImageUrl = (path) => {
   return `http://localhost:3000/uploads/berita/${path}`;
 };
 
-// 🔥 YOUTUBE FIX (SUDAH AMAN)
 const getYoutubeEmbed = (url) => {
   if (!url) return null;
 
@@ -53,7 +51,6 @@ const DetailBerita = () => {
 
         let imgs = [];
 
-        // 🔥 hindari gambar double
         if (data.gambar) {
           const main = getImageUrl(data.gambar);
           imgs.push(main);
@@ -78,7 +75,6 @@ const DetailBerita = () => {
     fetchData();
   }, [id]);
 
-  // 🔥 AUTO SLIDE
   useEffect(() => {
     if (images.length <= 1) return;
 
@@ -118,7 +114,6 @@ const DetailBerita = () => {
       <main className="pt-32 pb-24">
         <div className="max-w-6xl mx-auto px-6 md:px-10">
 
-          {/* 🔥 HEADER */}
           <div className="text-center mb-12 max-w-4xl mx-auto">
 
             <h1 className="text-3xl md:text-5xl font-bold text-gray-800 leading-tight">
@@ -148,7 +143,6 @@ const DetailBerita = () => {
             </div>
           </div>
 
-          {/* 🔥 SLIDER */}
           {images.length > 0 && (
             <div className="relative mb-8">
 
@@ -177,7 +171,6 @@ const DetailBerita = () => {
             </div>
           )}
 
-          {/* 🔥 THUMB */}
           {images.length > 1 && (
             <div className="flex gap-3 mb-10 flex-wrap justify-center items-center">
               {images.map((img, i) => (
@@ -195,12 +188,10 @@ const DetailBerita = () => {
             </div>
           )}
 
-          {/* 🔥 ISI FULL WIDTH (FIX UTAMA) */}
           <div className="w-full text-gray-800 leading-relaxed text-justify mb-12 whitespace-pre-line text-[17px]">
             {berita.isi}
           </div>
 
-          {/* 🔥 YOUTUBE */}
           {youtubeEmbed && (
             <div className="w-full mb-12">
               <iframe
@@ -212,7 +203,6 @@ const DetailBerita = () => {
             </div>
           )}
 
-          {/* 🔥 BUTTON */}
           <div className="text-center">
             <Link
               to="/berita"
@@ -224,7 +214,6 @@ const DetailBerita = () => {
 
         </div>
       </main>
-
       <FooterPublic />
     </div>
   );

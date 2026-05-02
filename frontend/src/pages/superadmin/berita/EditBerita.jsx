@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom'; // Wajib untuk Portal Alert[cite: 3, 7]
+import ReactDOM from 'react-dom'; 
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -18,7 +18,6 @@ import {
   Upload
 } from 'lucide-react';
 
-// --- Komponen AlertPopup (Sesuai source v3.0) ---[cite: 3, 7, 9]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -84,7 +83,6 @@ const EditBerita = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // --- State Alert ---[cite: 3, 7, 16]
   const [alertData, setAlertData] = useState({ show: false, type: 'info', title: '', message: '', confirmText: '', onConfirm: null });
 
   const [formData, setFormData] = useState({ judul: '', isi: '', youtube_url: '' });
@@ -103,7 +101,6 @@ const EditBerita = ({ user, onLogout }) => {
   const isExpanded = isOpen || isHovered;
   const isPublished = status === "dipublikasi";
 
-  // --- Helper Alert ---[cite: 3, 7, 16]
   const showPopup = ({ type = 'info', title = 'Informasi', message = '', confirmText = '', onConfirm = null }) => {
     setAlertData({ show: true, type, title, message, confirmText, onConfirm });
   };
@@ -228,7 +225,6 @@ const EditBerita = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
 
         <div className="p-8 overflow-y-auto space-y-8">
-          {/* HEADER[cite: 12, 16] */}
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">Edit <span className="text-mu-green">Berita</span></h1>
@@ -243,15 +239,12 @@ const EditBerita = ({ user, onLogout }) => {
             </button>
           </div>
 
-          {/* FORM[cite: 12, 16] */}
           <form onSubmit={handleSubmit} className="space-y-8 bg-white p-10 rounded-3xl shadow-sm border border-gray-100">
-            {/* GAMBAR SECTION DENGAN INTERACTIVE OVERLAY[cite: 13, 16] */}
             <div>
               <h3 className="text-xl font-bold mb-4 border-b-2 border-mu-green pb-2">Gambar Berita</h3>
               <input type="file" multiple accept="image/*" onChange={handleFileChange} className="hidden" id="gambar-upload" />
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 
-                {/* EXISTING IMAGES */}
                 {existingImages.map((img) => (
                   <div key={img.gambar_id} className="relative group aspect-square">
                     <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-gray-100 shadow-sm relative">
@@ -261,7 +254,6 @@ const EditBerita = ({ user, onLogout }) => {
                         alt="Berita" 
                         onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} 
                       />
-                      {/* OVERLAY INTERAKTIF UNTUK GANTI */}
                       <label 
                         htmlFor="gambar-upload" 
                         className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white gap-2 backdrop-blur-sm"
@@ -270,7 +262,6 @@ const EditBerita = ({ user, onLogout }) => {
                         <span className="text-[10px] font-black uppercase tracking-widest text-center">Ganti/Tambah</span>
                       </label>
                     </div>
-                    {/* TOMBOL HAPUS */}
                     <button 
                       type="button" 
                       onClick={() => handleRemoveExisting(img.gambar_id)} 
@@ -281,7 +272,6 @@ const EditBerita = ({ user, onLogout }) => {
                   </div>
                 ))}
 
-                {/* NEW FILES PREVIEW */}
                 {newFiles.map((file, index) => (
                   <div key={index} className="relative group aspect-square">
                     <div className="w-full h-full rounded-2xl overflow-hidden border-2 border-mu-green/30 shadow-sm relative">
@@ -298,7 +288,6 @@ const EditBerita = ({ user, onLogout }) => {
                   </div>
                 ))}
 
-                {/* BUTTON TAMBAH (+)[cite: 13, 16] */}
                 {(existingImages.length + newFiles.length) < 5 && (
                   <label 
                     htmlFor="gambar-upload" 
@@ -314,7 +303,6 @@ const EditBerita = ({ user, onLogout }) => {
               <p className="text-xs text-gray-400 mt-4 italic font-medium">Klik pada gambar atau tombol "+" untuk memperbarui koleksi gambar (Maks. 5 foto, @5MB).</p>
             </div>
 
-            {/* INPUTS[cite: 12, 16] */}
             <div className="space-y-6 pt-4">
               <div>
                 <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Judul Berita</label>
@@ -330,7 +318,6 @@ const EditBerita = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* ACTION FOOTER[cite: 12, 16] */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-10 border-t border-gray-100">
               <div className="flex flex-wrap gap-3">
                 {!isPublished && (
@@ -356,7 +343,6 @@ const EditBerita = ({ user, onLogout }) => {
             </div>
           </form>
 
-          {/* FOOTER BRANDING[cite: 13, 16] */}
           <div className="flex justify-center items-center gap-4 text-gray-300 py-4 opacity-50">
             <div className="h-[1px] w-12 bg-gray-200"></div>
             <p className="text-[10px] font-black uppercase tracking-[0.4em]">Integrated Database System v3.0</p>

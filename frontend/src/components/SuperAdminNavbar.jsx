@@ -1,23 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
-import LogoMu from '../assets/logo_mu.png'; // Asumsi logo sama, ganti jika perlu
+import LogoMu from '../assets/logo_mu.png'; 
 
-const SuperAdminNavbar = ({ setIsOpen, user }) => { // Tambah props user
+const SuperAdminNavbar = ({ setIsOpen, user }) => { 
   const [namaSuperAdmin, setNamaSuperAdmin] = useState("SUPER ADMIN PANEL");
 
   useEffect(() => {
-    // Jika user ada, tampilkan nama super admin; jika tidak, default
     if (user?.nama) {
-      setNamaSuperAdmin(user.nama); // Nama dari backend getProfile
+      setNamaSuperAdmin(user.nama); 
     } else {
-      setNamaSuperAdmin("Memuat..."); // Fallback jika belum load
+      setNamaSuperAdmin("Memuat..."); 
     }
-  }, [user]); // Update saat user berubah
+  }, [user]); 
 
   return (
     <header className="h-20 bg-white/90 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-40 transition-all">
       
-      {/* Bagian Kiri: Toggle dan Logo + Nama */}
       <div className="flex items-center gap-4">
         <button 
           onClick={() => setIsOpen(true)}
@@ -37,17 +35,15 @@ const SuperAdminNavbar = ({ setIsOpen, user }) => { // Tambah props user
 
           <div className="flex flex-col">
             <h2 className="text-mu-green font-black text-sm md:text-xl uppercase tracking-tighter leading-none truncate max-w-[180px] md:max-w-md">
-              {namaSuperAdmin} {/* Tampilkan nama super admin otomatis */}
+              {namaSuperAdmin} 
             </h2>
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.3em] mt-1.5 flex items-center gap-1.5">
               <span className="w-1 h-1 bg-mu-yellow rounded-full"></span>
-              Dashboard Super Admin {/* Ganti subteks */}
+              Dashboard Super Admin 
             </p>
           </div>
         </div>
       </div>
-      
-      {/* Bagian Kanan: Kosong (bisa tambah notif atau profile jika perlu) */}
       <div></div>
 
     </header>
