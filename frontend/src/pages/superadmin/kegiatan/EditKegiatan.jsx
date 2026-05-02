@@ -95,7 +95,7 @@ const EditKegiatan = ({ user, onLogout }) => {
       form.append("deskripsi", formData.deskripsi);
 
       if (poster) {
-        form.append("poster", poster); // ✅ kalau ganti
+        form.append("poster", poster); 
       }
 
       await axios.put(`${BASE_URL}/superadmin/kegiatan/${id}`, form, {
