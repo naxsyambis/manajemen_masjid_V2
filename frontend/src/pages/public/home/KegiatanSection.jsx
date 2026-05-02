@@ -66,7 +66,6 @@ const KegiatanSection = () => {
     <section id="kegiatan" className="py-20">
       <div className="container mx-auto px-6">
 
-        {/* HEADER */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4">
             Kegiatan Ranting
@@ -76,7 +75,6 @@ const KegiatanSection = () => {
           </p>
         </div>
 
-        {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {kegiatanTerbaru.length > 0 ? (
             kegiatanTerbaru.map((item) => (
@@ -84,12 +82,10 @@ const KegiatanSection = () => {
                 key={item.kegiatan_id}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col h-full"
               >
-                {/* JUDUL */}
                 <h3 className="text-xl font-bold text-[#006227] mb-3 leading-snug break-words min-h-[60px]">
                   {item.nama_kegiatan}
                 </h3>
 
-                {/* INFO */}
                 <div className="text-sm text-gray-500 mb-3 space-y-2">
                   <p>
                     <strong>Waktu:</strong> {formatWaktu(item.waktu_kegiatan)}
@@ -99,12 +95,10 @@ const KegiatanSection = () => {
                   </p>
                 </div>
 
-                {/* DESKRIPSI */}
                 <p className="text-gray-700 mb-4 line-clamp-3 min-h-[72px] leading-relaxed">
                   {item.deskripsi || 'Tidak ada deskripsi'}
                 </p>
 
-                {/* BUTTON */}
                 <Link
                   to={`/kegiatan/${item.kegiatan_id}`}
                   className="text-[#006227] font-semibold text-right hover:underline mt-auto"
@@ -120,7 +114,6 @@ const KegiatanSection = () => {
           )}
         </div>
 
-        {/* BUTTON KEGIATAN LAINNYA */}
         <div className="text-center mt-12">
           <Link
             to="/kegiatan"
@@ -129,7 +122,6 @@ const KegiatanSection = () => {
             Kegiatan Lainnya
           </Link>
         </div>
-
       </div>
     </section>
   );

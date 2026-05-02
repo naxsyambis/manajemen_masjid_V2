@@ -30,26 +30,21 @@ const handleMasjidRedirect = () => {
     <footer className="bg-[#004a1e] text-white py-20">
       <div className="container mx-auto px-6">
 
-        {/* 🔥 GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
 
-          {/* ===================== */}
-          {/* 🔥 LOGO */}
-          {/* ===================== */}
           <div>
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 bg-white rounded-xl p-1">
                 <img src={logoMu} alt="logo" className="w-full h-full object-contain"/>
               </div>
 
-                              {/* LOGO UMY */}
-  <div className="w-12 h-12 bg-white/90 rounded-xl p-1 shadow-sm flex items-center justify-center">
-    <img
-      src={logoUmy}
-      alt="logo UMY"
-      className="w-full h-full object-contain"
-    />
-  </div>
+              <div className="w-12 h-12 bg-white/90 rounded-xl p-1 shadow-sm flex items-center justify-center">
+                <img
+                  src={logoUmy}
+                  alt="logo UMY"
+                  className="w-full h-full object-contain"
+                />
+              </div>
 
               <div>
                 <h3 className="text-xl font-bold text-yellow-400">
@@ -65,10 +60,7 @@ const handleMasjidRedirect = () => {
               Membangun umat melalui ketakwaan, pendidikan, dan kepedulian sosial di tengah masyarakat.
             </p>
 
-            {/* SOSMED */}
             <div className="flex gap-3">
-
-              {/* FACEBOOK */}
               <a
                 href="https://www.facebook.com/share/1KW2pRYEDP/"
                 target="_blank"
@@ -78,7 +70,6 @@ const handleMasjidRedirect = () => {
                 <Facebook size={18}/>
               </a>
 
-              {/* INSTAGRAM */}
               <a
                 href="https://www.instagram.com/masjid_ahmaddahlanpundong?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
                 target="_blank"
@@ -88,7 +79,6 @@ const handleMasjidRedirect = () => {
                 <Instagram size={18}/>
               </a>
 
-              {/* YOUTUBE (opsional, kalau mau tetap ada) */}
               <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:text-black transition cursor-pointer">
                 <Youtube size={18}/>
               </div>
@@ -96,9 +86,6 @@ const handleMasjidRedirect = () => {
             </div>
           </div>
 
-          {/* ===================== */}
-          {/* 🔥 NAVIGASI */}
-          {/* ===================== */}
           <div>
             <h4 className="text-lg font-semibold mb-6 text-yellow-400">
               Navigasi
@@ -151,9 +138,6 @@ const handleMasjidRedirect = () => {
             </div>
           </div>
 
-          {/* ===================== */}
-          {/* 🔥 KONTAK */}
-          {/* ===================== */}
           <div>
             <h4 className="text-lg font-semibold mb-6 text-yellow-400">
               Kontak
@@ -175,17 +159,15 @@ const handleMasjidRedirect = () => {
               </a>
 
               <a
-  href="https://wa.me/6285641692104"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center gap-3 hover:text-yellow-400 transition"
->
-  <Phone size={18}/> 085641692104
-</a>
-
+                href="https://wa.me/6285641692104"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 hover:text-yellow-400 transition"
+              >
+                <Phone size={18}/> 085641692104
+              </a>
             </div>
 
-            {/* BUTTON */}
             <button
               onClick={() => navigate('/masjid')}
               className="mt-6 px-5 py-2 border border-yellow-400 text-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition text-sm"
@@ -196,9 +178,6 @@ const handleMasjidRedirect = () => {
 
         </div>
 
-        {/* ===================== */}
-        {/* 🔥 FOOTER BAWAH */}
-        {/* ===================== */}
         <div className="border-t border-white/20 mt-14 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
 
           <p>

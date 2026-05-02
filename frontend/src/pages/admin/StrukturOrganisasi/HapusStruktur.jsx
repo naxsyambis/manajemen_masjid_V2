@@ -1,5 +1,3 @@
-// frontend/src/pages/admin/StrukturOrganisasi/HapusStruktur.jsx
-
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';

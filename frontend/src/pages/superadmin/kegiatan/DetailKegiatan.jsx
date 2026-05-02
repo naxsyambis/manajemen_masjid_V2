@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/kegiatan/DetailKegiatan.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -13,7 +11,6 @@ import {
 
 const BASE_URL = "http://localhost:3000";
 
-// Sub-komponen tetap sama namun dengan penanganan teks meluap
 const DetailRow = ({ icon, label, value }) => (
   <div className="flex items-center justify-between p-5 hover:bg-gray-50/80 transition-all border-b border-gray-100 last:border-0 group">
     <div className="flex items-center gap-4 min-w-0">
@@ -106,7 +103,6 @@ const DetailKegiatan = ({ user, onLogout }) => {
 
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-10">
           
-          {/* Header Section[cite: 1, 3] */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <button 
@@ -147,10 +143,8 @@ const DetailKegiatan = ({ user, onLogout }) => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* Kiri: Media & Detail Ringkas */}
             <div className="lg:col-span-5 space-y-8">
               <div className="bg-white p-6 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
-                {/* Perbaikan: Ukuran foto lebih terkontrol dengan aspect-video */}
                 <div className="relative group overflow-hidden rounded-[2.5rem] aspect-video bg-gray-50 border-4 border-gray-50 shadow-inner">
                   {kegiatan?.poster ? (
                     <img
@@ -178,7 +172,6 @@ const DetailKegiatan = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* Kanan: Deskripsi Utama */}
             <div className="lg:col-span-7 space-y-8">
               <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50 h-full">
                 <div className="flex items-center gap-4 mb-10">
@@ -190,12 +183,10 @@ const DetailKegiatan = ({ user, onLogout }) => {
                 </div>
 
                 <div className="space-y-6">
-                  {/* Perbaikan: Tambahkan break-words agar teks judul tidak bablas[cite: 3] */}
                   <h2 className="text-2xl md:text-3xl font-black text-gray-800 leading-tight tracking-tight break-words">
                     {kegiatan?.nama_kegiatan}
                   </h2>
                   <div className="prose prose-sm max-w-none">
-                    {/* Perbaikan: Text color dan overflow pada deskripsi[cite: 3] */}
                     <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-wrap break-words">
                       {kegiatan?.deskripsi || "Tidak ada deskripsi untuk kegiatan ini."}
                     </p>
@@ -215,7 +206,6 @@ const DetailKegiatan = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Delete Modal[cite: 1, 3] */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/20">

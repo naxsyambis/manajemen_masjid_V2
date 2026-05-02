@@ -32,7 +32,6 @@ const StrukturOrganisasi = ({ masjidId }) => {
   };
 
   useEffect(() => {
-    // 🔥 kalau dipanggil dari Masjid.jsx → pakai id
     fetchData(masjidId || "");
   }, [masjidId]);
 
@@ -44,8 +43,6 @@ const StrukturOrganisasi = ({ masjidId }) => {
 
   return (
     <div className="container mx-auto px-6">
-
-      {/* 🔥 FILTER (optional, bisa tetap ada) */}
       {!masjidId && (
         <div className="mb-10 text-center">
           <select
@@ -63,7 +60,6 @@ const StrukturOrganisasi = ({ masjidId }) => {
         </div>
       )}
 
-      {/* CONTENT */}
       {loading ? (
         <div className="text-center">Memuat data...</div>
       ) : data.length === 0 ? (
@@ -77,7 +73,6 @@ const StrukturOrganisasi = ({ masjidId }) => {
               key={item.struktur_id}
               className="w-full max-w-sm bg-white rounded-[28px] shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden group"
             >
-              {/* IMAGE */}
               <div className="relative">
                 <img
                   src={
@@ -94,28 +89,20 @@ const StrukturOrganisasi = ({ masjidId }) => {
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
-
-              {/* CONTENT */}
               <div className="p-5 text-center">
 
-                {/* NAMA */}
                 <h3 className="text-lg md:text-xl font-bold text-[#006227] mb-3">
-  {item.nama}
-</h3>
+                  {item.nama}
+                </h3>
 
-                {/* JABATAN */}
                 <div className="mb-3">
                   <span className="inline-block bg-gray-100 text-gray-700 px-6 py-2 rounded-full text-sm font-semibold shadow-sm">
                     {item.jabatan}
                   </span>
                 </div>
 
-                
-
-                {/* GARIS */}
                 <div className="w-12 h-[2px] bg-[#006227] mx-auto mb-3"></div>
 
-                {/* DESKRIPSI */}
                 <p className="text-sm text-gray-500 leading-relaxed">
                   Berperan dalam kepengurusan masjid untuk pelayanan umat
                 </p>

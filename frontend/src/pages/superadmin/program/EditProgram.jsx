@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/program/EditProgram.jsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from "react-dom";
 import axios from 'axios';
@@ -103,20 +101,18 @@ const EditProgram = ({ user, onLogout }) => {
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) { showPopup({ type: "warning", title: "Terlalu Besar", message: "Maksimal 3MB" }); return; }
     
-    if (gambar) URL.revokeObjectURL(preview); // Bersihkan memory URL lama
+    if (gambar) URL.revokeObjectURL(preview); 
 
     setGambar(file);
     setPreview(URL.createObjectURL(file));
   };
 
-  // 🔥 MEKANISME X (HAPUS) IDENTIK DENGAN PERMINTAAN SEBELUMNYA
   const handleRemoveImage = () => {
     if (gambar) URL.revokeObjectURL(preview);
     
     setGambar(null);
     setPreview(null);
 
-    // Reset input file agar bisa pilih file yang sama lagi
     const fileInput = document.getElementById('gambar-upload');
     if (fileInput) fileInput.value = '';
   };
@@ -159,7 +155,6 @@ const EditProgram = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
 
         <div className="p-8 space-y-8 overflow-y-auto">
-          {/* HEADER SECTION */}
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">
@@ -178,10 +173,7 @@ const EditProgram = ({ user, onLogout }) => {
             </button>
           </div>
 
-          {/* CARD FORM */}
           <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 space-y-8">
-            
-            {/* GAMBAR SECTION - IDENTIK DENGAN EDIT BERITA */}
             <div>
               <h3 className="text-xl font-bold mb-4 border-b pb-2">Gambar Program</h3>
               <input 
@@ -193,7 +185,6 @@ const EditProgram = ({ user, onLogout }) => {
               />
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {/* Tampilan Gambar (Prioritas Preview Baru, lalu Gambar Lama) */}
                 {(preview || gambarLama) && (
                   <div className="relative group">
                     <img 
@@ -202,7 +193,6 @@ const EditProgram = ({ user, onLogout }) => {
                       alt="Preview"
                       onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=Error'; }}
                     />
-                    {/* BUTTON X (SILANG) - HANYA MUNCUL JIKA ADA GAMBAR BARU */}
                     {preview && (
                       <button
                         type="button"
@@ -215,7 +205,6 @@ const EditProgram = ({ user, onLogout }) => {
                   </div>
                 )}
 
-                {/* BUTTON TAMBAH (+) */}
                 {!gambar && (
                   <label
                     htmlFor="gambar-upload"
@@ -323,7 +312,6 @@ const EditProgram = ({ user, onLogout }) => {
               />
             </div>
 
-            {/* ACTION BUTTONS */}
             <div className="flex justify-between items-center pt-4">
               <button
                 type="button"

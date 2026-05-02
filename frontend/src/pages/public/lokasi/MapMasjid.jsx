@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// FIX ICON
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -23,7 +22,6 @@ L.Icon.Default.mergeOptions({
     "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
-// FLY TO
 const FlyToLocation = ({ position }) => {
   const map = useMap();
   useEffect(() => {
@@ -41,7 +39,6 @@ const MapMasjid = () => {
   const [search, setSearch] = useState("");
   const [selectedPos, setSelectedPos] = useState(null);
 
-  // ambil lokasi user
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -54,7 +51,6 @@ const MapMasjid = () => {
     );
   }, []);
 
-  // fetch nearest
   useEffect(() => {
     if (!userLocation) return;
 
@@ -67,14 +63,12 @@ const MapMasjid = () => {
       });
   }, [userLocation]);
 
-  // fetch semua
   useEffect(() => {
     fetch("http://localhost:3000/public/masjid")
       .then((res) => res.json())
       .then((res) => setAllMasjids(res.data || res));
   }, []);
 
-  // filter
   const filteredMasjids =
     search.length > 0
       ? allMasjids.filter((m) =>
@@ -88,7 +82,6 @@ const MapMasjid = () => {
 
       <main className="pt-24 px-6 pb-10">
 
-        {/* HEADER */}
         <div className="mb-10">
           <h1 className="text-4xl font-black text-gray-800 tracking-tighter uppercase">
             Peta <span className="text-mu-green">Masjid</span>
@@ -98,10 +91,8 @@ const MapMasjid = () => {
           </p>
         </div>
 
-        {/* GRID */}
         <div className="grid lg:grid-cols-3 gap-6">
 
-          {/* MAP */}
           <div className="lg:col-span-2 h-[calc(100vh-160px)] bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden relative z-0">
 
             {userLocation && (
@@ -112,17 +103,14 @@ const MapMasjid = () => {
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-                {/* USER */}
                 <Marker position={userLocation}>
                   <Popup>Lokasi Anda</Popup>
                 </Marker>
 
-                {/* FOCUS */}
                 {selectedPos && (
                   <FlyToLocation position={selectedPos} />
                 )}
 
-                {/* MASJID */}
                 {filteredMasjids.map((m) => (
                   <Marker
                     key={m.masjid_id}
@@ -139,10 +127,7 @@ const MapMasjid = () => {
             )}
           </div>
 
-          {/* PANEL */}
           <div className="h-[calc(100vh-160px)] bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-6 flex flex-col">
-
-            {/* SEARCH */}
             <input
               type="text"
               placeholder="Cari masjid"
@@ -151,7 +136,6 @@ const MapMasjid = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
 
-            {/* TITLE */}
             <div className="mt-6 mb-4">
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                 {search ? "Hasil Pencarian" : "Masjid Terdekat"}
@@ -162,7 +146,6 @@ const MapMasjid = () => {
               </p>
             </div>
 
-            {/* LIST */}
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
 
               {filteredMasjids.map((m) => {
@@ -189,7 +172,6 @@ const MapMasjid = () => {
                       </p>
                     )}
 
-                    {/* BUTTON KECIL */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -205,11 +187,8 @@ const MapMasjid = () => {
 
             </div>
           </div>
-
         </div>
-
       </main>
-
       <FooterPublic />
     </div>
   );

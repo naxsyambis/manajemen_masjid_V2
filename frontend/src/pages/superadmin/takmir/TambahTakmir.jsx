@@ -10,7 +10,6 @@ import {
   X, AlertTriangle, CheckCircle2, XCircle, Info 
 } from 'lucide-react';
 
-// --- Komponen AlertPopup (Style Konsisten) ---[cite: 1]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -227,7 +226,6 @@ const TambahTakmir = ({ user, onLogout }) => {
               <form onSubmit={handleSubmit} className="space-y-12">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                   
-                  {/* Kolom Kiri: Profil */}
                   <div className="space-y-8">
                     <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Profil Takmir</h3>
                     
@@ -247,7 +245,6 @@ const TambahTakmir = ({ user, onLogout }) => {
                       </div>
                     </div>
 
-                    {/* PERBAIKAN DROPDOWN DISINI[cite: 1] */}
                     <div className="space-y-2" ref={dropdownRef}>
                       <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Pilih Masjid</label>
                       <div className="relative">
@@ -264,7 +261,6 @@ const TambahTakmir = ({ user, onLogout }) => {
 
                         {isDropdownOpen && (
                           <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                            {/* Search Box dengan Padding Internal */}
                             <div className="p-4 border-b border-gray-50 bg-gray-50/30">
                               <div className="relative">
                                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-mu-green" />
@@ -278,7 +274,6 @@ const TambahTakmir = ({ user, onLogout }) => {
                                 />
                               </div>
                             </div>
-                            {/* List dengan max-height & padding agar tidak mepet */}
                             <div className="max-h-72 overflow-y-auto py-2 px-2 custom-scrollbar">
                               {filteredMasjids.length > 0 ? (
                                 filteredMasjids.map((m) => (
@@ -317,7 +312,6 @@ const TambahTakmir = ({ user, onLogout }) => {
                     </div>
                   </div>
 
-                  {/* Kolom Kanan: Keamanan */}
                   <div className="space-y-8">
                     <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Keamanan Akun</h3>
                     <div className="space-y-2">

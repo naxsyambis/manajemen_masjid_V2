@@ -37,7 +37,6 @@ const ProgramLengkap = () => {
     return text?.length > max ? text.substring(0, max) + '...' : text;
   };
 
-  // 🔥 PAGINATION
   const indexLast = currentPage * itemsPerPage;
   const indexFirst = indexLast - itemsPerPage;
   const currentData = program.slice(indexFirst, indexLast);
@@ -68,7 +67,6 @@ const ProgramLengkap = () => {
     <section className="py-20">
       <div className="container mx-auto px-6">
 
-        {/* HEADER */}
         <div className="text-center mb-16 mt-6">
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4">
             Program Ranting
@@ -78,7 +76,6 @@ const ProgramLengkap = () => {
           </p>
         </div>
 
-        {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {currentData.length > 0 ? (
             currentData.map((item) => (
@@ -87,7 +84,6 @@ const ProgramLengkap = () => {
                 className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col h-full"
               >
 
-                {/* GAMBAR */}
                 <div className="h-64 overflow-hidden">
                   <img
                     src={
@@ -100,7 +96,6 @@ const ProgramLengkap = () => {
                   />
                 </div>
 
-                {/* CONTENT */}
                 <div className="p-5 flex flex-col flex-grow">
 
                   <h3 className="font-bold text-lg text-[#006227] line-clamp-2 leading-tight mb-1">
@@ -135,11 +130,9 @@ const ProgramLengkap = () => {
           )}
         </div>
 
-        {/* 🔥 PAGINATION */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-12 gap-2 flex-wrap items-center">
 
-            {/* PREV */}
             <button
               onClick={() => goToPage(Math.max(currentPage - 1, 1))}
               className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
@@ -148,7 +141,6 @@ const ProgramLengkap = () => {
               Sebelumnya
             </button>
 
-            {/* PAGE */}
             {(() => {
               const pages = [];
               const maxVisible = 3;
@@ -197,7 +189,6 @@ const ProgramLengkap = () => {
               return pages;
             })()}
 
-            {/* NEXT */}
             <button
               onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
               className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
@@ -209,7 +200,6 @@ const ProgramLengkap = () => {
           </div>
         )}
 
-        {/* BACK HOME */}
         <div className="text-center mt-12">
           <Link
             to="/"
@@ -218,7 +208,6 @@ const ProgramLengkap = () => {
             Kembali ke Home
           </Link>
         </div>
-
       </div>
     </section>
   );

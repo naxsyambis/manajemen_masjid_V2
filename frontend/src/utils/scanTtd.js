@@ -1,15 +1,7 @@
 import QRCode from "qrcode";
 
-// =================================
-// CONFIG BACKEND URL
-// Kalau discan HP, jangan pakai localhost.
-// Pakai IP laptop atau ngrok.
-// =================================
 const BACKEND_URL = "https://masjidmupundong.com";
 
-// =================================
-// HELPER: URL TTD
-// =================================
 export const getTtdUrl = (ttd) => {
   if (!ttd) return null;
 
@@ -24,10 +16,6 @@ export const getTtdUrl = (ttd) => {
   return `${BACKEND_URL}/uploads/ttd/${ttd}`;
 };
 
-// =================================
-// HELPER: BUAT QR TTD ELEKTRONIK
-// QR BERISI LINK PDF VERIFIKASI
-// =================================
 export const generateQrTtd = async ({
   role,
   nomorDokumen,
@@ -35,8 +23,7 @@ export const generateQrTtd = async ({
   masjidId,
   ttd
 }) => {
-  // Kalau belum ada TTD di struktur organisasi,
-  // maka QR tidak dibuat.
+
   if (!ttd) return null;
 
   if (!role || !nomorDokumen || !masjidId) {
@@ -52,7 +39,6 @@ export const generateQrTtd = async ({
   try {
     const namaMasjid = localStorage.getItem("namaMasjid") || "-";
 
-    // QR ini kalau discan akan membuka PDF verifikasi dari backend
     const urlVerifikasiPdf =
       `${BACKEND_URL}/verifikasi-ttd/${encodeURIComponent(jenisDokumen)}/${encodeURIComponent(nomorDokumen)}/${encodeURIComponent(role)}` +
       `?masjid_id=${encodeURIComponent(masjidId)}` +

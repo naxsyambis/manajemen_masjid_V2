@@ -50,7 +50,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const kep = await Kepengurusan.findOne({
-      where: { pengurus_id: req.params.id }  // Cari berdasarkan ID saja, tanpa filter masjid_id untuk super admin
+      where: { pengurus_id: req.params.id }  
     });
 
     if (!kep) return res.status(404).json({ message: "Pengurus tidak ditemukan" });
@@ -102,7 +102,7 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const oldData = await Kepengurusan.findOne({
-      where: { pengurus_id: req.params.id }  // Cari berdasarkan ID saja
+      where: { pengurus_id: req.params.id }  
     });
 
     if (!oldData) return res.status(404).json({ message: "Pengurus tidak ditemukan" });
@@ -133,7 +133,6 @@ exports.delete = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    // Kondisi berdasarkan role: super admin ambil semua, takmir filter berdasarkan masjid_id
     const whereCondition = req.user.role === 'super admin' ? {} : { masjid_id: req.user.masjid_id };
     const data = await Kepengurusan.findAll({
       where: whereCondition
@@ -147,7 +146,6 @@ exports.getAll = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    // Kondisi berdasarkan role: super admin cari berdasarkan ID saja, takmir tambah filter masjid_id
     const whereCondition = req.user.role === 'super admin' 
       ? { pengurus_id: req.params.id } 
       : { pengurus_id: req.params.id, masjid_id: req.user.masjid_id };

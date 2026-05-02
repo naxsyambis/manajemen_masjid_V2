@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/masjid/EditMasjid.jsx
-
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
@@ -20,7 +18,6 @@ import {
   Camera
 } from 'lucide-react';
 
-// --- Komponen AlertPopup (Sesuai Standar v3.0) ---[cite: 3, 5]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -225,7 +222,6 @@ const EditMasjid = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header identik dengan Tambah Masjid[cite: 1] */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
@@ -258,7 +254,6 @@ const EditMasjid = ({ user, onLogout }) => {
               <form onSubmit={handleConfirmUpdate}>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                   <div className="space-y-10">
-                    {/* Style Input Foto identik dengan Tambah Masjid[cite: 1] */}
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Logo Masjid</h3>
                       <div className="space-y-4">
@@ -294,7 +289,6 @@ const EditMasjid = ({ user, onLogout }) => {
                       </div>
                     </div>
                     
-                    {/* Kontak - Layout Field Identik[cite: 1] */}
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Kontak</h3>
                       <div className="space-y-3">
@@ -318,7 +312,6 @@ const EditMasjid = ({ user, onLogout }) => {
                     </div>
                   </div>
                   
-                  {/* Informasi Utama - Layout Kolom Kanan Identik[cite: 1] */}
                   <div className="space-y-10">
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Informasi Utama</h3>
@@ -382,7 +375,6 @@ const EditMasjid = ({ user, onLogout }) => {
                   </div>
                 </div>
                 
-                {/* Tombol Aksi - Layout Identik[cite: 1] */}
                 <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
                   <button
                     type="button"

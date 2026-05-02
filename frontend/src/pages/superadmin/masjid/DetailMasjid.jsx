@@ -1,4 +1,3 @@
-// frontend/src/pages/superadmin/masjid/DetailMasjid.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 import { formatRupiah } from '../../../utils/formatCurrency';
 
-// --- SUB-COMPONENTS ---
 const InfoItem = ({ icon, label, value }) => (
   <div className="flex gap-4 items-start p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
     <div className="p-3 bg-white rounded-xl text-mu-green shadow-sm">
@@ -132,7 +130,6 @@ const DataTable = ({
   </div>
 );
 
-// --- MAIN COMPONENT ---
 const DetailMasjid = ({ user, onLogout }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -149,7 +146,6 @@ const DetailMasjid = ({ user, onLogout }) => {
   const [keuanganFiltered, setKeuanganFiltered] = useState([]);
   const [filterType, setFilterType] = useState('semua');
   
-  // State untuk Grafik
   const [chartData, setChartData] = useState([]);
   const [filterRange, setFilterRange] = useState('minggu');
   
@@ -201,7 +197,6 @@ const DetailMasjid = ({ user, onLogout }) => {
 
   const isExpanded = isOpen || isHovered;
 
-  // Logika Grafik Arus Kas
   const processKeuanganForChart = (rawData, range) => {
     const now = new Date();
     let processedData = [];
@@ -377,7 +372,6 @@ const DetailMasjid = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <main className="flex-1 overflow-y-auto p-8 space-y-10">
-          {/* Header Profil */}
           <div className="bg-white rounded-[2rem] p-10 shadow-sm border border-gray-100 grid grid-cols-1 lg:grid-cols-3 gap-10">
             <div className="flex flex-col items-center space-y-4">
               <div className="w-48 h-48 bg-gray-50 rounded-[2rem] overflow-hidden border-2 border-mu-green/20 flex items-center justify-center">
@@ -405,7 +399,6 @@ const DetailMasjid = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* BAGIAN GRAFIK ARUS KAS (PENGGANTI LAPORAN KEUANGAN) */}
           <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
               <div>
@@ -500,7 +493,6 @@ const DetailMasjid = ({ user, onLogout }) => {
             }
           />
 
-          {/* Struktur Organisasi */}
           <DataTable 
             title="Struktur Organisasi Masjid" 
             icon={<Users className="text-mu-green" size={24}/>} 
@@ -582,7 +574,6 @@ const DetailMasjid = ({ user, onLogout }) => {
         </main>
       </div>
 
-      {/* Modal Hapus */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white p-8 rounded-[2.5rem] max-w-sm w-full text-center shadow-2xl animate-in zoom-in duration-200">

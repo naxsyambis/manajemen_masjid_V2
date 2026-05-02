@@ -95,20 +95,16 @@ const Masjid = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
 
-            {/* DESKRIPSI */}
             <DeskripsiMasjid masjid={masjid} />
 
-            {/* 🔥 STRUKTUR ORGANISASI (FIX DI SINI) */}
             <div className="mt-10 mb-16">
               <h2 className="text-3xl font-bold text-[#006227] mb-8 text-center">
                 Struktur Organisasi
               </h2>
 
-              {/* 🔥 KUNCI UTAMA */}
               <StrukturOrganisasi masjidId={id} />
             </div>
 
-            {/* TOTAL */}
             <TotalJamaah
               jamaah={jamaah}
               totalPemasukan={totalPemasukan}
@@ -116,19 +112,15 @@ const Masjid = () => {
               inventaris={inventaris}
             />
 
-            {/* GRAFIK / EXPORT */}
             <GrafikKeuangan 
               masjidId={id}
               namaMasjid={masjid?.nama_masjid}
             />
 
-            {/* INVENTARIS */}
             <Inventaris inventaris={inventaris} />
-
           </div>
         </div>
       </main>
-
       <FooterPublic />
     </div>
   );

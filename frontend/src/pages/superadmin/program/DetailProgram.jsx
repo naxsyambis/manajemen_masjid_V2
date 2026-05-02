@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/program/DetailProgram.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from "react-dom";
 import axios from 'axios';
@@ -15,9 +13,6 @@ import {
 
 const BASE_URL = "http://localhost:3000";
 
-/**
- * Sub-component untuk baris informasi yang konsisten[cite: 5]
- */
 const DetailRow = ({ icon, label, value }) => (
   <div className="flex items-center justify-between p-5 hover:bg-gray-50/80 transition-all border-b border-gray-100 last:border-0 group">
     <div className="flex items-center gap-4">
@@ -30,9 +25,6 @@ const DetailRow = ({ icon, label, value }) => (
   </div>
 );
 
-/**
- * AlertPopup dengan backdrop blur dan animasi scale[cite: 5]
- */
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
   const isSuccess = alertData.type === "success";
@@ -130,7 +122,6 @@ const DetailProgram = ({ user, onLogout }) => {
         
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-10">
           
-          {/* Header & Navigasi[cite: 5] */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <button 
@@ -171,7 +162,6 @@ const DetailProgram = ({ user, onLogout }) => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* Kolom Kiri: Poster/Gambar (4 unit)[cite: 5] */}
             <div className="lg:col-span-4 space-y-8">
               <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col items-center text-center">
                 <div className="w-full aspect-[3/4] bg-gray-50 rounded-[2.5rem] border-4 border-gray-50 flex items-center justify-center shadow-inner mb-8 relative overflow-hidden group">
@@ -195,7 +185,6 @@ const DetailProgram = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* Kolom Kanan: Detail Informasi (8 unit)[cite: 5] */}
             <div className="lg:col-span-8 space-y-8">
               <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
                 <div className="flex items-center gap-4 mb-10">

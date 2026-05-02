@@ -1,7 +1,5 @@
-// frontend/src/pages/superadmin/takmir/EditTakmir.jsx
-
 import React, { useState, useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom'; // Ditambahkan untuk AlertPopup
+import ReactDOM from 'react-dom'; 
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -12,7 +10,6 @@ import {
   X, AlertTriangle, CheckCircle2, XCircle, Info, Calendar 
 } from 'lucide-react';
 
-// --- Komponen AlertPopup (Sesuai gaya TambahBerita.jsx) ---[cite: 1, 3]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -62,7 +59,6 @@ const EditTakmir = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // --- State untuk AlertPopup ---[cite: 3]
   const [alertData, setAlertData] = useState({
     show: false,
     type: "info",
@@ -100,7 +96,6 @@ const EditTakmir = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // --- Fungsi Helper Alert ---[cite: 1, 3]
   const showPopup = ({ type = "info", title = "Informasi", message = "", confirmText = "", onConfirm = null }) => {
     setAlertData({ show: true, type, title, message, confirmText, onConfirm });
   };
@@ -205,7 +200,6 @@ const EditTakmir = ({ user, onLogout }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validasi Password jika diisi[cite: 4]
     if (formData.password && (passwordError || confirmPasswordError)) {
       showPopup({
         type: "warning",
@@ -246,7 +240,6 @@ const EditTakmir = ({ user, onLogout }) => {
 
   return (
     <div className="h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex overflow-hidden">
-      {/* Implementasi AlertPopup[cite: 1, 3] */}
       <AlertPopup alertData={alertData} onClose={closePopup} />
 
       <SuperAdminSidebar 
@@ -262,7 +255,6 @@ const EditTakmir = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="p-8 overflow-y-auto space-y-8">
-          {/* HEADER */}
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
@@ -286,13 +278,11 @@ const EditTakmir = ({ user, onLogout }) => {
             </button>
           </div>
 
-          {/* CARD FORM */}
           <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
             <div className="p-10 lg:p-16">
               <form onSubmit={handleSubmit} className="space-y-12">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                   
-                  {/* Kolom Kiri: Profil */}
                   <div className="space-y-8">
                     <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Profil Takmir</h3>
                     
@@ -324,7 +314,6 @@ const EditTakmir = ({ user, onLogout }) => {
                       </div>
                     </div>
 
-                    {/* Dropdown Masjid */}
                     <div className="space-y-2" ref={dropdownRef}>
                       <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Penempatan Masjid</label>
                       <div className="relative">
@@ -376,7 +365,6 @@ const EditTakmir = ({ user, onLogout }) => {
                     </div>
                   </div>
 
-                  {/* Kolom Kanan: Keamanan */}
                   <div className="space-y-8">
                     <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Keamanan Akun</h3>
                     
@@ -426,7 +414,6 @@ const EditTakmir = ({ user, onLogout }) => {
                   </div>
                 </div>
 
-                {/* BUTTON SECTION */}
                 <div className="pt-8 border-t border-gray-100 flex justify-between items-center">
                   <button
                     type="button"

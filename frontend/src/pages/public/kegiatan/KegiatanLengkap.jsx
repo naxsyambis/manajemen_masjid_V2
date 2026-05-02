@@ -51,7 +51,6 @@ const KegiatanLengkap = () => {
     return text?.length > max ? text.substring(0, max) + '...' : text;
   };
 
-  // 🔥 PAGINATION
   const indexLast = currentPage * itemsPerPage;
   const indexFirst = indexLast - itemsPerPage;
   const currentData = kegiatan.slice(indexFirst, indexLast);
@@ -74,7 +73,6 @@ const KegiatanLengkap = () => {
     <section className="py-20">
       <div className="container mx-auto px-6">
 
-        {/* HEADER */}
         <div className="text-center mb-16 mt-6">
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#006227] mb-4">
             Kegiatan Ranting
@@ -84,7 +82,6 @@ const KegiatanLengkap = () => {
           </p>
         </div>
 
-        {/* CARD */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {currentData.map((item) => (
             <div
@@ -128,11 +125,9 @@ const KegiatanLengkap = () => {
           ))}
         </div>
 
-        {/* 🔥 PAGINATION BARU */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-12 gap-2 flex-wrap items-center">
 
-            {/* PREV */}
             <button
               onClick={() => goToPage(Math.max(currentPage - 1, 1))}
               className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
@@ -141,7 +136,6 @@ const KegiatanLengkap = () => {
               Sebelumnya
             </button>
 
-            {/* PAGE NUMBER */}
             {(() => {
               const pages = [];
               const maxVisible = 3;
@@ -190,7 +184,6 @@ const KegiatanLengkap = () => {
               return pages;
             })()}
 
-            {/* NEXT */}
             <button
               onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
               className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
@@ -202,7 +195,6 @@ const KegiatanLengkap = () => {
           </div>
         )}
 
-        {/* BACK HOME */}
         <div className="text-center mt-12">
           <Link
             to="/"

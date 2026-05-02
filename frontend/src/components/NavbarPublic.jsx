@@ -1,44 +1,39 @@
-// frontend/src/components/NavbarPublic.jsx
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown } from 'lucide-react'; // Tambahkan ChevronDown untuk icon dropdown
-import logoMu from '../assets/logo_mu.png'; // Import logo dari assets
+import { Menu, X, ChevronDown } from 'lucide-react'; 
+import logoMu from '../assets/logo_mu.png'; 
 
 const NavbarPublic = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false); // State untuk dropdown login
+  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false); 
   const navigate = useNavigate();
 
   const handleSectionLink = (section) => {
     navigate('/', { state: { scrollTo: section } });
-    setIsMobileMenuOpen(false); // Tutup menu mobile setelah klik
+    setIsMobileMenuOpen(false); 
   };
 
   const handlePageLink = (path) => {
     navigate(path);
-    setIsMobileMenuOpen(false); // Tutup menu mobile setelah klik
+    setIsMobileMenuOpen(false); 
   };
 
   const handleLoginOption = (option) => {
-    // Untuk sementara, kedua opsi navigasi ke halaman login yang sama
-    // Jika perlu beda path, bisa sesuaikan: misal '/login-takmir' atau '/login-ranting'
-    navigate('/login'); // Navigasi ke halaman login
-    setIsLoginDropdownOpen(false); // Tutup dropdown setelah klik
-    setIsMobileMenuOpen(false); // Tutup menu mobile jika di mobile
+    navigate('/login'); 
+    setIsLoginDropdownOpen(false); 
+    setIsMobileMenuOpen(false); 
   };
 
   return (
     <header className="h-20 bg-green-900 text-white flex items-center justify-between px-6 lg:px-10 fixed top-0 left-0 right-0 z-[9999] transition-all border-b border-black shadow-md">
-      {/* Logo dan Teks */}
       <div className="flex items-center gap-4 group">
         <div className="w-12 h-12 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-gray-50 p-1 transform group-hover:scale-110 transition-transform duration-300">
           <img 
-            src={logoMu} // Menggunakan logo yang diimpor dari assets
+            src={logoMu} 
             alt="Logo Muhammadiyah" 
             className="w-full h-full object-contain"
             onError={(e) => { 
-              e.target.src = 'https://picsum.photos/48/48?random=1'; // Placeholder stabil sebagai fallback
+              e.target.src = 'https://picsum.photos/48/48?random=1'; 
             }}
           />
         </div>
@@ -54,7 +49,6 @@ const NavbarPublic = () => {
         </div>
       </div>
 
-      {/* Menu Desktop */}
       <nav className="hidden md:flex items-center space-x-2" role="navigation" aria-label="Main navigation">
         <button onClick={() => handleSectionLink('home')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Home</button>
         <button 
@@ -65,7 +59,6 @@ const NavbarPublic = () => {
         <button onClick={() => handleSectionLink('kegiatan')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kegiatan</button>
         <button onClick={() => handlePageLink('/kepengurusan')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kepengurusan Ranting</button>
         
-        {/* Tombol Login dengan Dropdown */}
         <div className="relative">
           <button 
             onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)} 
@@ -94,7 +87,6 @@ const NavbarPublic = () => {
         </div>
       </nav>
 
-      {/* Hamburger Menu untuk Mobile */}
       <div className="md:hidden">
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
@@ -106,20 +98,18 @@ const NavbarPublic = () => {
         </button>
       </div>
 
-      {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="absolute top-full left-0 w-full bg-green-900 border-t border-black shadow-lg md:hidden z-40" role="navigation" aria-label="Mobile navigation">
           <div className="px-6 py-4 space-y-2 max-h-96 overflow-y-auto">
             <button onClick={() => handleSectionLink('home')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Home</button>
             <button 
-  onClick={() => handlePageLink('/masjid')} 
-  className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Masjid</button>
+              onClick={() => handlePageLink('/masjid')} 
+              className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Masjid</button>
             <button onClick={() => handleSectionLink('berita')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Berita Ranting</button>
             <button onClick={() => handleSectionLink('program')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Program Ranting</button>
             <button onClick={() => handleSectionLink('kegiatan')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kegiatan</button>
             <button onClick={() => handlePageLink('/kepengurusan')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kepengurusan Ranting</button>
             
-            {/* Login Options di Mobile Menu */}
             <div className="border-t border-white/20 pt-2">
               <p className="text-white/70 font-semibold mb-2">Login</p>
               <button onClick={() => handleLoginOption('takmir')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Takmir</button>

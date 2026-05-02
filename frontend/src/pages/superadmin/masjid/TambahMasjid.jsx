@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/masjid/TambahMasjid.jsx
-
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
@@ -19,7 +17,6 @@ import {
   Info 
 } from 'lucide-react';
 
-// --- Komponen AlertPopup (Standar Integrated Database System v3.0) ---[cite: 3]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -80,7 +77,6 @@ const TambahMasjid = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(false);
   const [time, setTime] = useState(new Date());
   
-  // State untuk Alert[cite: 3]
   const [alertData, setAlertData] = useState({
     show: false,
     type: "info",
@@ -107,7 +103,6 @@ const TambahMasjid = ({ user, onLogout }) => {
     setAlertData({ ...alertData, show: false });
   };
 
-  // Fungsi Validasi Kustom[cite: 1]
   const validateForm = () => {
     const { nama_masjid, alamat, no_hp } = formData;
 
@@ -120,7 +115,6 @@ const TambahMasjid = ({ user, onLogout }) => {
       return false;
     }
 
-    // Validasi Logika No HP: Harus mulai 08 dan panjang minimal 10[cite: 1]
     if (!no_hp.startsWith('08')) {
       showPopup({
         type: "warning",
@@ -183,7 +177,6 @@ const TambahMasjid = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">
@@ -216,7 +209,6 @@ const TambahMasjid = ({ user, onLogout }) => {
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                   <div className="space-y-10">
-                    {/* Upload Logo */}
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Logo Masjid</h3>
                       <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files[0])} className="hidden" id="logo-upload" />
@@ -237,7 +229,6 @@ const TambahMasjid = ({ user, onLogout }) => {
                       </label>
                     </div>
                     
-                    {/* Kontak */}
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Kontak</h3>
                       <div className="space-y-3">
@@ -246,12 +237,10 @@ const TambahMasjid = ({ user, onLogout }) => {
                           <Phone size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                           <input
                             type="text"
-                            inputMode="numeric" // Membantu memunculkan numpad di mobile
+                            inputMode="numeric" 
                             value={formData.no_hp}
                             onChange={(e) => {
-                              // Filter Otomatis: Hanya angka yang diperbolehkan[cite: 1]
                               const val = e.target.value.replace(/\D/g, ''); 
-                              // Batasan otomatis maksimal 13 karakter[cite: 1]
                               if (val.length <= 13) {
                                 setFormData({ ...formData, no_hp: val });
                               }
@@ -330,7 +319,6 @@ const TambahMasjid = ({ user, onLogout }) => {
                   </div>
                 </div>
                 
-                {/* Action Buttons */}
                 <div className="flex flex-wrap justify-center gap-6 pt-12 mt-12 border-t-2 border-gray-200">
                   <button
                     type="button"

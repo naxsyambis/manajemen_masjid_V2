@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/kegiatan/DataKegiatan.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +12,6 @@ import {
 const BASE_URL = "http://localhost:3000";
 
 const DataKegiatan = ({ user, onLogout }) => {
-  // UI State[cite: 1, 6]
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -22,14 +19,12 @@ const DataKegiatan = ({ user, onLogout }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   
-  // Data State[cite: 6]
   const [kegiatans, setKegiatans] = useState([]);
   const [filteredKegiatans, setFilteredKegiatans] = useState([]);
   const [selectedKegiatan, setSelectedKegiatan] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [time, setTime] = useState(new Date());
   
-  // Pagination State[cite: 1, 6]
   const [entriesPerPage, setEntriesPerPage] = useState(5); 
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -37,13 +32,11 @@ const DataKegiatan = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // 1. Clock Effect[cite: 1]
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 2. Fetch Data Function[cite: 6]
   const fetchKegiatans = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -63,7 +56,6 @@ const DataKegiatan = ({ user, onLogout }) => {
     fetchKegiatans();
   }, [fetchKegiatans]);
 
-  // 3. Search & Filter Effect[cite: 6]
   useEffect(() => {
     const filtered = kegiatans.filter(k =>
       k.nama_kegiatan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -73,7 +65,6 @@ const DataKegiatan = ({ user, onLogout }) => {
     setCurrentPage(1);
   }, [kegiatans, searchTerm]);
 
-  // 4. Pagination Logic[cite: 1]
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
   const currentItems = filteredKegiatans.slice(indexOfFirstItem, indexOfLastItem);
@@ -90,7 +81,6 @@ const DataKegiatan = ({ user, onLogout }) => {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
-  // 5. Actions[cite: 6]
   const handleDelete = async () => {
     if (!selectedKegiatan) return;
     setDeleting(true);
@@ -107,7 +97,6 @@ const DataKegiatan = ({ user, onLogout }) => {
     }
   };
 
-  // 6. Loading State[cite: 1]
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
@@ -134,8 +123,6 @@ const DataKegiatan = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-8">
-          
-          {/* Header Section[cite: 1] */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-black text-gray-800 uppercase tracking-tighter">
@@ -167,10 +154,8 @@ const DataKegiatan = ({ user, onLogout }) => {
             </div>
           </div>
           
-          {/* Table Container[cite: 1] */}
           <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
             
-            {/* Toolbar[cite: 1] */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
               <div className="flex items-center gap-6 w-full md:w-auto">
                 <div className="hidden sm:block">
@@ -216,7 +201,6 @@ const DataKegiatan = ({ user, onLogout }) => {
                 </div>
             </div>
             
-            {/* Table[cite: 1] */}
             <div className="overflow-x-auto">
               <table className="min-w-full border-separate border-spacing-0">
                 <thead>
@@ -292,7 +276,6 @@ const DataKegiatan = ({ user, onLogout }) => {
               </table>
             </div>
 
-            {/* Pagination[cite: 1] */}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-12 gap-6">
               <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
                 Menampilkan <span className="text-mu-green">{filteredKegiatans.length > 0 ? indexOfFirstItem + 1 : 0}</span> - <span className="text-mu-green">{Math.min(indexOfLastItem, filteredKegiatans.length)}</span> dari {filteredKegiatans.length} data
@@ -336,7 +319,6 @@ const DataKegiatan = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Delete Modal[cite: 1] */}
       {showDeleteModal && selectedKegiatan && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/20">

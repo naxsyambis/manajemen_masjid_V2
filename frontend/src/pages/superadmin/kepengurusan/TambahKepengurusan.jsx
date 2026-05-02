@@ -1,7 +1,5 @@
-// frontend/src/pages/superadmin/kepengurusan/TambahKepengurusan.jsx
-
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom'; // Ditambahkan untuk AlertPopup
+import ReactDOM from 'react-dom'; 
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
@@ -11,7 +9,6 @@ import {
   X, AlertTriangle, CheckCircle2, XCircle, Info 
 } from 'lucide-react';
 
-// --- Komponen AlertPopup (Sesuai gaya TambahBerita.jsx) ---[cite: 1]
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
 
@@ -61,7 +58,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
-  // --- State untuk AlertPopup ---[cite: 1]
   const [alertData, setAlertData] = useState({
     show: false,
     type: "info",
@@ -87,7 +83,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
 
   const isExpanded = isOpen || isHovered;
 
-  // --- Fungsi Helper Alert ---[cite: 1]
   const showPopup = ({ type = "info", title = "Informasi", message = "", confirmText = "", onConfirm = null }) => {
     setAlertData({ show: true, type, title, message, confirmText, onConfirm });
   };
@@ -104,7 +99,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Alert Validasi Input[cite: 1, 2]
     if (!formData.nama_lengkap || !formData.jabatan || !formData.periode_mulai || !formData.periode_selesai) {
       showPopup({ 
         type: "warning", 
@@ -114,7 +108,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
       return;
     }
     
-    // Alert Validasi Ukuran File[cite: 1, 2]
     if (file && file.size > 3 * 1024 * 1024) {
       showPopup({ 
         type: "warning", 
@@ -138,7 +131,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Alert Berhasil[cite: 1, 2]
       showPopup({
         type: "success",
         title: "Berhasil!",
@@ -156,7 +148,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
       setPreviewUrl(null);
     } catch (err) {
       console.error('Error adding pengurus:', err);
-      // Alert Gagal[cite: 1, 2]
       showPopup({
         type: "error",
         title: "Gagal Menyimpan",
@@ -192,7 +183,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
 
   return (
     <div className="tambah-kepengurusan h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex animate-fadeIn">
-      {/* Implementasi AlertPopup[cite: 1] */}
       <AlertPopup alertData={alertData} onClose={closePopup} />
 
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
@@ -201,7 +191,6 @@ const TambahKepengurusan = ({ user, onLogout }) => {
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
         
         <div className="main-content p-8 h-full overflow-y-auto space-y-8">
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter leading-none">

@@ -6,8 +6,8 @@ const Kegiatan = require("../../models/Kegiatan");
 const Kepengurusan = require("../../models/Kepengurusan");
 const Keuangan = require("../../models/Keuangan");      
 const Inventaris = require("../../models/Inventaris"); 
-const User = require("../../models/User"); // 🔥 Import User
-const MasjidTakmir = require("../../models/masjid_takmir"); // 🔥 Import MasjidTakmir
+const User = require("../../models/User"); 
+const MasjidTakmir = require("../../models/masjid_takmir"); 
 const prayerService = require("../../services/prayer.service");
 const jadwalService = require("../../services/prayer.service");
 const MasjidService = require("../../services/masjid.service");
@@ -62,7 +62,6 @@ exports.getBerita = async (req, res) => {
           as: "masjid",
           attributes: ["masjid_id", "nama_masjid"]
         },
-        // 🔥 RELASI BACKUP: Kalau masjid_id di berita NULL, cari lewat user takmirnya
         {
           model: User,
           as: "user",
@@ -93,14 +92,13 @@ exports.getBeritaById = async (req, res) => {
         status: "dipublikasi"
       },
 
-      // 🔥 WAJIB: ambil field utama termasuk youtube
       attributes: [
         "berita_id",
         "judul",
         "isi",
         "tanggal",
         "gambar",
-        "youtube_url", // 🔥 INI YANG PENTING
+        "youtube_url", 
         "masjid_id"
       ],
 
@@ -289,7 +287,6 @@ exports.getNearestMasjid = async (req, res) => {
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);
 
-    // VALIDASI ANGKA
     if (isNaN(lat) || isNaN(lng)) {
       return res.status(400).json({
         success: false,
@@ -297,14 +294,13 @@ exports.getNearestMasjid = async (req, res) => {
       });
     }
 
-    // CALL SERVICE
     const result = await MasjidService.getNearestMasjids(lat, lng);
 
     return res.json({
       success: true,
       message: "Berhasil mendapatkan masjid terdekat",
       total: result.length,
-      data: result.slice(0, 5), // top 5
+      data: result.slice(0, 5), 
     });
 
   } catch (error) {

@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 
 const AlertPopup = ({ alertData, onClose }) => {
-// ... (Kode AlertPopup sama seperti komponen lain) ...
   if (!alertData.show) return null;
   const isSuccess = alertData.type === 'success';
   const isError = alertData.type === 'error';

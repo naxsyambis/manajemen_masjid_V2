@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-// PERBAIKAN: Tambahkan icon Clock (untuk Imsak) dan CloudMoon (untuk Subuh)
 import { Sunrise, Sun, CloudSun, Sunset, Moon, RefreshCcw, AlertCircle, Clock, CloudMoon } from 'lucide-react';
 
 const JadwalSholatSection = () => {
@@ -14,9 +13,6 @@ const JadwalSholatSection = () => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // =========================
-  // FETCH DATA BACKEND
-  // =========================
   const fetchPrayerSchedule = async () => {
     try {
       setRefreshing(true);
@@ -36,7 +32,6 @@ const JadwalSholatSection = () => {
       setLokasi(result.lokasi || "Lokasi tidak diketahui");
       setRamadhanInfo(result.ramadhan || null);
 
-      // PERBAIKAN: Masukkan imsak dan terbit ke array untuk di mapping
       setPrayerSchedule([
         { name: "Imsak", time: result.jadwal.imsak, icon: <Clock size={32} /> },
         { name: "Subuh", time: result.jadwal.subuh, icon: <CloudMoon size={32} /> },
@@ -66,9 +61,6 @@ const JadwalSholatSection = () => {
     fetchPrayerSchedule();
   }, []);
 
-  // =========================
-  // REALTIME CLOCK
-  // =========================
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -90,9 +82,6 @@ const JadwalSholatSection = () => {
     fetchPrayerSchedule();
   };
 
-  // =========================
-  // LOADING
-  // =========================
   if (loading) {
     return (
       <section className="relative z-10 mt-10">
@@ -108,15 +97,11 @@ const JadwalSholatSection = () => {
     );
   }
 
-  // =========================
-  // UI
-  // =========================
   return (
     <section className="relative z-10 mt-10">
       <div className="container mx-auto px-6">
         <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-          {/* HEADER */}
           <div className="bg-gradient-to-r from-mu-green to-mu-green text-white p-6 md:p-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
 
@@ -161,7 +146,6 @@ const JadwalSholatSection = () => {
             </div>
           </div>
 
-          {/* CONTENT */}
           <div className="p-6 md:p-8">
 
             {error && (
@@ -174,7 +158,6 @@ const JadwalSholatSection = () => {
               </div>
             )}
 
-            {/* RAMADHAN SECTION */}
             {ramadhanInfo?.isRamadhan && (
               <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
@@ -186,9 +169,7 @@ const JadwalSholatSection = () => {
               </div>
             )}
 
-            {/* JADWAL SHOLAT GRID */}
             {prayerSchedule.length > 0 ? (
-              // PERBAIKAN: Ubah grid menjadi 7 kolom di layar besar (lg:grid-cols-7)
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
                 {prayerSchedule.map((prayer, index) => (
                   <div

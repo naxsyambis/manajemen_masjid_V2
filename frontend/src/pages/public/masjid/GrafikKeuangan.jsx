@@ -1,5 +1,3 @@
-// frontend/src/pages/public/masjid/GrafikKeuangan.jsx
-
 import React, { useState } from 'react';
 import { TrendingUp, Calendar } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -9,7 +7,6 @@ const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // 🔥 AMBIL HARI INI (FORMAT YYYY-MM-DD)
   const today = new Date().toISOString().split('T')[0];
 
 const getExportUrl = () => {
@@ -25,7 +22,6 @@ const getExportUrl = () => {
   return (
     <div className="mb-12">
 
-      {/* HEADER */}
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-2xl font-black text-gray-900 flex items-center gap-3 uppercase tracking-wider">
           <div className="w-10 h-10 bg-gradient-to-br from-[#006227] to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -35,15 +31,10 @@ const getExportUrl = () => {
         </h3>
       </div>
 
-      {/* CARD */}
       <div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 p-10 rounded-3xl border border-gray-200 shadow-xl">
 
         <div className="max-w-2xl mx-auto">
-
-          {/* FILTER */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-
-            {/* TANGGAL MULAI */}
             <div>
               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
                 <Calendar size={16} />
@@ -52,13 +43,11 @@ const getExportUrl = () => {
               <input
                 type="date"
                 value={startDate}
-                max={today} // 🔥 BATAS MAKSIMAL
+                max={today} 
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
               />
             </div>
-
-            {/* TANGGAL AKHIR */}
             <div>
               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
                 <Calendar size={16} />
@@ -67,20 +56,16 @@ const getExportUrl = () => {
               <input
                 type="date"
                 value={endDate}
-                max={today} // 🔥 BATAS MAKSIMAL
+                max={today} 
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
               />
             </div>
-
           </div>
-
-          {/* QR SECTION */}
           <div className="text-center">
 
             {exportUrl ? (
               <>
-                {/* QR CODE */}
                 <div className="flex justify-center mb-6">
                   <div className="p-4 bg-white rounded-2xl shadow-lg">
                     <QRCodeCanvas
@@ -100,8 +85,6 @@ const getExportUrl = () => {
                 <p className="text-gray-600 mb-6">
                   Scan QR ini untuk mengunduh laporan keuangan.
                 </p>
-
-                {/* BUTTON DOWNLOAD */}
                 <a
                   href={exportUrl}
                   target="_blank"
@@ -116,11 +99,8 @@ const getExportUrl = () => {
                 Silakan pilih tanggal terlebih dahulu untuk generate QR.
               </p>
             )}
-
           </div>
-
         </div>
-
       </div>
     </div>
   );

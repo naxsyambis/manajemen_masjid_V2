@@ -18,7 +18,7 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
   const isExpanded = isOpen || isHovered;
 
   const navigate = useNavigate();
-  const location = useLocation(); // 🔥 FIX
+  const location = useLocation(); 
   const currentPath = location.pathname;
 
   const menus = [
@@ -32,7 +32,6 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
     { id: 'settings', name: 'Pengaturan', path: '/admin/settings', icon: <Settings size={20} /> },
   ];
 
-  // 🔥 FIX ACTIVE MENU (prioritas path paling panjang)
   const activeMenu =
     menus
       .slice()
@@ -41,7 +40,6 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
 
   return (
     <>
-      {/* OVERLAY MOBILE */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-[60] lg:hidden backdrop-blur-sm"
@@ -49,7 +47,6 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
         />
       )}
 
-      {/* SIDEBAR */}
       <div
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -58,7 +55,6 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
 
-        {/* HEADER */}
         <div className="h-20 flex items-center px-6 border-b border-green-900 overflow-hidden">
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -78,7 +74,6 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
           </div>
         </div>
 
-        {/* MENU */}
         <nav className="flex-1 mt-6 px-3 space-y-2 overflow-y-auto no-scrollbar">
           {menus.map((item) => {
             const isActive = activeMenu === item.id;
@@ -96,12 +91,10 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
                     : 'hover:bg-green-800 text-white/70 hover:text-white'}`}
               >
 
-                {/* ICON */}
                 <div className="min-w-[32px] flex justify-center">
                   {item.icon}
                 </div>
 
-                {/* TEXT */}
                 <span
                   className={`ml-3 text-sm transition-all duration-300 whitespace-nowrap 
                   ${isExpanded ? 'opacity-100' : 'opacity-0 hidden'}`}
@@ -109,7 +102,6 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
                   {item.name}
                 </span>
 
-                {/* 🔥 ACTIVE INDICATOR (GARIS SAMPING) */}
                 {isActive && (
                   <div className="absolute left-0 top-2 bottom-2 w-1 bg-white rounded-r-full" />
                 )}
@@ -119,7 +111,6 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
           })}
         </nav>
 
-        {/* LOGOUT */}
         <div className="p-4 border-t border-green-900">
           <button
             onClick={onLogout}
@@ -136,7 +127,6 @@ const Sidebar = ({ isOpen, setIsOpen, onLogout, user }) => {
         </div>
       </div>
 
-      {/* SPACER */}
       <div
         className={`hidden lg:block transition-all duration-300 
         ${isExpanded ? 'w-64' : 'w-20'}`}

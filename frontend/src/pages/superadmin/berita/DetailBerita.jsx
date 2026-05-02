@@ -1,5 +1,3 @@
-// frontend/src/pages/superadmin/berita/DetailBerita.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -12,7 +10,6 @@ import {
   Tag, Image as ImageIcon
 } from 'lucide-react';
 
-// Sub-component untuk baris informasi yang konsisten[cite: 1]
 const DetailRow = ({ icon, label, value, isLink = false, href = "#" }) => (
   <div className="flex items-center justify-between p-5 hover:bg-gray-50/80 transition-all border-b border-gray-100 last:border-0 group">
     <div className="flex items-center gap-4">
@@ -50,7 +47,6 @@ const DetailBerita = ({ user, onLogout }) => {
   const token = localStorage.getItem('token');
   const isExpanded = isOpen || isHovered;
 
-  // Utility functions tetap dipertahankan namun diposisikan secara bersih[cite: 2]
   const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/800x400?text=No+Image';
     if (imagePath.startsWith('http')) return imagePath;
@@ -133,7 +129,6 @@ const DetailBerita = ({ user, onLogout }) => {
         
         <div className="main-content p-6 md:p-10 h-full overflow-y-auto space-y-10">
           
-          {/* Header & Navigasi[cite: 1] */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <button 
@@ -174,7 +169,6 @@ const DetailBerita = ({ user, onLogout }) => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* Media & Meta Utama (Kiri)[cite: 1] */}
             <div className="lg:col-span-5 space-y-8">
               <div className="bg-white p-6 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
                 <div className="relative group overflow-hidden rounded-[2.5rem] aspect-video bg-gray-100 border-4 border-gray-50 shadow-inner">
@@ -200,7 +194,6 @@ const DetailBerita = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* Isi Konten (Kanan)[cite: 1] */}
             <div className="lg:col-span-7 space-y-8">
               <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50 h-full">
                 <div className="flex items-center gap-4 mb-10">
@@ -235,7 +228,6 @@ const DetailBerita = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Delete Modal[cite: 1] */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/20">

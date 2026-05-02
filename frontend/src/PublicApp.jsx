@@ -1,4 +1,3 @@
-// src/PublicApp.jsx
 import React from 'react';
 import { useRoutes } from 'react-router-dom';
 
@@ -7,9 +6,9 @@ import ListKegiatan from './pages/public/kegiatan/ListKegiatan';
 import ListProgram from './pages/public/program/ListProgram';
 import ListBerita from './pages/public/berita/ListBerita';
 import DetailBerita from './pages/public/berita/DetailBerita';
-import Masjid from './pages/public/masjid/Masjid'; // detail masjid
+import Masjid from './pages/public/masjid/Masjid'; 
 import Kepengurusan from './pages/public/kepengurusan/Kepengurusan';
-import MapMasjid from './pages/public/lokasi/MapMasjid'; // map
+import MapMasjid from './pages/public/lokasi/MapMasjid'; 
 import IsiKegiatan from './pages/public/kegiatan/IsiKegiatan'; 
 import IsiProgram from './pages/public/program/IsiProgram';
 
