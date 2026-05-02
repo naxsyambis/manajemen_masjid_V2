@@ -178,10 +178,6 @@ const DetailProgram = ({ user, onLogout }) => {
                 </div>
                 
                 <h2 className="text-2xl font-black text-gray-800 tracking-tight leading-tight">{program?.nama_program}</h2>
-                <div className="mt-4 px-4 py-2 bg-mu-green/10 rounded-full flex items-center gap-2">
-                  <CheckCircle2 size={14} className="text-mu-green" />
-                  <span className="text-[10px] font-black text-mu-green uppercase tracking-[0.1em]">Status Aktif</span>
-                </div>
               </div>
             </div>
 
