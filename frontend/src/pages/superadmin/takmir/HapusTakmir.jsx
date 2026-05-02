@@ -34,16 +34,27 @@ const HapusTakmir = ({ user, onLogout }) => {
   };
 
   const handleDelete = async () => {
+    // Konfirmasi tambahan via browser untuk keamanan ganda
+    const confirmDelete = window.confirm(
+      `Apakah Anda yakin ingin menghapus Takmir "${takmir.user?.nama}"? Akun login user juga akan dihapus secara permanen.`
+    );
+
+    if (!confirmDelete) return;
+
     setDeleting(true);
     try {
-      await axios.delete(`http://localhost:3000/superadmin/takmir/${id}`, {
+      // Endpoint ini akan memicu fungsi exports.delete di backend yang sudah menggunakan transaction
+      const response = await axios.delete(`http://localhost:3000/superadmin/takmir/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Takmir berhasil dihapus');
+      
+      alert(response.data.message || 'Takmir dan akun login berhasil dihapus');
       navigate('/superadmin/takmir');
     } catch (err) {
       console.error('Error deleting takmir:', err);
-      alert('Gagal menghapus takmir');
+      // Menampilkan pesan error spesifik dari backend jika ada
+      const errorMessage = err.response?.data?.message || 'Gagal menghapus takmir';
+      alert(errorMessage);
     } finally {
       setDeleting(false);
     }
@@ -66,6 +77,8 @@ const HapusTakmir = ({ user, onLogout }) => {
     <div className="super-admin-dashboard min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} />
+      
+      {/* Spacer untuk Sidebar desktop */}
       <div className="hidden lg:block transition-all duration-300 ease-in-out shrink-0 pointer-events-none" style={{ width: isOpen ? '256px' : '80px' }} />
       
       <div className="main-content lg:ml-0 p-6 min-h-screen overflow-y-auto">
@@ -88,7 +101,7 @@ const HapusTakmir = ({ user, onLogout }) => {
                   <AlertTriangle size={48} className="text-white animate-pulse" />
                   <div>
                     <h2 className="text-2xl font-bold">Konfirmasi Hapus</h2>
-                    <p className="text-red-100">Tindakan ini tidak dapat dibatalkan</p>
+                    <p className="text-red-100">Tindakan ini menghapus profil & akun login</p>
                   </div>
                 </div>
               </div>
@@ -103,17 +116,16 @@ const HapusTakmir = ({ user, onLogout }) => {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-red-800">Peringatan Penting</h3>
-                <p className="text-red-600">Menghapus takmir akan menghilangkan semua data terkait secara permanen.</p>
+                <p className="text-red-600">Menghapus takmir akan menghilangkan profil dan akun aplikasi secara permanen.</p>
               </div>
             </div>
             <p className="text-red-700 leading-relaxed">
-              Pastikan Anda benar-benar ingin menghapus takmir ini. Semua informasi, dan data lainnya akan hilang selamanya dan tidak dapat dikembalikan.
+              Pastikan Anda benar-benar ingin menghapus takmir ini. Setelah dihapus, user bersangkutan <strong>tidak akan bisa login kembali</strong> ke aplikasi karena data di tabel <code>user_app</code> ikut dihapus.
             </p>
           </div>
           
           {/* Detail Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Card Nama */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -121,21 +133,19 @@ const HapusTakmir = ({ user, onLogout }) => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">Nama Takmir</h3>
               </div>
-              <p className="text-gray-600">{takmir.user?.nama}</p>
+              <p className="text-gray-600 font-medium">{takmir.user?.nama}</p>
             </div>
             
-            {/* Card Email */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
                   <Mail size={24} className="text-red-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800">Email</h3>
+                <h3 className="text-xl font-semibold text-gray-800">Email (Akun Login)</h3>
               </div>
-              <p className="text-gray-600">{takmir.user?.email}</p>
+              <p className="text-gray-600 font-medium">{takmir.user?.email}</p>
             </div>
             
-            {/* Card Masjid */}
             <div className="bg-white rounded-2xl shadow-lg p-8 lg:col-span-2">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -143,14 +153,14 @@ const HapusTakmir = ({ user, onLogout }) => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">Masjid</h3>
               </div>
-              <p className="text-gray-600">{takmir.masjid?.nama_masjid}</p>
+              <p className="text-gray-600 font-medium">{takmir.masjid?.nama_masjid}</p>
             </div>
           </div>
           
           {/* Tombol Aksi */}
           <div className="flex justify-center space-x-4 pt-10 mt-10 border-t border-gray-200">
             <button
-              onClick={() => navigate(`/superadmin/takmir/detail/${id}`)}
+              onClick={() => navigate(`/superadmin/takmir`)}
               className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors flex items-center font-medium shadow-lg"
             >
               <X size={20} className="mr-2" />
@@ -162,7 +172,7 @@ const HapusTakmir = ({ user, onLogout }) => {
               className="px-8 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
             >
               <Trash2 size={20} className="mr-2" />
-              {deleting ? 'Menghapus...' : 'Hapus Takmir'}
+              {deleting ? 'Sedang Menghapus...' : 'Ya, Hapus Permanen'}
             </button>
           </div>
         </div>
