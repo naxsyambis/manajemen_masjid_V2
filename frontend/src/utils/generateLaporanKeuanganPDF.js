@@ -129,7 +129,7 @@ export const generateLaporanKeuanganPDF = async (
   }
 
   // Kalau mau discan HP, pakai IP laptop / ngrok, jangan localhost.
-  const backendUrl = "http://192.168.1.44:3000";
+  const backendUrl = "https://masjidmupundong.com";
 
   const urlLaporanPdf =
     `${backendUrl}/laporan-keuangan/verifikasi-pdf` +
