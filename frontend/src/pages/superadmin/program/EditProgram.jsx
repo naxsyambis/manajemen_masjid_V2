@@ -1,11 +1,13 @@
+// frontend/src/pages/superadmin/program/EditProgram.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from "react-dom";
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import SuperAdminNavbar from '../../../components/SuperAdminNavbar';
 import SuperAdminSidebar from '../../../components/SuperAdminSidebar';
-import { Save, RefreshCcw, Calendar, Upload, Type, Clock, FileText, Tag, CheckCircle2, XCircle, AlertTriangle, Info, X, Pencil, Plus, ChevronDown } from 'lucide-react';
-import ModalKategoriProgram from './ModalKategoriProgram'; // IMPORT MODAL
+import { Save, RefreshCcw, Calendar, Upload, Type, Clock, FileText, Tag, CheckCircle2, XCircle, AlertTriangle, Info, X, Pencil, Plus, ChevronDown, ArrowLeft } from 'lucide-react';
+import ModalKategoriProgram from './ModalKategoriProgram';
 
 const BASE_URL = "http://localhost:3000";
 
@@ -46,7 +48,6 @@ const EditProgram = ({ user, onLogout }) => {
   const [time, setTime] = useState(new Date());
   const [alertData, setAlertData] = useState({ show: false, type: "info", title: "", message: "", confirmText: "", onConfirm: null });
 
-  // STATE UNTUK MODAL KATEGORI & DROPDOWN
   const [showModalKategori, setShowModalKategori] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -74,17 +75,18 @@ const EditProgram = ({ user, onLogout }) => {
     }
   };
 
+  const fetchProgram = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/superadmin/program/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = res.data;
+      setFormData({ nama_program: data?.nama_program || '', jadwal_rutin: data?.jadwal_rutin || '', deskripsi: data?.deskripsi || '', kategori_id: data?.kategori_id || '' });
+      setGambarLama(data?.gambar || null);
+    } catch (err) {
+      showPopup({ type: "error", title: "Gagal Memuat", message: "Data program tidak ditemukan." });
+    }
+  };
+
   useEffect(() => {
-    const fetchProgram = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/superadmin/program/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-        const data = res.data;
-        setFormData({ nama_program: data?.nama_program || '', jadwal_rutin: data?.jadwal_rutin || '', deskripsi: data?.deskripsi || '', kategori_id: data?.kategori_id || '' });
-        setGambarLama(data?.gambar || null);
-      } catch (err) {
-        showPopup({ type: "error", title: "Gagal Memuat", message: "Data program tidak ditemukan." });
-      }
-    };
     fetchProgram();
     fetchKategori();
     
@@ -100,8 +102,23 @@ const EditProgram = ({ user, onLogout }) => {
   const handleImage = (file) => {
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) { showPopup({ type: "warning", title: "Terlalu Besar", message: "Maksimal 3MB" }); return; }
+    
+    if (gambar) URL.revokeObjectURL(preview); // Bersihkan memory URL lama
+
     setGambar(file);
     setPreview(URL.createObjectURL(file));
+  };
+
+  // 🔥 MEKANISME X (HAPUS) IDENTIK DENGAN PERMINTAAN SEBELUMNYA
+  const handleRemoveImage = () => {
+    if (gambar) URL.revokeObjectURL(preview);
+    
+    setGambar(null);
+    setPreview(null);
+
+    // Reset input file agar bisa pilih file yang sama lagi
+    const fileInput = document.getElementById('gambar-upload');
+    if (fileInput) fileInput.value = '';
   };
 
   const selectedCategoryName = kategoriList.find(c => c.kategori_id == formData.kategori_id)?.nama_kategori || "Pilih Kategori";
@@ -125,7 +142,7 @@ const EditProgram = ({ user, onLogout }) => {
       if (gambar) form.append("gambar", gambar);
 
       await axios.put(`${BASE_URL}/superadmin/program/${id}`, form, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } });
-      showPopup({ type: "success", title: "Berhasil", message: "Program berhasil diupdate.", onConfirm: () => navigate('/superadmin/program') });
+      showPopup({ type: "success", title: "Berhasil", message: "Program berhasil diupdate! ✅", onConfirm: () => navigate('/superadmin/program') });
     } catch (err) {
       showPopup({ type: "error", title: "Gagal Update", message: err.response?.data?.message || "Gagal update program" });
     } finally {
@@ -134,153 +151,197 @@ const EditProgram = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="h-screen bg-[#fdfdfd] flex animate-fadeIn">
+    <div className="h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex overflow-hidden">
       <AlertPopup alertData={alertData} onClose={closePopup} />
       <SuperAdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} onLogout={onLogout} user={user} setIsHovered={setIsHovered} isExpanded={isExpanded} />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <SuperAdminNavbar setIsOpen={setIsOpen} user={user} />
 
-        <div className="p-4 md:p-8 space-y-10 overflow-y-auto">
-          {/* HEADER */}
-          <div className="flex justify-between items-center border-b border-gray-100 pb-8">
+        <div className="p-8 space-y-8 overflow-y-auto">
+          {/* HEADER SECTION */}
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-black uppercase tracking-tighter leading-none text-gray-800">
+              <h1 className="text-3xl font-bold">
                 Edit <span className="text-mu-green">Program</span>
               </h1>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-2 flex items-center gap-2">
-                <Calendar size={12}/> {time.toLocaleDateString('id-ID')} • {time.toLocaleTimeString('id-ID')}
+              <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
+                <Calendar size={14}/> {time.toLocaleDateString('id-ID')} • {time.toLocaleTimeString('id-ID')}
               </p>
             </div>
-            <button onClick={() => window.location.reload()} className="bg-white px-5 py-3 rounded-2xl shadow-sm text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green transition-all flex gap-2 active:scale-95">
+            <button 
+              type="button"
+              onClick={fetchProgram} 
+              className="flex items-center gap-2 px-4 py-2 border rounded-xl bg-white shadow-sm hover:bg-gray-50 transition active:scale-95"
+            >
               <RefreshCcw size={14}/> Refresh
             </button>
           </div>
 
-          {/* FORM */}
-          <div className="bg-white rounded-[3rem] shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden">
-            <form onSubmit={handleSubmit} className="p-10 space-y-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                
-                <div className="space-y-3 group">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors"><Type size={14} /> Nama Program</label>
-                  <input value={formData.nama_program} onChange={(e)=>setFormData({...formData,nama_program:e.target.value})} className="w-full px-6 py-5 bg-gray-50 border-none rounded-3xl outline-none text-sm font-bold shadow-inner focus:bg-gray-100 transition-all" />
-                </div>
-
-                <div className="space-y-3 group">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors"><Clock size={14} /> Jadwal Rutin</label>
-                  <input value={formData.jadwal_rutin} onChange={(e)=>setFormData({...formData,jadwal_rutin:e.target.value})} className="w-full px-6 py-5 bg-gray-50 border-none rounded-3xl outline-none text-sm font-bold shadow-inner focus:bg-gray-100 transition-all" />
-                </div>
-
-                {/* KATEGORI DROPDOWN */}
-                <div className="space-y-3 group relative" ref={dropdownRef}>
-                  <div className="flex justify-between items-center pr-2">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors">
-                      <Tag size={14} /> Kategori Program
-                    </label>
-
-                    <div className="flex items-center gap-3">
-                      {kategoriList.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!formData.kategori_id) {
-                              showPopup({ type: "warning", title: "Pilih Kategori", message: "Pilih kategori yang ingin diedit." });
-                              return;
-                            }
-                            setEditMode(true);
-                            setShowModalKategori(true);
-                          }}
-                          className="text-gray-400 hover:text-mu-green transition-colors flex items-center gap-1 text-[9px] font-black uppercase"
-                        >
-                          <Pencil size={12} /> Edit
-                        </button>
-                      )}
+          {/* CARD FORM */}
+          <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 space-y-8">
+            
+            {/* GAMBAR SECTION - IDENTIK DENGAN EDIT BERITA */}
+            <div>
+              <h3 className="text-xl font-bold mb-4 border-b pb-2">Gambar Program</h3>
+              <input 
+                type="file" 
+                id="gambar-upload"
+                hidden 
+                accept="image/*" 
+                onChange={(e)=>handleImage(e.target.files[0])}
+              />
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Tampilan Gambar (Prioritas Preview Baru, lalu Gambar Lama) */}
+                {(preview || gambarLama) && (
+                  <div className="relative group">
+                    <img 
+                      src={preview || `${BASE_URL}/uploads/program/${gambarLama}`} 
+                      className="w-full h-40 object-cover rounded-xl border shadow-sm"
+                      alt="Preview"
+                      onError={(e) => { e.target.src = 'https://via.placeholder.com/150?text=Error'; }}
+                    />
+                    {/* BUTTON X (SILANG) - HANYA MUNCUL JIKA ADA GAMBAR BARU */}
+                    {preview && (
                       <button
                         type="button"
-                        onClick={() => {
-                          setEditMode(false);
-                          setShowModalKategori(true);
-                        }}
-                        className="text-mu-green hover:underline text-[9px] font-black uppercase tracking-widest"
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center shadow-md hover:bg-red-600 transition"
                       >
-                        + Tambah Baru
+                        ✕
                       </button>
-                    </div>
-                  </div>
-                  
-                  <div className="relative">
-                    {kategoriList.length === 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditMode(false);
-                          setShowModalKategori(true);
-                        }}
-                        className="w-full px-6 py-5 bg-green-50 text-mu-green border-2 border-dashed border-mu-green/30 rounded-3xl flex items-center justify-center gap-3 font-black uppercase text-xs hover:bg-green-100 transition-all"
-                      >
-                        <Plus size={18} /> Tambah Kategori Baru
-                      </button>
-                    ) : (
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                          className="w-full px-6 py-5 bg-gray-50 border-none rounded-3xl outline-none text-sm font-bold text-gray-600 shadow-inner flex justify-between items-center transition-all hover:bg-gray-100"
-                        >
-                          <span>{selectedCategoryName}</span>
-                          <ChevronDown size={18} className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {isDropdownOpen && (
-                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-none shadow-2xl overflow-hidden animate-scaleIn origin-top">
-                            <div className="max-h-60 overflow-y-auto custom-scrollbar">
-                              {kategoriList.map((cat) => (
-                                <div
-                                  key={cat.kategori_id}
-                                  onClick={() => {
-                                    setFormData({ ...formData, kategori_id: cat.kategori_id });
-                                    setIsDropdownOpen(false);
-                                  }}
-                                  className={`px-6 py-4 text-sm font-bold cursor-pointer transition-all border-b border-gray-50 last:border-none ${
-                                    formData.kategori_id == cat.kategori_id
-                                      ? 'bg-mu-green text-white'
-                                      : 'text-gray-600 hover:bg-green-50'
-                                  }`}
-                                >
-                                  {cat.nama_kategori}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
                     )}
                   </div>
-                </div>
+                )}
 
-                <div className="space-y-3 group">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors"><Upload size={14} /> Upload Gambar Baru</label>
-                  <label className="w-full border-2 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center cursor-pointer p-6 bg-gray-50 hover:bg-green-50 hover:border-mu-green transition-all overflow-hidden h-full min-h-[120px]">
-                    {preview ? <img src={preview} className="max-h-32 w-auto object-contain rounded-xl shadow-sm"/> : gambarLama ? <img src={`${BASE_URL}/uploads/program/${gambarLama}`} className="max-h-32 w-auto object-contain rounded-xl shadow-sm"/> : <div className="flex flex-col items-center text-gray-400"><Upload className="mb-2" size={24}/><p className="font-bold text-xs uppercase tracking-widest">Klik Upload Gambar</p><p className="text-[9px] mt-1">PNG / JPG (max 3MB)</p></div>}
-                    <input type="file" hidden accept="image/*" onChange={(e)=>handleImage(e.target.files[0])}/>
+                {/* BUTTON TAMBAH (+) */}
+                {!gambar && (
+                  <label
+                    htmlFor="gambar-upload"
+                    className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl h-40 cursor-pointer hover:bg-green-50 hover:border-mu-green transition-all group"
+                  >
+                    <Plus size={24} className="text-gray-400 group-hover:text-mu-green transition-colors" />
+                    <span className="text-[10px] font-black uppercase tracking-widest mt-2 text-gray-400 group-hover:text-mu-green">Ganti Foto</span>
                   </label>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="font-semibold flex items-center gap-2 text-gray-700">
+                    <Type size={16} /> Nama Program
+                  </label>
+                  <input 
+                    value={formData.nama_program} 
+                    onChange={(e)=>setFormData({...formData,nama_program:e.target.value})} 
+                    className="w-full border p-3 rounded-xl mt-2 outline-none focus:border-mu-green transition-all shadow-sm" 
+                  />
                 </div>
 
-                <div className="md:col-span-2 space-y-3 group">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors"><FileText size={14} /> Deskripsi Program</label>
-                  <textarea rows={5} value={formData.deskripsi} onChange={(e)=>setFormData({...formData,deskripsi:e.target.value})} className="w-full px-6 py-5 bg-gray-50 border-none rounded-3xl outline-none text-sm font-bold text-gray-600 shadow-inner resize-none focus:bg-gray-100 transition-all"/>
+                <div>
+                  <label className="font-semibold flex items-center gap-2 text-gray-700">
+                    <Clock size={16} /> Jadwal Rutin
+                  </label>
+                  <input 
+                    value={formData.jadwal_rutin} 
+                    onChange={(e)=>setFormData({...formData,jadwal_rutin:e.target.value})} 
+                    className="w-full border p-3 rounded-xl mt-2 outline-none focus:border-mu-green transition-all shadow-sm" 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-6" ref={dropdownRef}>
+                <div className="flex justify-between items-end">
+                  <label className="font-semibold flex items-center gap-2 text-gray-700">
+                    <Tag size={16} /> Kategori Program
+                  </label>
+                  <div className="flex gap-3">
+                    {kategoriList.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!formData.kategori_id) return showPopup({ type: "warning", title: "Pilih Kategori", message: "Pilih kategori yang ingin diedit." });
+                          setEditMode(true);
+                          setShowModalKategori(true);
+                        }}
+                        className="text-gray-400 hover:text-mu-green transition-colors flex items-center gap-1 text-[10px] font-bold uppercase"
+                      >
+                        <Pencil size={12} /> Edit
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { setEditMode(false); setShowModalKategori(true); }}
+                      className="text-mu-green hover:underline text-[10px] font-bold uppercase tracking-widest"
+                    >
+                      + Tambah
+                    </button>
+                  </div>
                 </div>
 
-              </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full border p-3 rounded-xl mt-2 flex justify-between items-center bg-white shadow-sm hover:bg-gray-50 transition-all outline-none"
+                  >
+                    <span className={formData.kategori_id ? "text-gray-800" : "text-gray-400"}>{selectedCategoryName}</span>
+                    <ChevronDown size={18} className={`text-gray-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
 
-              <div className="pt-6">
-                <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-3 py-5 bg-mu-green text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl hover:translate-y-[-4px] active:scale-95 transition-all">
-                  <Save size={18}/> {loading ? "Menyimpan..." : "Update Program Ke Database"}
-                </button>
+                  {isDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl max-h-60 overflow-y-auto animate-fadeIn">
+                      {kategoriList.map((cat) => (
+                        <div
+                          key={cat.kategori_id}
+                          onClick={() => { setFormData({ ...formData, kategori_id: cat.kategori_id }); setIsDropdownOpen(false); }}
+                          className={`px-6 py-3 text-sm font-bold cursor-pointer transition-colors border-b border-gray-50 last:border-none ${
+                            formData.kategori_id == cat.kategori_id ? 'bg-mu-green text-white' : 'hover:bg-green-50 text-gray-600'
+                          }`}
+                        >
+                          {cat.nama_kategori}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </form>
-          </div>
+            </div>
+
+            <div>
+              <label className="font-semibold flex items-center gap-2 text-gray-700">
+                <FileText size={16} /> Deskripsi Program
+              </label>
+              <textarea 
+                rows={5} 
+                value={formData.deskripsi} 
+                onChange={(e)=>setFormData({...formData,deskripsi:e.target.value})} 
+                className="w-full border p-4 rounded-xl mt-2 outline-none focus:border-mu-green transition-all shadow-sm resize-none"
+              />
+            </div>
+
+            {/* ACTION BUTTONS */}
+            <div className="flex justify-between items-center pt-4">
+              <button
+                type="button"
+                onClick={() => navigate('/superadmin/program')}
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold transition hover:bg-gray-300 hover:scale-105 active:scale-95 flex items-center gap-2"
+              >
+                <ArrowLeft size={16} /> Batal
+              </button>
+              
+              <button 
+                type="submit" 
+                disabled={loading} 
+                className="px-8 py-3 bg-mu-green text-white rounded-xl flex items-center gap-3 font-bold shadow-lg hover:scale-105 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Save size={18}/> {loading ? "Menyimpan..." : "Update Program"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -289,9 +350,7 @@ const EditProgram = ({ user, onLogout }) => {
         onClose={() => setShowModalKategori(false)} 
         onSuccess={(newId) => {
           fetchKategori();
-          if (newId) {
-            setFormData(prev => ({ ...prev, kategori_id: newId }));
-          }
+          if (newId) setFormData(prev => ({ ...prev, kategori_id: newId }));
         }}
         editData={editMode ? kategoriList.find(c => c.kategori_id == formData.kategori_id) : null}
       />

@@ -60,25 +60,6 @@ const Masjid = () => {
     }
   };
 
-  const processKeuanganData = () => {
-    const monthlyData = {};
-
-    keuangan.forEach(item => {
-      const date = new Date(item.tanggal);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { month: monthKey, pemasukan: 0, pengeluaran: 0 };
-      }
-
-      const jumlah = parseFloat(item.jumlah);
-      if (jumlah >= 0) monthlyData[monthKey].pemasukan += jumlah;
-      else monthlyData[monthKey].pengeluaran += Math.abs(jumlah);
-    });
-
-    return Object.values(monthlyData).sort((a, b) => a.month.localeCompare(b.month));
-  };
-
   const calculateTotals = () => {
     let totalPemasukan = 0;
     let totalPengeluaran = 0;
@@ -92,7 +73,6 @@ const Masjid = () => {
     return { totalPemasukan, totalPengeluaran };
   };
 
-  const chartData = processKeuanganData();
   const { totalPemasukan, totalPengeluaran } = calculateTotals();
 
   if (loading) return <div className="text-center py-32">Loading...</div>;
@@ -110,7 +90,7 @@ const Masjid = () => {
             {/* DESKRIPSI */}
             <DeskripsiMasjid masjid={masjid} />
 
-            {/* ✅ STRUKTUR (SUDAH BENAR POSISINYA) */}
+            {/* STRUKTUR */}
             <div className="mt-20 mb-16">
               <h2 className="text-3xl font-bold text-[#006227] mb-10 text-center">
                 Struktur Organisasi
@@ -125,7 +105,7 @@ const Masjid = () => {
                   {struktur.map(item => (
                     <div
                       key={item.struktur_id}
-                      className="bg-white rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition"
+                      className="bg-white rounded-2xl shadow-lg p-6 text-center"
                     >
                       <img
                         src={
@@ -133,9 +113,6 @@ const Masjid = () => {
                             ? `http://localhost:3000/uploads/kepengurusan/${item.foto}`
                             : '/images/no-image.jpg'
                         }
-                        onError={(e) => {
-                          e.target.src = '/images/no-image.jpg';
-                        }}
                         className="w-28 h-28 rounded-full mx-auto object-cover mb-4"
                       />
 
@@ -144,19 +121,13 @@ const Masjid = () => {
                       </h3>
 
                       <p className="text-gray-600">{item.jabatan}</p>
-
-                      {item.periode_mulai && item.periode_selesai && (
-                        <p className="text-sm text-gray-500 mt-2">
-                          {item.periode_mulai} - {item.periode_selesai}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* SISANYA */}
+            {/* TOTAL */}
             <TotalJamaah
               jamaah={jamaah}
               totalPemasukan={totalPemasukan}
@@ -164,7 +135,11 @@ const Masjid = () => {
               inventaris={inventaris}
             />
 
-            <GrafikKeuangan chartData={chartData} />
+            {/* 🔥 FIX DI SINI */}
+            <GrafikKeuangan 
+              masjidId={id}
+              namaMasjid={masjid?.nama_masjid}
+            />
 
             <Inventaris inventaris={inventaris} />
 
