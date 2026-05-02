@@ -130,7 +130,6 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = async (req, res) => {
-  // Menggunakan instance sequelize dari config untuk transaksi
   const t = await sequelize.transaction();
 
   try {
@@ -143,12 +142,11 @@ exports.delete = async (req, res) => {
     }
 
     const targetUserId = takmir.user_id;
+    
     const oldData = takmir.toJSON();
 
-    // Hapus relasi takmir di masjid_takmir
     await takmir.destroy({ transaction: t });
 
-    // Hapus akun login di user_app
     if (targetUserId) {
       await User.destroy({ 
         where: { user_id: targetUserId }, 
