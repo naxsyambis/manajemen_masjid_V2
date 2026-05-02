@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 // Kalau discan HP, jangan pakai localhost.
 // Pakai IP laptop atau ngrok.
 // =================================
-const BACKEND_URL = "http://192.168.1.44:3000";
+const BACKEND_URL = "https://masjidmupundong.com";
 
 // =================================
 // HELPER: URL TTD

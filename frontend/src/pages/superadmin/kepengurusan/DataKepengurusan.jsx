@@ -203,15 +203,27 @@ const DataKepengurusan = ({ user, onLogout }) => {
               </div>
               
               <div className="relative w-full md:w-80">
-                <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search
+                  size={20}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600"/>
+                                              
                 <input
                   type="text"
-                  placeholder="Cari pengurus..."
+                  placeholder="Cari kepengurusan..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 pr-6 py-4 border-2 border-gray-50 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all bg-gray-50 text-sm w-full"
-                />
-              </div>
+                  className="pl-12 pr-6 py-4 
+                  border border-gray-300 
+                  rounded-2xl 
+                  bg-white text-gray-700 text-sm w-full
+                  shadow-sm
+                  placeholder-gray-400
+                  focus:outline-none 
+                  focus:ring-2 focus:ring-mu-green/20 
+                  focus:border-mu-green
+                  hover:border-gray-400
+                  transition-all duration-200"/>
+                </div>
             </div>
             
             {/* Table[cite: 1] */}
@@ -241,7 +253,6 @@ const DataKepengurusan = ({ user, onLogout }) => {
                         </td>
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="text-lg font-bold text-gray-800 group-hover:text-mu-green transition-colors">{p.nama_lengkap}</div>
-                          <div className="text-xs text-gray-400 font-black uppercase tracking-tighter mt-1">ID: {p.pengurus_id}</div>
                         </td>
                         <td className="px-6 py-6 border-b border-gray-50">
                           <div className="text-sm text-gray-600 font-bold bg-gray-100/50 w-fit px-3 py-2 rounded-xl">

@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from "react";
-import NavbarPublic from "/src/components/NavbarPublic";
-import FooterPublic from "/src/components/FooterPublic";
 
-const StrukturOrganisasi = () => {
+const StrukturOrganisasi = ({ masjidId }) => {
   const [data, setData] = useState([]);
   const [masjidList, setMasjidList] = useState([]);
   const [selectedMasjid, setSelectedMasjid] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async (masjidId = "") => {
+  const fetchData = async (id = "") => {
     try {
       setLoading(true);
 
       const [strukturRes, masjidRes] = await Promise.all([
         fetch(
           `http://localhost:3000/public/struktur-organisasi${
-            masjidId ? `?masjid_id=${masjidId}` : ""
+            id ? `?masjid_id=${id}` : ""
           }`
         ),
         fetch("http://localhost:3000/public/masjid"),
@@ -34,8 +32,9 @@ const StrukturOrganisasi = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    // 🔥 kalau dipanggil dari Masjid.jsx → pakai id
+    fetchData(masjidId || "");
+  }, [masjidId]);
 
   const handleChangeMasjid = (e) => {
     const value = e.target.value;
@@ -44,15 +43,10 @@ const StrukturOrganisasi = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <NavbarPublic />
+    <div className="container mx-auto px-6">
 
-      <div className="pt-32 pb-20 container mx-auto px-6">
-        <h1 className="text-4xl font-bold text-[#006227] text-center mb-6">
-          Struktur Organisasi Masjid
-        </h1>
-
-        {/* 🔥 FILTER MASJID */}
+      {/* 🔥 FILTER (optional, bisa tetap ada) */}
+      {!masjidId && (
         <div className="mb-10 text-center">
           <select
             value={selectedMasjid}
@@ -67,51 +61,70 @@ const StrukturOrganisasi = () => {
             ))}
           </select>
         </div>
+      )}
 
-        {loading ? (
-          <div className="text-center">Memuat data...</div>
-        ) : data.length === 0 ? (
-          <div className="text-center text-gray-500">
-            Tidak ada data struktur organisasi
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {data.map((item) => (
-              <div
-                key={item.struktur_id}
-                className="bg-white rounded-2xl shadow p-6 text-center hover:shadow-xl transition"
-              >
+      {/* CONTENT */}
+      {loading ? (
+        <div className="text-center">Memuat data...</div>
+      ) : data.length === 0 ? (
+        <div className="text-center text-gray-500">
+          Tidak ada data struktur organisasi
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center">
+          {data.map((item) => (
+            <div
+              key={item.struktur_id}
+              className="w-full max-w-sm bg-white rounded-[28px] shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 overflow-hidden group"
+            >
+              {/* IMAGE */}
+              <div className="relative">
                 <img
                   src={
                     item.foto
                       ? `http://localhost:3000/uploads/kepengurusan/${item.foto}`
-                      : "/images/no-image.jpg"
+                      : "https://picsum.photos/400/500"
                   }
-                  onError={(e) => {
-                    e.target.src = "/images/no-image.jpg";
-                  }}
                   alt={item.nama}
-                  className="w-32 h-32 rounded-full mx-auto object-cover mb-4"
+                  className="w-full h-[300px] object-cover group-hover:scale-105 transition duration-500"
+                  onError={(e) => {
+                    e.target.src = "https://picsum.photos/400/500";
+                  }}
                 />
 
-                <h3 className="text-xl font-bold text-[#006227]">
-                  {item.nama}
-                </h3>
-
-                <p className="text-gray-600 mb-2">{item.jabatan}</p>
-
-                {item.periode_mulai && item.periode_selesai && (
-                  <p className="text-sm text-gray-500">
-                    {item.periode_mulai} - {item.periode_selesai}
-                  </p>
-                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      <FooterPublic />
+              {/* CONTENT */}
+              <div className="p-5 text-center">
+
+                {/* NAMA */}
+                <h3 className="text-lg md:text-xl font-bold text-[#006227] mb-3">
+  {item.nama}
+</h3>
+
+                {/* JABATAN */}
+                <div className="mb-3">
+                  <span className="inline-block bg-gray-100 text-gray-700 px-6 py-2 rounded-full text-sm font-semibold shadow-sm">
+                    {item.jabatan}
+                  </span>
+                </div>
+
+                
+
+                {/* GARIS */}
+                <div className="w-12 h-[2px] bg-[#006227] mx-auto mb-3"></div>
+
+                {/* DESKRIPSI */}
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Berperan dalam kepengurusan masjid untuk pelayanan umat
+                </p>
+
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
