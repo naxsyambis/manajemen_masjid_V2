@@ -1,107 +1,13 @@
 import QRCode from "qrcode";
+import jsPDF from "jspdf";
 import { formatTanggal } from "./formatDate";
 
-const downloadDataUrl = (dataUrl, filename) => {
-  const link = document.createElement("a");
-  link.href = dataUrl;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-const createQrLaporanImage = async ({
-  namaMasjid,
-  startDate,
-  endDate,
-  urlLaporanPdf
-}) => {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = 900;
-  canvas.height = 1100;
-
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.strokeStyle = "#006227";
-  ctx.lineWidth = 10;
-  ctx.strokeRect(35, 35, canvas.width - 70, canvas.height - 70);
-
-  ctx.fillStyle = "#006227";
-  ctx.font = "bold 34px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText((namaMasjid || "-").toUpperCase(), canvas.width / 2, 120);
-
-  ctx.fillStyle = "#006227";
-  ctx.font = "bold 38px Arial";
-  ctx.fillText("QR LAPORAN KEUANGAN", canvas.width / 2, 185);
-
-  ctx.strokeStyle = "#006227";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(180, 215);
-  ctx.lineTo(720, 215);
-  ctx.stroke();
-
-  ctx.fillStyle = "#333333";
-  ctx.font = "24px Arial";
-  ctx.fillText(
-    `Periode: ${formatTanggal(startDate)} s/d ${formatTanggal(endDate)}`,
-    canvas.width / 2,
-    265
-  );
-
-  const qrBase64 = await QRCode.toDataURL(urlLaporanPdf, {
+const createQrImage = async (urlLaporanPdf) => {
+  return await QRCode.toDataURL(urlLaporanPdf, {
     errorCorrectionLevel: "H",
     margin: 2,
-    width: 520
+    width: 520,
   });
-
-  const qrImage = new Image();
-  qrImage.src = qrBase64;
-
-  await new Promise((resolve, reject) => {
-    qrImage.onload = resolve;
-    qrImage.onerror = reject;
-  });
-
-  ctx.fillStyle = "#ffffff";
-  ctx.strokeStyle = "#dddddd";
-  ctx.lineWidth = 3;
-  ctx.fillRect(185, 320, 530, 530);
-  ctx.strokeRect(185, 320, 530, 530);
-
-  ctx.drawImage(qrImage, 210, 345, 480, 480);
-
-  ctx.fillStyle = "#000000";
-  ctx.font = "bold 26px Arial";
-  ctx.fillText("SCAN QR UNTUK MEMBUKA PDF LAPORAN", canvas.width / 2, 905);
-
-  ctx.fillStyle = "#555555";
-  ctx.font = "20px Arial";
-  ctx.fillText(
-    "QR ini mengarah ke dokumen laporan rekapitulasi keuangan",
-    canvas.width / 2,
-    945
-  );
-
-  ctx.fillText(
-    "yang dibuat oleh sistem manajemen masjid.",
-    canvas.width / 2,
-    975
-  );
-
-  ctx.fillStyle = "#777777";
-  ctx.font = "italic 18px Arial";
-  ctx.fillText(
-    "*Bukti ini sah sebagai dokumen internal masjid.",
-    canvas.width / 2,
-    1040
-  );
-
-  return canvas.toDataURL("image/png");
 };
 
 export const generateLaporanKeuanganPDF = async (
@@ -127,17 +33,133 @@ export const generateLaporanKeuanganPDF = async (
     `&endDate=${encodeURIComponent(endDate)}`;
 
   try {
-    const qrImagePng = await createQrLaporanImage({
-      namaMasjid,
-      startDate,
-      endDate,
-      urlLaporanPdf
+    const qrImage = await createQrImage(urlLaporanPdf);
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
     });
 
-    downloadDataUrl(
-      qrImagePng,
-      `QR_Laporan_Keuangan_${startDate}_sd_${endDate}.png`
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Border
+    doc.setDrawColor(0, 98, 39);
+    doc.setLineWidth(1.5);
+    doc.rect(10, 10, 190, 277);
+
+    // Nama masjid
+    doc.setTextColor(0, 98, 39);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text((namaMasjid || "-").toUpperCase(), pageWidth / 2, 28, {
+      align: "center",
+    });
+
+    // Judul
+    doc.setFontSize(22);
+    doc.text("QR LAPORAN KEUANGAN", pageWidth / 2, 42, {
+      align: "center",
+    });
+
+    // Garis
+    doc.setDrawColor(0, 98, 39);
+    doc.setLineWidth(0.8);
+    doc.line(45, 49, 165, 49);
+
+    // Periode
+    doc.setTextColor(50, 50, 50);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.text(
+      `Periode: ${formatTanggal(startDate)} s/d ${formatTanggal(endDate)}`,
+      pageWidth / 2,
+      62,
+      { align: "center" }
     );
+
+    // Box QR
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.5);
+    doc.rect(50, 75, 110, 110);
+
+    // QR image
+    doc.addImage(qrImage, "PNG", 55, 80, 100, 100);
+
+    // Teks scan
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("SCAN QR UNTUK MEMBUKA PDF LAPORAN", pageWidth / 2, 200, {
+      align: "center",
+    });
+
+    // Link aktif
+    doc.setTextColor(0, 98, 39);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Atau klik link berikut:", pageWidth / 2, 214, {
+      align: "center",
+    });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+
+    const splitUrl = doc.splitTextToSize(urlLaporanPdf, 160);
+
+    let linkY = 224;
+
+    splitUrl.forEach((line, index) => {
+      doc.textWithLink(line, pageWidth / 2, linkY + index * 6, {
+        url: urlLaporanPdf,
+        align: "center",
+      });
+    });
+
+    // Tombol teks klik
+    const buttonY = linkY + splitUrl.length * 6 + 10;
+
+    doc.setFillColor(0, 98, 39);
+    doc.roundedRect(55, buttonY, 100, 13, 3, 3, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.textWithLink("BUKA PDF LAPORAN", pageWidth / 2, buttonY + 8.5, {
+      url: urlLaporanPdf,
+      align: "center",
+    });
+
+    // Keterangan
+    doc.setTextColor(85, 85, 85);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(
+      "QR ini mengarah ke dokumen laporan rekapitulasi keuangan",
+      pageWidth / 2,
+      buttonY + 28,
+      { align: "center" }
+    );
+
+    doc.text(
+      "yang dibuat oleh sistem manajemen masjid.",
+      pageWidth / 2,
+      buttonY + 35,
+      { align: "center" }
+    );
+
+    // Catatan bawah
+    doc.setTextColor(120, 120, 120);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(10);
+    doc.text(
+      "*Bukti ini sah sebagai dokumen internal masjid.",
+      pageWidth / 2,
+      274,
+      { align: "center" }
+    );
+
+    doc.save(`QR_Laporan_Keuangan_${startDate}_sd_${endDate}.pdf`);
   } catch (error) {
     console.error("Gagal membuat QR laporan:", error);
     alert("Gagal membuat QR laporan.");
