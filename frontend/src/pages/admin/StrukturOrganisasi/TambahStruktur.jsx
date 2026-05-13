@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +22,7 @@ import {
   Trash2,
   Eraser
 } from 'lucide-react';
+import DateSelect from '../../../components/DateSelect';
 
 const bulanIndonesia = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -376,6 +378,55 @@ const TambahStruktur = () => {
                         <p className="text-[9px] text-gray-400 text-center italic font-bold uppercase tracking-widest">Silakan coret canvas di atas untuk tanda tangan</p>
                       </div>
                     )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        Jabatan
+                      </label>
+
+                      <input
+                        type="text"
+                        value={formData.jabatan}
+                        onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
+                        className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                        placeholder="Contoh: Ketua DKM, Sekretaris, Bendahara"
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        Periode Mulai
+                      </label>
+
+                      <DateSelect
+                        value={formData.periode_mulai}
+                        onChange={(value) =>
+                          setFormData({
+                            ...formData,
+                            periode_mulai: value
+                          })
+                        }
+                        className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 shadow-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        Periode Selesai
+                      </label>
+
+                      <DateSelect
+                          value={formData.periode_selesai}
+                          onChange={(value) =>
+                            setFormData({
+                              ...formData,
+                              periode_selesai: value
+                            })
+                          }
+                          className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 shadow-sm"
+                        />
+                    </div>
                   </div>
                 </div>
               </div>

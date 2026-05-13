@@ -51,7 +51,7 @@ const handleMasjidRedirect = () => {
                   Muhammadiyah
                 </h3>
                 <p className="text-sm text-white/80">
-                  Manajemen Masjid
+                  PCM PUNDONG
                 </p>
               </div>
             </div>

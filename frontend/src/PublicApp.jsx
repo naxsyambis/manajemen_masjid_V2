@@ -25,8 +25,7 @@ const PublicApp = () => {
     { path: '/kepengurusan', element: <Kepengurusan /> },
     { path: '/kegiatan/:id', element: <IsiKegiatan /> }, 
     { path: '/program/:id', element: <IsiProgram /> },
-
-    // 404
+    
     {
       path: '*',
       element: (
