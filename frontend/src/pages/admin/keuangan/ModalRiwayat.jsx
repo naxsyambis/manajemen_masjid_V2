@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
+import DateSelect from '../../../components/DateSelect';
 import {
   X,
   Save,
@@ -405,12 +406,10 @@ const ModalRiwayat = ({ show, onClose, onSuccess, data, categories = [] }) => {
                 Tanggal
               </label>
 
-              <input
-                type="date"
-                required
-                className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-gray-800 shadow-inner focus:ring-2 focus:ring-mu-green/20 transition-all cursor-pointer"
+              <DateSelect
                 value={form.tanggal}
-                onChange={(e) => setForm({ ...form, tanggal: e.target.value })}
+                onChange={(value) => setForm({ ...form, tanggal: value })}
+                className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none font-bold text-gray-800 shadow-inner focus:ring-2 focus:ring-mu-green/20 transition-all cursor-pointer"
               />
             </div>
 

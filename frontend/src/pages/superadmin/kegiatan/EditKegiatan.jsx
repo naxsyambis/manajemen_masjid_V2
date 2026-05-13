@@ -206,9 +206,111 @@ const EditKegiatan = ({ user, onLogout }) => {
                     <input value={formData.nama_kegiatan} onChange={(e) => setFormData({ ...formData, nama_kegiatan: e.target.value })} className="w-full border border-gray-200 p-3 rounded-xl mt-2 focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none bg-gray-50 focus:bg-white" />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2"><Calendar size={16} className="text-mu-green" /> Waktu Pelaksanaan</label>
-                    <input type="datetime-local" value={formData.waktu_kegiatan} onChange={(e) => setFormData({ ...formData, waktu_kegiatan: e.target.value })} className="w-full border border-gray-200 p-3 rounded-xl mt-2 focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none bg-gray-50 focus:bg-white" />
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Calendar size={16} className="text-mu-green" /> Waktu Pelaksanaan
+                  </label>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-2">
+                    <select
+                      value={formData.waktu_kegiatan?.slice(0, 4) || ""}
+                      onChange={(e) => {
+                        const tahun = e.target.value;
+                        const bulan = formData.waktu_kegiatan?.slice(5, 7) || "01";
+                        const tanggal = formData.waktu_kegiatan?.slice(8, 10) || "01";
+                        const jam = formData.waktu_kegiatan?.slice(11, 16) || "00:00";
+
+                        setFormData({
+                          ...formData,
+                          waktu_kegiatan: `${tahun}-${bulan}-${tanggal}T${jam}`,
+                        });
+                      }}
+                      className="w-full border border-gray-200 p-3 rounded-xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none bg-gray-50 focus:bg-white"
+                    >
+                      <option value="">Pilih Tahun</option>
+                      {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() + i).map((tahun) => (
+                        <option key={tahun} value={tahun}>
+                          {tahun}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={formData.waktu_kegiatan?.slice(5, 7) || ""}
+                      onChange={(e) => {
+                        const tahun = formData.waktu_kegiatan?.slice(0, 4) || new Date().getFullYear();
+                        const bulan = e.target.value;
+                        const tanggal = formData.waktu_kegiatan?.slice(8, 10) || "01";
+                        const jam = formData.waktu_kegiatan?.slice(11, 16) || "00:00";
+
+                        setFormData({
+                          ...formData,
+                          waktu_kegiatan: `${tahun}-${bulan}-${tanggal}T${jam}`,
+                        });
+                      }}
+                      className="w-full border border-gray-200 p-3 rounded-xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none bg-gray-50 focus:bg-white"
+                    >
+                      <option value="">Pilih Bulan</option>
+                      {[
+                        ["01", "Januari"],
+                        ["02", "Februari"],
+                        ["03", "Maret"],
+                        ["04", "April"],
+                        ["05", "Mei"],
+                        ["06", "Juni"],
+                        ["07", "Juli"],
+                        ["08", "Agustus"],
+                        ["09", "September"],
+                        ["10", "Oktober"],
+                        ["11", "November"],
+                        ["12", "Desember"],
+                      ].map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={formData.waktu_kegiatan?.slice(8, 10) || ""}
+                      onChange={(e) => {
+                        const tahun = formData.waktu_kegiatan?.slice(0, 4) || new Date().getFullYear();
+                        const bulan = formData.waktu_kegiatan?.slice(5, 7) || "01";
+                        const tanggal = e.target.value;
+                        const jam = formData.waktu_kegiatan?.slice(11, 16) || "00:00";
+
+                        setFormData({
+                          ...formData,
+                          waktu_kegiatan: `${tahun}-${bulan}-${tanggal}T${jam}`,
+                        });
+                      }}
+                      className="w-full border border-gray-200 p-3 rounded-xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none bg-gray-50 focus:bg-white"
+                    >
+                      <option value="">Pilih Tanggal</option>
+                      {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((tanggal) => (
+                        <option key={tanggal} value={tanggal}>
+                          {tanggal}
+                        </option>
+                      ))}
+                    </select>
+
+                    <input
+                      type="time"
+                      value={formData.waktu_kegiatan?.slice(11, 16) || ""}
+                      onChange={(e) => {
+                        const tahun = formData.waktu_kegiatan?.slice(0, 4) || new Date().getFullYear();
+                        const bulan = formData.waktu_kegiatan?.slice(5, 7) || "01";
+                        const tanggal = formData.waktu_kegiatan?.slice(8, 10) || "01";
+                        const jam = e.target.value;
+
+                        setFormData({
+                          ...formData,
+                          waktu_kegiatan: `${tahun}-${bulan}-${tanggal}T${jam}`,
+                        });
+                      }}
+                      className="w-full border border-gray-200 p-3 rounded-xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none bg-gray-50 focus:bg-white"
+                    />
                   </div>
+                </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-700 flex items-center gap-2"><MapPin size={16} className="text-mu-green" /> Lokasi</label>
                     <input value={formData.lokasi} onChange={(e) => setFormData({ ...formData, lokasi: e.target.value })} className="w-full border border-gray-200 p-3 rounded-xl mt-2 focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all outline-none bg-gray-50 focus:bg-white" />

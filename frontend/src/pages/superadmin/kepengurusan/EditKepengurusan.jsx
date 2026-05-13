@@ -19,6 +19,7 @@ import {
   XCircle,
   Info
 } from 'lucide-react';
+import DateSelect from '../../../components/DateSelect';
 
 const BASE_URL = "http://localhost:3000";
 
@@ -331,22 +332,22 @@ const EditKepengurusan = ({ user, onLogout }) => {
                 <label className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Calendar size={16} className="text-mu-green" /> Periode Mulai
                 </label>
-                <input 
-                  type="date" 
-                  value={formData.periode_mulai} 
-                  onChange={(e) => setFormData({ ...formData, periode_mulai: e.target.value })} 
-                  className="w-full border border-gray-200 p-4 rounded-xl mt-2 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green bg-gray-50 focus:bg-white transition-all" 
+
+                <DateSelect
+                  value={formData.periode_mulai}
+                  onChange={(value) => setFormData({ ...formData, periode_mulai: value })}
+                  className="w-full border border-gray-200 p-4 rounded-xl mt-2 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green bg-gray-50 focus:bg-white transition-all"
                 />
               </div>
               <div className="space-y-4">
                 <label className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Calendar size={16} className="text-mu-green" /> Periode Selesai
                 </label>
-                <input 
-                  type="date" 
-                  value={formData.periode_selesai} 
-                  onChange={(e) => setFormData({ ...formData, periode_selesai: e.target.value })} 
-                  className="w-full border border-gray-200 p-4 rounded-xl mt-2 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green bg-gray-50 focus:bg-white transition-all" 
+
+                <DateSelect
+                  value={formData.periode_selesai}
+                  onChange={(value) => setFormData({ ...formData, periode_selesai: value })}
+                  className="w-full border border-gray-200 p-4 rounded-xl mt-2 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green bg-gray-50 focus:bg-white transition-all"
                 />
               </div>
             </div>

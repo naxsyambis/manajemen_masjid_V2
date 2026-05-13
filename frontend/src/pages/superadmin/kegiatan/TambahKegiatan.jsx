@@ -264,15 +264,111 @@ const TambahKegiatan = ({ user, onLogout }) => {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><Calendar size={16} className="text-mu-green" /> Waktu Pelaksanaan</label>
+                      <label className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                        <Calendar size={16} className="text-mu-green" /> Waktu Pelaksanaan
+                      </label>
+
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <select
+                          value={formData.waktu_kegiatan?.slice(0, 4) || ""}
+                          onChange={(e) => {
+                            const tahun = e.target.value;
+                            const bulan = formData.waktu_kegiatan?.slice(5, 7) || "01";
+                            const tanggal = formData.waktu_kegiatan?.slice(8, 10) || "01";
+                            const jam = formData.waktu_kegiatan?.slice(11, 16) || "00:00";
+
+                            setFormData({
+                              ...formData,
+                              waktu_kegiatan: `${tahun}-${bulan}-${tanggal}T${jam}`,
+                            });
+                          }}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 text-gray-700 shadow-sm"
+                        >
+                          <option value="">Pilih Tahun</option>
+                          {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() + i).map((tahun) => (
+                            <option key={tahun} value={tahun}>
+                              {tahun}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={formData.waktu_kegiatan?.slice(5, 7) || ""}
+                          onChange={(e) => {
+                            const tahun = formData.waktu_kegiatan?.slice(0, 4) || new Date().getFullYear();
+                            const bulan = e.target.value;
+                            const tanggal = formData.waktu_kegiatan?.slice(8, 10) || "01";
+                            const jam = formData.waktu_kegiatan?.slice(11, 16) || "00:00";
+
+                            setFormData({
+                              ...formData,
+                              waktu_kegiatan: `${tahun}-${bulan}-${tanggal}T${jam}`,
+                            });
+                          }}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 text-gray-700 shadow-sm"
+                        >
+                          <option value="">Pilih Bulan</option>
+                          {[
+                            ["01", "Januari"],
+                            ["02", "Februari"],
+                            ["03", "Maret"],
+                            ["04", "April"],
+                            ["05", "Mei"],
+                            ["06", "Juni"],
+                            ["07", "Juli"],
+                            ["08", "Agustus"],
+                            ["09", "September"],
+                            ["10", "Oktober"],
+                            ["11", "November"],
+                            ["12", "Desember"],
+                          ].map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={formData.waktu_kegiatan?.slice(8, 10) || ""}
+                          onChange={(e) => {
+                            const tahun = formData.waktu_kegiatan?.slice(0, 4) || new Date().getFullYear();
+                            const bulan = formData.waktu_kegiatan?.slice(5, 7) || "01";
+                            const tanggal = e.target.value;
+                            const jam = formData.waktu_kegiatan?.slice(11, 16) || "00:00";
+
+                            setFormData({
+                              ...formData,
+                              waktu_kegiatan: `${tahun}-${bulan}-${tanggal}T${jam}`,
+                            });
+                          }}
+                          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 text-gray-700 shadow-sm"
+                        >
+                          <option value="">Pilih Tanggal</option>
+                          {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((tanggal) => (
+                            <option key={tanggal} value={tanggal}>
+                              {tanggal}
+                            </option>
+                          ))}
+                        </select>
+
                         <input
-                          type="datetime-local"
-                          min={today}
-                          value={formData.waktu_kegiatan}
-                          onChange={(e) => setFormData({ ...formData, waktu_kegiatan: e.target.value })}
+                          type="time"
+                          value={formData.waktu_kegiatan?.slice(11, 16) || ""}
+                          onChange={(e) => {
+                            const tahun = formData.waktu_kegiatan?.slice(0, 4) || new Date().getFullYear();
+                            const bulan = formData.waktu_kegiatan?.slice(5, 7) || "01";
+                            const tanggal = formData.waktu_kegiatan?.slice(8, 10) || "01";
+                            const jam = e.target.value;
+
+                            setFormData({
+                              ...formData,
+                              waktu_kegiatan: `${tahun}-${bulan}-${tanggal}T${jam}`,
+                            });
+                          }}
                           className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 text-gray-700 shadow-sm"
                         />
                       </div>
+                    </div>
                       <div className="space-y-3">
                         <label className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"><MapPin size={16} className="text-mu-green" /> Lokasi Masjid</label>
                         <select

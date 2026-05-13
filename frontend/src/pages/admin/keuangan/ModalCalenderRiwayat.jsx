@@ -5,8 +5,6 @@ import {
   Calendar,
   FileDown,
   AlertCircle,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -177,30 +175,21 @@ const RangeCalendar = ({ startDate, endDate, onSelectDate }) => {
     return days;
   }, [currentMonth, currentYear]);
 
-  const goToPreviousMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((prev) => prev - 1);
-    } else {
-      setCurrentMonth((prev) => prev - 1);
-    }
-  };
+    const start = startDate ? parseDate(startDate) : null;
+    const end = endDate ? parseDate(endDate) : null;
 
-  const goToNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((prev) => prev + 1);
-    } else {
-      setCurrentMonth((prev) => prev + 1);
-    }
-  };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const start = startDate ? parseDate(startDate) : null;
-  const end = endDate ? parseDate(endDate) : null;
-  const todayKey = formatDateKey(new Date());
+    const todayKey = formatDateKey(today);
 
-  const getDayClass = (date, isCurrentMonth) => {
+    const getDayClass = (date, isCurrentMonth) => {
     const dateKey = formatDateKey(date);
+
+    const cleanDate = new Date(date);
+    cleanDate.setHours(0, 0, 0, 0);
+
+    const isFutureDate = cleanDate > today;
 
     const isStart = startDate === dateKey;
     const isEnd = endDate === dateKey;
@@ -211,6 +200,10 @@ const RangeCalendar = ({ startDate, endDate, onSelectDate }) => {
       end &&
       date >= start &&
       date <= end;
+
+    if (isFutureDate) {
+      return 'bg-gray-50 text-gray-200 cursor-not-allowed opacity-50';
+    }
 
     if (isStart && isEnd) {
       return 'bg-mu-green text-white shadow-lg shadow-green-100 scale-105';
@@ -261,31 +254,30 @@ const RangeCalendar = ({ startDate, endDate, onSelectDate }) => {
       </div>
 
       <div className="p-5">
-        <div className="flex items-center justify-between mb-5">
-          <button
-            type="button"
-            onClick={goToPreviousMonth}
-            className="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-mu-green hover:text-white transition-all active:scale-95"
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <select
+            value={currentMonth}
+            onChange={(e) => setCurrentMonth(Number(e.target.value))}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm font-black text-gray-700 focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all cursor-pointer"
           >
-            <ChevronLeft size={22} className="mx-auto" />
-          </button>
+            {monthNames.map((month, index) => (
+              <option key={month} value={index}>
+                {month}
+              </option>
+            ))}
+          </select>
 
-          <div className="text-center">
-            <h4 className="text-base font-black text-gray-800 uppercase tracking-tight">
-              {monthNames[currentMonth]}
-            </h4>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              {currentYear}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={goToNextMonth}
-            className="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-mu-green hover:text-white transition-all active:scale-95"
+          <select
+            value={currentYear}
+            onChange={(e) => setCurrentYear(Number(e.target.value))}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm font-black text-gray-700 focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all cursor-pointer"
           >
-            <ChevronRight size={22} className="mx-auto" />
-          </button>
+            {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 10 + i).map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+          </select>
         </div>
 
         <div className="grid grid-cols-7 gap-2 mb-2">
@@ -301,22 +293,31 @@ const RangeCalendar = ({ startDate, endDate, onSelectDate }) => {
 
         <div className="grid grid-cols-7 gap-2">
           {calendarDays.map((item) => {
-            const dateKey = formatDateKey(item.date);
+              const dateKey = formatDateKey(item.date);
 
-            return (
-              <button
-                key={dateKey}
-                type="button"
-                onClick={() => onSelectDate(dateKey)}
-                className={`h-11 rounded-xl text-xs font-black transition-all active:scale-90 ${getDayClass(
-                  item.date,
-                  item.currentMonth
-                )}`}
-              >
-                {item.date.getDate()}
-              </button>
-            );
-          })}
+              const cleanDate = new Date(item.date);
+              cleanDate.setHours(0, 0, 0, 0);
+
+              const isFutureDate = cleanDate > today;
+
+              return (
+                <button
+                  key={dateKey}
+                  type="button"
+                  disabled={isFutureDate}
+                  onClick={() => {
+                    if (isFutureDate) return;
+                    onSelectDate(dateKey);
+                  }}
+                  className={`h-11 rounded-xl text-xs font-black transition-all active:scale-90 disabled:active:scale-100 ${getDayClass(
+                    item.date,
+                    item.currentMonth
+                  )}`}
+                >
+                  {item.date.getDate()}
+                </button>
+              );
+            })}
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">

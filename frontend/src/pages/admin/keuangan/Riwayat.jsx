@@ -25,6 +25,7 @@ import { formatTanggal } from '../../../utils/formatDate';
 import { generateKwitansiPDF } from '../../../utils/generatePDFinvoice';
 import { generateLaporanKeuanganPDF } from '../../../utils/generateLaporanKeuanganPDF';
 import ModalRiwayat from './ModalRiwayat';
+import DateSelect from '../../../components/DateSelect';
 
 const primaryActionButton =
   '!h-14 !min-w-[230px] !inline-flex !items-center !justify-center !gap-2 !bg-mu-green !text-white !px-8 !py-4 !rounded-2xl !text-xs !font-black !uppercase !tracking-widest hover:!bg-green-700 !shadow-lg !shadow-green-100 !transition-all active:!scale-95 !border-none';
@@ -481,12 +482,11 @@ const Riwayat = () => {
               Tanggal Awal
             </label>
 
-            <input
-              type="date"
-              value={tanggalAwal}
-              onChange={(e) => setTanggalAwal(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all"
-            />
+            <DateSelect
+                value={tanggalAwal}
+                onChange={(value) => setTanggalAwal(value)}
+                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all"
+              />
           </div>
 
           <div className="bg-white border border-gray-100 rounded-[2rem] shadow-sm px-5 py-4">
@@ -495,10 +495,9 @@ const Riwayat = () => {
               Tanggal Akhir
             </label>
 
-            <input
-              type="date"
+            <DateSelect
               value={tanggalAkhir}
-              onChange={(e) => setTanggalAkhir(e.target.value)}
+              onChange={(value) => setTanggalAkhir(value)}
               className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 text-sm font-bold text-gray-700 outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all"
             />
           </div>

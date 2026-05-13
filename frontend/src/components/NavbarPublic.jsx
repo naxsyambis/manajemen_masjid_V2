@@ -1,39 +1,90 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown } from 'lucide-react'; 
-import logoMu from '../assets/logo_mu.png'; 
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, ChevronDown } from 'lucide-react';
+import logoMu from '../assets/logo_mu.png';
 
 const NavbarPublic = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false); 
+  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeSection = location.state?.scrollTo || '';
+
+  const isActiveMenu = (menu) => {
+    if (menu === 'home') {
+      return location.pathname === '/' && (!activeSection || activeSection === 'home');
+    }
+
+    if (menu === 'masjid') {
+      return location.pathname.startsWith('/masjid');
+    }
+
+    if (menu === 'berita') {
+      return location.pathname.startsWith('/berita') || activeSection === 'berita';
+    }
+
+    if (menu === 'program') {
+      return location.pathname.startsWith('/program') || activeSection === 'program';
+    }
+
+    if (menu === 'kegiatan') {
+      return location.pathname.startsWith('/kegiatan') || activeSection === 'kegiatan';
+    }
+
+    if (menu === 'kepengurusan') {
+      return location.pathname.startsWith('/kepengurusan');
+    }
+
+    return false;
+  };
+
+  const navButtonClass = (menu) =>
+    `px-4 py-2 rounded-xl transition-all font-semibold focus:outline-none ${
+      isActiveMenu(menu)
+        ? 'bg-mu-yellow text-mu-green shadow-sm'
+        : 'text-white/70 hover:bg-mu-yellow hover:text-mu-green'
+    }`;
+
+  const mobileNavButtonClass = (menu) =>
+    `block w-full text-left px-4 py-3 rounded-xl transition-all font-semibold focus:outline-none ${
+      isActiveMenu(menu)
+        ? 'bg-mu-yellow text-mu-green shadow-sm'
+        : 'text-white/70 hover:bg-mu-yellow hover:text-mu-green'
+    }`;
 
   const handleSectionLink = (section) => {
     navigate('/', { state: { scrollTo: section } });
-    setIsMobileMenuOpen(false); 
+    setIsMobileMenuOpen(false);
+    setIsLoginDropdownOpen(false);
   };
 
   const handlePageLink = (path) => {
     navigate(path);
-    setIsMobileMenuOpen(false); 
+    setIsMobileMenuOpen(false);
+    setIsLoginDropdownOpen(false);
   };
 
-  const handleLoginOption = (option) => {
-    navigate('/login'); 
-    setIsLoginDropdownOpen(false); 
-    setIsMobileMenuOpen(false); 
+  const handleLoginOption = () => {
+    navigate('/login');
+    setIsLoginDropdownOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <header className="h-20 bg-green-900 text-white flex items-center justify-between px-6 lg:px-10 fixed top-0 left-0 right-0 z-[9999] transition-all border-b border-black shadow-md">
-      <div className="flex items-center gap-4 group">
+      <div
+        className="flex items-center gap-4 group cursor-pointer"
+        onClick={() => handleSectionLink('home')}
+      >
         <div className="w-12 h-12 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-gray-50 p-1 transform group-hover:scale-110 transition-transform duration-300">
-          <img 
-            src={logoMu} 
-            alt="Logo Muhammadiyah" 
+          <img
+            src={logoMu}
+            alt="Logo Muhammadiyah"
             className="w-full h-full object-contain"
-            onError={(e) => { 
-              e.target.src = 'https://picsum.photos/48/48?random=1'; 
+            onError={(e) => {
+              e.target.src = 'https://picsum.photos/48/48?random=1';
             }}
           />
         </div>
@@ -44,41 +95,89 @@ const NavbarPublic = () => {
           </h2>
           <p className="text-[9px] font-bold text-white/90 uppercase tracking-[0.3em] mt-1.5 flex items-center gap-1.5">
             <span className="w-1 h-1 bg-mu-yellow rounded-full"></span>
-            Manajemen Masjid
+            PCM PUNDONG
           </p>
         </div>
       </div>
 
-      <nav className="hidden md:flex items-center space-x-2" role="navigation" aria-label="Main navigation">
-        <button onClick={() => handleSectionLink('home')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Home</button>
-        <button 
-  onClick={() => handlePageLink('/masjid')} 
-  className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Masjid</button>
-        <button onClick={() => handleSectionLink('berita')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Berita Ranting</button>
-        <button onClick={() => handleSectionLink('program')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Program Ranting</button>
-        <button onClick={() => handleSectionLink('kegiatan')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kegiatan</button>
-        <button onClick={() => handlePageLink('/kepengurusan')} className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kepengurusan Ranting</button>
-        
+      <nav
+        className="hidden md:flex items-center space-x-2"
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        <button
+          type="button"
+          onClick={() => handleSectionLink('home')}
+          className={navButtonClass('home')}
+        >
+          Home
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handlePageLink('/masjid')}
+          className={navButtonClass('masjid')}
+        >
+          Masjid
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleSectionLink('berita')}
+          className={navButtonClass('berita')}
+        >
+          Berita Ranting
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleSectionLink('program')}
+          className={navButtonClass('program')}
+        >
+          Program Ranting
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleSectionLink('kegiatan')}
+          className={navButtonClass('kegiatan')}
+        >
+          Kegiatan
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handlePageLink('/kepengurusan')}
+          className={navButtonClass('kepengurusan')}
+        >
+          Kepengurusan Ranting
+        </button>
+
         <div className="relative">
-          <button 
-            onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)} 
+          <button
+            type="button"
+            onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)}
             className="px-4 py-2 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none flex items-center gap-1"
             aria-label="Login options"
             aria-expanded={isLoginDropdownOpen}
           >
             Login <ChevronDown size={16} />
           </button>
+
           {isLoginDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white text-gray-900 rounded-xl shadow-lg border border-gray-200 z-50">
-              <button 
-                onClick={() => handleLoginOption('takmir')} 
-                className="block w-full text-left px-4 py-3 hover:bg-mu-yellow hover:text-mu-green rounded-t-xl transition-all font-semibold focus:outline-none"
+            <div className="absolute right-0 mt-2 w-48 bg-white text-gray-900 rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+              <button
+                type="button"
+                onClick={handleLoginOption}
+                className="block w-full text-left px-4 py-3 hover:bg-mu-yellow hover:text-mu-green transition-all font-semibold focus:outline-none"
               >
                 Takmir
               </button>
-              <button 
-                onClick={() => handleLoginOption('ranting')} 
-                className="block w-full text-left px-4 py-3 hover:bg-mu-yellow hover:text-mu-green rounded-b-xl transition-all font-semibold focus:outline-none"
+
+              <button
+                type="button"
+                onClick={handleLoginOption}
+                className="block w-full text-left px-4 py-3 hover:bg-mu-yellow hover:text-mu-green transition-all font-semibold focus:outline-none"
               >
                 Ranting
               </button>
@@ -88,10 +187,11 @@ const NavbarPublic = () => {
       </nav>
 
       <div className="md:hidden">
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 text-mu-yellow hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-colors focus:outline-none"
-          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isMobileMenuOpen}
         >
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -99,21 +199,78 @@ const NavbarPublic = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 w-full bg-green-900 border-t border-black shadow-lg md:hidden z-40" role="navigation" aria-label="Mobile navigation">
+        <div
+          className="absolute top-full left-0 w-full bg-green-900 border-t border-black shadow-lg md:hidden z-40"
+          role="navigation"
+          aria-label="Mobile navigation"
+        >
           <div className="px-6 py-4 space-y-2 max-h-96 overflow-y-auto">
-            <button onClick={() => handleSectionLink('home')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Home</button>
-            <button 
-              onClick={() => handlePageLink('/masjid')} 
-              className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Masjid</button>
-            <button onClick={() => handleSectionLink('berita')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Berita Ranting</button>
-            <button onClick={() => handleSectionLink('program')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Program Ranting</button>
-            <button onClick={() => handleSectionLink('kegiatan')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kegiatan</button>
-            <button onClick={() => handlePageLink('/kepengurusan')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Kepengurusan Ranting</button>
-            
+            <button
+              type="button"
+              onClick={() => handleSectionLink('home')}
+              className={mobileNavButtonClass('home')}
+            >
+              Home
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handlePageLink('/masjid')}
+              className={mobileNavButtonClass('masjid')}
+            >
+              Masjid
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSectionLink('berita')}
+              className={mobileNavButtonClass('berita')}
+            >
+              Berita Ranting
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSectionLink('program')}
+              className={mobileNavButtonClass('program')}
+            >
+              Program Ranting
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSectionLink('kegiatan')}
+              className={mobileNavButtonClass('kegiatan')}
+            >
+              Kegiatan
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handlePageLink('/kepengurusan')}
+              className={mobileNavButtonClass('kepengurusan')}
+            >
+              Kepengurusan Ranting
+            </button>
+
             <div className="border-t border-white/20 pt-2">
-              <p className="text-white/70 font-semibold mb-2">Login</p>
-              <button onClick={() => handleLoginOption('takmir')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Takmir</button>
-              <button onClick={() => handleLoginOption('ranting')} className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none">Ranting</button>
+              <p className="text-white/70 font-semibold mb-2 px-4">Login</p>
+
+              <button
+                type="button"
+                onClick={handleLoginOption}
+                className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none"
+              >
+                Takmir
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLoginOption}
+                className="block w-full text-left px-4 py-3 text-white/70 hover:bg-mu-yellow hover:text-mu-green rounded-xl transition-all font-semibold focus:outline-none"
+              >
+                Ranting
+              </button>
             </div>
           </div>
         </div>

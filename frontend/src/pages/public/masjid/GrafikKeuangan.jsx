@@ -1,27 +1,31 @@
 import React, { useState } from 'react';
 import { TrendingUp, Calendar } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
+import DateSelect from '../../../components/DateSelect';
 
 const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
-
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const today = new Date().toISOString().split('T')[0];
+  const getExportUrl = () => {
+    if (!masjidId || !startDate || !endDate) return '';
 
-const getExportUrl = () => {
-  if (!masjidId || !startDate || !endDate) return '';
+    const BASE_URL = "http://192.168.1.196:3000";
 
-  const BASE_URL = "https://masjidmupundong.com";
-
-  return `${BASE_URL}/laporan-keuangan/verifikasi-pdf?masjid_id=${masjidId}&nama_masjid=${encodeURIComponent(namaMasjid || "Masjid")}&startDate=${startDate}&endDate=${endDate}`;
-};
+    return (
+      `${BASE_URL}/laporan-keuangan/verifikasi-pdf` +
+      `?masjid_id=${encodeURIComponent(masjidId)}` +
+      `&nama_masjid=${encodeURIComponent(namaMasjid || "Masjid")}` +
+      `&startDate=${encodeURIComponent(startDate)}` +
+      `&endDate=${encodeURIComponent(endDate)}` +
+      `&mode=public`
+    );
+  };
 
   const exportUrl = getExportUrl();
 
   return (
     <div className="mb-12">
-
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-2xl font-black text-gray-900 flex items-center gap-3 uppercase tracking-wider">
           <div className="w-10 h-10 bg-gradient-to-br from-[#006227] to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -32,7 +36,6 @@ const getExportUrl = () => {
       </div>
 
       <div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 p-10 rounded-3xl border border-gray-200 shadow-xl">
-
         <div className="max-w-2xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <div>
@@ -40,30 +43,29 @@ const getExportUrl = () => {
                 <Calendar size={16} />
                 Tanggal Mulai
               </label>
-              <input
-                type="date"
+
+              <DateSelect
                 value={startDate}
-                max={today} 
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(value) => setStartDate(value)}
                 className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
               />
             </div>
+
             <div>
               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
                 <Calendar size={16} />
                 Tanggal Akhir
               </label>
-              <input
-                type="date"
+
+              <DateSelect
                 value={endDate}
-                max={today} 
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(value) => setEndDate(value)}
                 className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
               />
             </div>
           </div>
-          <div className="text-center">
 
+          <div className="text-center">
             {exportUrl ? (
               <>
                 <div className="flex justify-center mb-6">
@@ -83,8 +85,9 @@ const getExportUrl = () => {
                 </h4>
 
                 <p className="text-gray-600 mb-6">
-                  Scan QR ini untuk mengunduh laporan keuangan.
+                  Scan QR ini untuk mengunduh laporan keuangan public.
                 </p>
+
                 <a
                   href={exportUrl}
                   target="_blank"

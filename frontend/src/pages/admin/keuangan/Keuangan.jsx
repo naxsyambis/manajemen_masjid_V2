@@ -20,6 +20,7 @@ import {
   Info
 } from 'lucide-react';
 import ModalKeuangan from './ModalKeuangan';
+import DateSelect from '../../../components/DateSelect';
 
 const handleAuthError = (err, showPopup) => {
   if (err.response && err.response.status === 401) {
@@ -601,16 +602,11 @@ const Keuangan = () => {
                 Tanggal Transaksi
               </label>
 
-              <div className="relative">
-                <input 
-                  type="date" 
-                  value={formData.tanggal} 
-                  className="w-full px-6 py-5 bg-gray-50 rounded-3xl outline-none text-sm font-bold shadow-inner focus:bg-gray-100 transition-all cursor-pointer appearance-none" 
-                  onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })} 
-                  required
+              <DateSelect
+                  value={formData.tanggal}
+                  onChange={(value) => setFormData({ ...formData, tanggal: value })}
+                  className="w-full px-6 py-5 bg-gray-50 rounded-3xl outline-none text-sm font-bold shadow-inner focus:bg-gray-100 transition-all cursor-pointer"
                 />
-                <Calendar className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
             </div>
 
             <div className="md:col-span-2 space-y-3 group">
