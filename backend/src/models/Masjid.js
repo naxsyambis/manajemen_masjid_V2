@@ -4,14 +4,13 @@ const sequelize = require("../config/database");
 const Masjid = sequelize.define("masjid", {
     masjid_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     nama_masjid: DataTypes.STRING,
+    kode_surat: DataTypes.STRING, 
     alamat: DataTypes.TEXT,
     no_hp: DataTypes.STRING,
     deskripsi: DataTypes.TEXT,
     logo_foto: DataTypes.STRING,
-
     latitude: DataTypes.FLOAT,
     longitude: DataTypes.FLOAT
-
 }, {
     tableName: "masjid",
     timestamps: false
