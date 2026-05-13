@@ -43,12 +43,10 @@ export const generateLaporanKeuanganPDF = async (
 
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Border
     doc.setDrawColor(0, 98, 39);
     doc.setLineWidth(1.5);
     doc.rect(10, 10, 190, 277);
 
-    // Nama masjid
     doc.setTextColor(0, 98, 39);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
@@ -56,18 +54,15 @@ export const generateLaporanKeuanganPDF = async (
       align: "center",
     });
 
-    // Judul
     doc.setFontSize(22);
     doc.text("QR LAPORAN KEUANGAN", pageWidth / 2, 42, {
       align: "center",
     });
 
-    // Garis
     doc.setDrawColor(0, 98, 39);
     doc.setLineWidth(0.8);
     doc.line(45, 49, 165, 49);
 
-    // Periode
     doc.setTextColor(50, 50, 50);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
@@ -78,15 +73,12 @@ export const generateLaporanKeuanganPDF = async (
       { align: "center" }
     );
 
-    // Box QR
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.5);
     doc.rect(50, 75, 110, 110);
 
-    // QR image
     doc.addImage(qrImage, "PNG", 55, 80, 100, 100);
 
-    // Teks scan
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
@@ -94,7 +86,6 @@ export const generateLaporanKeuanganPDF = async (
       align: "center",
     });
 
-    // Link aktif
     doc.setTextColor(0, 98, 39);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
@@ -116,7 +107,6 @@ export const generateLaporanKeuanganPDF = async (
       });
     });
 
-    // Tombol teks klik
     const buttonY = linkY + splitUrl.length * 6 + 10;
 
     doc.setFillColor(0, 98, 39);
@@ -130,7 +120,6 @@ export const generateLaporanKeuanganPDF = async (
       align: "center",
     });
 
-    // Keterangan
     doc.setTextColor(85, 85, 85);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
@@ -148,7 +137,6 @@ export const generateLaporanKeuanganPDF = async (
       { align: "center" }
     );
 
-    // Catatan bawah
     doc.setTextColor(120, 120, 120);
     doc.setFont("helvetica", "italic");
     doc.setFontSize(10);
