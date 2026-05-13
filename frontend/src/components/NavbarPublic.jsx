@@ -95,7 +95,7 @@ const NavbarPublic = () => {
           </h2>
           <p className="text-[9px] font-bold text-white/90 uppercase tracking-[0.3em] mt-1.5 flex items-center gap-1.5">
             <span className="w-1 h-1 bg-mu-yellow rounded-full"></span>
-            Manajemen Masjid
+            PCM PUNDONG
           </p>
         </div>
       </div>
