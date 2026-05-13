@@ -175,12 +175,21 @@ const RangeCalendar = ({ startDate, endDate, onSelectDate }) => {
     return days;
   }, [currentMonth, currentYear]);
 
-  const start = startDate ? parseDate(startDate) : null;
-  const end = endDate ? parseDate(endDate) : null;
-  const todayKey = formatDateKey(new Date());
+    const start = startDate ? parseDate(startDate) : null;
+    const end = endDate ? parseDate(endDate) : null;
 
-  const getDayClass = (date, isCurrentMonth) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayKey = formatDateKey(today);
+
+    const getDayClass = (date, isCurrentMonth) => {
     const dateKey = formatDateKey(date);
+
+    const cleanDate = new Date(date);
+    cleanDate.setHours(0, 0, 0, 0);
+
+    const isFutureDate = cleanDate > today;
 
     const isStart = startDate === dateKey;
     const isEnd = endDate === dateKey;
@@ -191,6 +200,10 @@ const RangeCalendar = ({ startDate, endDate, onSelectDate }) => {
       end &&
       date >= start &&
       date <= end;
+
+    if (isFutureDate) {
+      return 'bg-gray-50 text-gray-200 cursor-not-allowed opacity-50';
+    }
 
     if (isStart && isEnd) {
       return 'bg-mu-green text-white shadow-lg shadow-green-100 scale-105';
@@ -259,11 +272,11 @@ const RangeCalendar = ({ startDate, endDate, onSelectDate }) => {
             onChange={(e) => setCurrentYear(Number(e.target.value))}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm font-black text-gray-700 focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all cursor-pointer"
           >
-            {Array.from({ length: 21 }, (_, i) => new Date().getFullYear() - 10 + i).map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
+            {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 10 + i).map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
           </select>
         </div>
 
@@ -280,22 +293,31 @@ const RangeCalendar = ({ startDate, endDate, onSelectDate }) => {
 
         <div className="grid grid-cols-7 gap-2">
           {calendarDays.map((item) => {
-            const dateKey = formatDateKey(item.date);
+              const dateKey = formatDateKey(item.date);
 
-            return (
-              <button
-                key={dateKey}
-                type="button"
-                onClick={() => onSelectDate(dateKey)}
-                className={`h-11 rounded-xl text-xs font-black transition-all active:scale-90 ${getDayClass(
-                  item.date,
-                  item.currentMonth
-                )}`}
-              >
-                {item.date.getDate()}
-              </button>
-            );
-          })}
+              const cleanDate = new Date(item.date);
+              cleanDate.setHours(0, 0, 0, 0);
+
+              const isFutureDate = cleanDate > today;
+
+              return (
+                <button
+                  key={dateKey}
+                  type="button"
+                  disabled={isFutureDate}
+                  onClick={() => {
+                    if (isFutureDate) return;
+                    onSelectDate(dateKey);
+                  }}
+                  className={`h-11 rounded-xl text-xs font-black transition-all active:scale-90 disabled:active:scale-100 ${getDayClass(
+                    item.date,
+                    item.currentMonth
+                  )}`}
+                >
+                  {item.date.getDate()}
+                </button>
+              );
+            })}
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
