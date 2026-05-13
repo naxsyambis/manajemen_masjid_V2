@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 
-const BACKEND_URL = "https://masjidmupundong.com";
+const BACKEND_URL = "http://192.168.1.196:3000";
 
 export const getTtdUrl = (ttd) => {
   if (!ttd) return null;

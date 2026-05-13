@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { TrendingUp, Calendar } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
+import DateSelect from '../../../components/DateSelect';
 
 const GrafikKeuangan = ({ masjidId, namaMasjid }) => {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const today = new Date().toISOString().split('T')[0];
-
 const getExportUrl = () => {
   if (!masjidId || !startDate || !endDate) return '';
 
-  const BASE_URL = "https://masjidmupundong.com";
+  const BASE_URL = "http://192.168.1.196:3000";
 
   return `${BASE_URL}/laporan-keuangan/verifikasi-pdf?masjid_id=${masjidId}&nama_masjid=${encodeURIComponent(namaMasjid || "Masjid")}&startDate=${startDate}&endDate=${endDate}`;
 };
@@ -40,11 +39,9 @@ const getExportUrl = () => {
                 <Calendar size={16} />
                 Tanggal Mulai
               </label>
-              <input
-                type="date"
+              <DateSelect
                 value={startDate}
-                max={today} 
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(value) => setStartDate(value)}
                 className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
               />
             </div>
@@ -53,13 +50,11 @@ const getExportUrl = () => {
                 <Calendar size={16} />
                 Tanggal Akhir
               </label>
-              <input
-                type="date"
-                value={endDate}
-                max={today} 
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
-              />
+              <DateSelect
+                  value={endDate}
+                  onChange={(value) => setEndDate(value)}
+                  className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006227]"
+                />
             </div>
           </div>
           <div className="text-center">

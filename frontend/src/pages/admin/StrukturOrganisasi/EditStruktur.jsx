@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Upload, Save, User, Calendar, RefreshCcw, AlertCircle, X, AlertTriangle, CheckCircle2, XCircle, Info, PenTool
 } from 'lucide-react';
+import DateSelect from '../../../components/DateSelect';
 
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
@@ -187,8 +188,22 @@ const EditStruktur = () => {
                     <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-mu-green pb-3">Informasi Struktur</h3>
                     <div className="space-y-3"><label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Nama</label><div className="relative"><User size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" /><input type="text" value={formData.nama} onChange={(e) => setFormData({ ...formData, nama: e.target.value })} className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm" placeholder="Masukkan nama" /></div></div>
                     <div className="space-y-3"><label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Jabatan</label><input type="text" value={formData.jabatan} onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })} className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm" placeholder="Contoh: Ketua DKM, Sekretaris, Bendahara" /></div>
-                    <div className="space-y-3"><label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Mulai</label><div className="relative"><Calendar size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" /><input type="date" value={formData.periode_mulai} onChange={(e) => setFormData({ ...formData, periode_mulai: e.target.value })} className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm" /></div></div>
-                    <div className="space-y-3"><label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Selesai</label><div className="relative"><Calendar size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" /><input type="date" value={formData.periode_selesai} onChange={(e) => setFormData({ ...formData, periode_selesai: e.target.value })} className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm" /></div></div>
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Mulai</label>
+                      <DateSelect
+                        value={formData.periode_mulai}
+                        onChange={(value) => setFormData({ ...formData, periode_mulai: value })}
+                        className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Selesai</label>
+                      <DateSelect
+                        value={formData.periode_selesai}
+                        onChange={(value) => setFormData({ ...formData, periode_selesai: value })}
+                        className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

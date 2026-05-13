@@ -8,6 +8,7 @@ import {
   Upload, Save, User, Calendar, RefreshCcw, 
   X, AlertTriangle, CheckCircle2, XCircle, Info 
 } from 'lucide-react';
+import DateSelect from '../../../components/DateSelect';
 
 const AlertPopup = ({ alertData, onClose }) => {
   if (!alertData.show) return null;
@@ -286,19 +287,17 @@ const TambahKepengurusan = ({ user, onLogout }) => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                           <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Mulai</label>
-                          <input
-                            type="date"
+                          <DateSelect
                             value={formData.periode_mulai}
-                            onChange={(e) => setFormData({ ...formData, periode_mulai: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, periode_mulai: value })}
                             className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 shadow-sm"
                           />
                         </div>
                         <div className="space-y-3">
                           <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Periode Selesai</label>
-                          <input
-                            type="date"
+                          <DateSelect
                             value={formData.periode_selesai}
-                            onChange={(e) => setFormData({ ...formData, periode_selesai: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, periode_selesai: value })}
                             className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 shadow-sm"
                           />
                         </div>

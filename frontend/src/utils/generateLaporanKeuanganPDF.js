@@ -117,7 +117,7 @@ export const generateLaporanKeuanganPDF = async (
     return;
   }
 
-  const backendUrl = "https://masjidmupundong.com";
+  const backendUrl = "http://192.168.1.196:3000";
 
   const urlLaporanPdf =
     `${backendUrl}/laporan-keuangan/verifikasi-pdf` +
