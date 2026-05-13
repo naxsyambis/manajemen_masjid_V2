@@ -637,41 +637,42 @@ router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
     });
 
     let y = 315;
-    y = drawTableHeader(doc, y);
-
-    transaksi.forEach((item, index) => {
-      if (y > 640) {
-        doc.addPage();
-        drawPageTemplate(doc);
-
-        y = 120;
-
-        doc
-          .font("Helvetica-Bold")
-          .fontSize(12)
-          .fillColor("#006227")
-          .text((namaMasjid || "-").toUpperCase(), 40, 70, {
-            width: 515,
-            align: "center"
-          });
-
-        y = drawTableHeader(doc, y);
-      }
-
-      y = drawTableRow(doc, item, index, y);
-    });
-
-    if (transaksi.length === 0) {
-      doc
-        .font("Helvetica")
-        .fontSize(9)
-        .fillColor("black")
-        .text("Tidak ada transaksi pada periode ini.", 45, y + 10);
-
-      y += 35;
-    }
 
     if (!isPublic) {
+      y = drawTableHeader(doc, y);
+
+      transaksi.forEach((item, index) => {
+        if (y > 640) {
+          doc.addPage();
+          drawPageTemplate(doc);
+
+          y = 120;
+
+          doc
+            .font("Helvetica-Bold")
+            .fontSize(12)
+            .fillColor("#006227")
+            .text((namaMasjid || "-").toUpperCase(), 40, 70, {
+              width: 515,
+              align: "center"
+            });
+
+          y = drawTableHeader(doc, y);
+        }
+
+        y = drawTableRow(doc, item, index, y);
+      });
+
+      if (transaksi.length === 0) {
+        doc
+          .font("Helvetica")
+          .fontSize(9)
+          .fillColor("black")
+          .text("Tidak ada transaksi pada periode ini.", 45, y + 10);
+
+        y += 35;
+      }
+
       if (y > 570) {
         doc.addPage();
         drawPageTemplate(doc);
@@ -713,15 +714,6 @@ router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
         .fontSize(8)
         .fillColor("gray")
         .text("*Bukti ini sah sebagai dokumen internal masjid.", 40, 780, {
-          width: 515,
-          align: "right"
-        });
-    } else {
-      doc
-        .font("Helvetica-Oblique")
-        .fontSize(8)
-        .fillColor("gray")
-        .text("*Laporan public hanya menampilkan ringkasan dan transaksi periode.", 40, 780, {
           width: 515,
           align: "right"
         });
