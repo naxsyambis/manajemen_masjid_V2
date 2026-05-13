@@ -10,10 +10,12 @@ const createQrImage = async (urlLaporanPdf) => {
   });
 };
 
+// TERIMA PARAMETER BARU: selectedKategori
 export const generateLaporanKeuanganPDF = async (
   transaksi,
   startDate,
-  endDate
+  endDate,
+  selectedKategori = "" 
 ) => {
   const namaMasjid = localStorage.getItem("namaMasjid") || "-";
   const masjidId = localStorage.getItem("masjid_id");
@@ -23,14 +25,20 @@ export const generateLaporanKeuanganPDF = async (
     return;
   }
 
-  const backendUrl = "http://192.168.1.196:3000";
+  // Sesuaikan dengan IP/Domain Backend-mu
+  const backendUrl = "http://localhost:3000";
 
-  const urlLaporanPdf =
+  // SISIPKAN KATEGORI ID KE URL (Bila ada)
+  let urlLaporanPdf =
     `${backendUrl}/laporan-keuangan/verifikasi-pdf` +
     `?masjid_id=${encodeURIComponent(masjidId)}` +
     `&nama_masjid=${encodeURIComponent(namaMasjid)}` +
     `&startDate=${encodeURIComponent(startDate)}` +
     `&endDate=${encodeURIComponent(endDate)}`;
+
+  if (selectedKategori) {
+    urlLaporanPdf += `&kategori_id=${encodeURIComponent(selectedKategori)}`;
+  }
 
   try {
     const qrImage = await createQrImage(urlLaporanPdf);
@@ -66,30 +74,34 @@ export const generateLaporanKeuanganPDF = async (
     doc.setTextColor(50, 50, 50);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
+    
+    // Tampilkan label kategori di QR Code (Opsional, asumsikan "Semua Kategori" jika kosong)
+    const kategoriLabel = selectedKategori ? "Laporan Terfilter" : "Semua Kategori";
+    
     doc.text(
-      `Periode: ${formatTanggal(startDate)} s/d ${formatTanggal(endDate)}`,
+      `Periode: ${formatTanggal(startDate)} s/d ${formatTanggal(endDate)}\n(${kategoriLabel})`,
       pageWidth / 2,
-      62,
+      60,
       { align: "center" }
     );
 
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.5);
-    doc.rect(50, 75, 110, 110);
+    doc.rect(50, 77, 110, 110);
 
-    doc.addImage(qrImage, "PNG", 55, 80, 100, 100);
+    doc.addImage(qrImage, "PNG", 55, 82, 100, 100);
 
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text("SCAN QR UNTUK MEMBUKA PDF LAPORAN", pageWidth / 2, 200, {
+    doc.text("SCAN QR UNTUK MEMBUKA PDF LAPORAN", pageWidth / 2, 204, {
       align: "center",
     });
 
     doc.setTextColor(0, 98, 39);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("Atau klik link berikut:", pageWidth / 2, 214, {
+    doc.text("Atau klik link berikut:", pageWidth / 2, 218, {
       align: "center",
     });
 
@@ -98,7 +110,7 @@ export const generateLaporanKeuanganPDF = async (
 
     const splitUrl = doc.splitTextToSize(urlLaporanPdf, 160);
 
-    let linkY = 224;
+    let linkY = 228;
 
     splitUrl.forEach((line, index) => {
       doc.textWithLink(line, pageWidth / 2, linkY + index * 6, {
