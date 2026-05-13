@@ -190,7 +190,13 @@ const getDeskripsi = (item) => {
 };
 
 const getPihak = (item) => {
-  return item.nama_donatur || "Hamba Allah";
+  const signed = getNominalSigned(item);
+
+  if (item.nama_donatur && item.nama_donatur.trim()) {
+    return item.nama_donatur;
+  }
+
+  return signed < 0 ? "Penerima" : "Hamba Allah";
 };
 
 const getTtdImagePath = (ttd) => {
@@ -224,7 +230,7 @@ const drawPageTemplate = (doc) => {
   }
 };
 
-const drawHeader = ({ doc, namaMasjid, startDate, endDate }) => {
+const drawHeader = ({ doc, namaMasjid, startDate, endDate, isPublic }) => {
   drawPageTemplate(doc);
 
   doc
@@ -240,10 +246,17 @@ const drawHeader = ({ doc, namaMasjid, startDate, endDate }) => {
     .font("Helvetica-Bold")
     .fontSize(17)
     .fillColor("#006227")
-    .text("LAPORAN REKAPITULASI KEUANGAN", 40, 158, {
-      width: 515,
-      align: "center"
-    });
+    .text(
+      isPublic
+        ? "LAPORAN KEUANGAN PUBLIC"
+        : "LAPORAN REKAPITULASI KEUANGAN",
+      40,
+      158,
+      {
+        width: 515,
+        align: "center"
+      }
+    );
 
   doc
     .moveTo(155, 184)
@@ -265,7 +278,13 @@ const drawHeader = ({ doc, namaMasjid, startDate, endDate }) => {
     );
 };
 
-const drawRingkasan = ({ doc, totalMasuk, totalKeluar, saldoAkhir }) => {
+const drawRingkasan = ({
+  doc,
+  totalMasuk,
+  totalKeluar,
+  saldoAkhir,
+  isPublic
+}) => {
   doc
     .roundedRect(40, 220, 515, 70, 8)
     .fillAndStroke("#ffffff", "#dddddd");
@@ -297,7 +316,7 @@ const drawRingkasan = ({ doc, totalMasuk, totalKeluar, saldoAkhir }) => {
 
   doc
     .fillColor("black")
-    .text("SALDO AKHIR PERIODE", 55, 275);
+    .text(isPublic ? "SELISIH" : "SALDO AKHIR PERIODE", 55, 275);
 
   doc.text(formatRupiah(saldoAkhir), 430, 275, {
     width: 100,
@@ -379,7 +398,12 @@ const drawTableRow = (doc, item, index, y) => {
     align: "left"
   });
 
-  const rowHeight = Math.max(28, deskripsiHeight + 14);
+  const pihakHeight = doc.heightOfString(pihak, {
+    width: col.pihak.width - paddingX * 2,
+    align: "center"
+  });
+
+  const rowHeight = Math.max(28, deskripsiHeight + 14, pihakHeight + 14);
 
   doc.rect(col.tableX, y, col.tableWidth, rowHeight).stroke("#dddddd");
 
@@ -553,7 +577,8 @@ router.get("/laporan-keuangan/test", (req, res) => {
 
 router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
   try {
-    const { masjid_id, nama_masjid, startDate, endDate } = req.query;
+    const { masjid_id, nama_masjid, startDate, endDate, mode } = req.query;
+    const isPublic = mode === "public";
 
     if (!masjid_id || !startDate || !endDate) {
       return res
@@ -599,14 +624,16 @@ router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
       doc,
       namaMasjid,
       startDate,
-      endDate
+      endDate,
+      isPublic
     });
 
     drawRingkasan({
       doc,
       totalMasuk,
       totalKeluar,
-      saldoAkhir
+      saldoAkhir,
+      isPublic
     });
 
     let y = 315;
@@ -644,50 +671,61 @@ router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
       y += 35;
     }
 
-    if (y > 570) {
-      doc.addPage();
-      drawPageTemplate(doc);
-      y = 120;
-    }
+    if (!isPublic) {
+      if (y > 570) {
+        doc.addPage();
+        drawPageTemplate(doc);
+        y = 120;
+      }
 
-    drawTandaTangan({
-      doc,
-      y: 575,
-      ketua,
-      bendahara,
-      namaMasjid,
-      tanggalCetak: new Date()
-    });
-
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(9)
-      .fillColor("black")
-      .text("Rekening Masjid:", 40, 705);
-
-    doc
-      .font("Helvetica")
-      .fontSize(8)
-      .fillColor("black")
-      .text(
-        rekeningMasjid && rekeningMasjid !== "-"
-          ? rekeningMasjid
-          : "Rekening masjid belum diatur.",
-        40,
-        720,
-        {
-          width: 260
-        }
-      );
-
-    doc
-      .font("Helvetica-Oblique")
-      .fontSize(8)
-      .fillColor("gray")
-      .text("*Bukti ini sah sebagai dokumen internal masjid.", 40, 780, {
-        width: 515,
-        align: "right"
+      drawTandaTangan({
+        doc,
+        y: 575,
+        ketua,
+        bendahara,
+        namaMasjid,
+        tanggalCetak: new Date()
       });
+
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(9)
+        .fillColor("black")
+        .text("Rekening Masjid:", 40, 705);
+
+      doc
+        .font("Helvetica")
+        .fontSize(8)
+        .fillColor("black")
+        .text(
+          rekeningMasjid && rekeningMasjid !== "-"
+            ? rekeningMasjid
+            : "Rekening masjid belum diatur.",
+          40,
+          720,
+          {
+            width: 260
+          }
+        );
+
+      doc
+        .font("Helvetica-Oblique")
+        .fontSize(8)
+        .fillColor("gray")
+        .text("*Bukti ini sah sebagai dokumen internal masjid.", 40, 780, {
+          width: 515,
+          align: "right"
+        });
+    } else {
+      doc
+        .font("Helvetica-Oblique")
+        .fontSize(8)
+        .fillColor("gray")
+        .text("*Laporan public hanya menampilkan ringkasan dan transaksi periode.", 40, 780, {
+          width: 515,
+          align: "right"
+        });
+    }
 
     doc.end();
   } catch (error) {
