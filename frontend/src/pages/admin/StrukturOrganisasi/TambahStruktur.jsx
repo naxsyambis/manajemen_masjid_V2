@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react'; // Gabungkan import di sini
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -19,18 +18,17 @@ import {
   PenTool,
   ChevronLeft,
   ChevronRight,
-  Trash2,
   Eraser
 } from 'lucide-react';
-import DateSelect from '../../../components/DateSelect';
 
+// Konstanta Kalender
 const bulanIndonesia = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ];
-
 const hariIndonesia = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
+// Helper Functions
 const formatDateKey = (date) => {
   if (!date) return '';
   const year = date.getFullYear();
@@ -48,6 +46,7 @@ const parseDateKey = (dateKey) => {
 const formatTanggalIndo = (dateKey) => {
   if (!dateKey) return 'Pilih tanggal';
   const date = parseDateKey(dateKey);
+  if (!date) return 'Pilih tanggal';
   return date.toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',
@@ -60,7 +59,6 @@ const AlertPopup = ({ alertData, onClose }) => {
   const isSuccess = alertData.type === 'success';
   const isError = alertData.type === 'error';
   const isWarning = alertData.type === 'warning';
-
   const Icon = isSuccess ? CheckCircle2 : isError ? XCircle : isWarning ? AlertTriangle : Info;
   const iconClass = isSuccess ? 'bg-green-100 text-green-600' : isError ? 'bg-red-100 text-red-600' : isWarning ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600';
   const buttonClass = isSuccess ? 'bg-green-600 hover:bg-green-700 text-white' : isError ? 'bg-red-600 hover:bg-red-700 text-white' : isWarning ? 'bg-mu-yellow hover:bg-yellow-400 text-mu-green' : 'bg-mu-green hover:bg-green-700 text-white';
@@ -68,39 +66,24 @@ const AlertPopup = ({ alertData, onClose }) => {
   return createPortal(
     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
-        <button type="button" onClick={onClose} className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all">
-          <X size={20} />
-        </button>
+      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden">
+        <button type="button" onClick={onClose} className="absolute right-5 top-5 p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"><X size={20} /></button>
         <div className="p-8 text-center">
-          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}>
-            <Icon size={42} strokeWidth={2.5} />
-          </div>
+          <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-5 ${iconClass}`}><Icon size={42} strokeWidth={2.5} /></div>
           <h3 className="text-2xl font-black text-gray-800 leading-tight">{alertData.title}</h3>
           <p className="mt-3 text-sm font-semibold text-gray-500 leading-relaxed whitespace-pre-line">{alertData.message}</p>
-          <button type="button" onClick={onClose} className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}>
-            {alertData.confirmText || 'Mengerti'}
-          </button>
+          <button type="button" onClick={onClose} className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}>{alertData.confirmText || 'Mengerti'}</button>
         </div>
       </div>
-    </div>,
-    document.body
+    </div>, document.body
   );
 };
 
 const CustomCalendarInput = ({ label, value, onChange, minDate = '', maxDate = '' }) => {
-  const selectedDate = value ? parseDateKey(value) : new Date();
   const [showCalendar, setShowCalendar] = useState(false);
-  const [activeMonth, setActiveMonth] = useState(selectedDate.getMonth());
-  const [activeYear, setActiveYear] = useState(selectedDate.getFullYear());
-
-  useEffect(() => {
-    if (value) {
-      const date = parseDateKey(value);
-      setActiveMonth(date.getMonth());
-      setActiveYear(date.getFullYear());
-    }
-  }, [value]);
+  const initialDate = value ? parseDateKey(value) : new Date();
+  const [activeMonth, setActiveMonth] = useState(initialDate.getMonth());
+  const [activeYear, setActiveYear] = useState(initialDate.getFullYear());
 
   const days = useMemo(() => {
     const firstDay = new Date(activeYear, activeMonth, 1);
@@ -111,7 +94,7 @@ const CustomCalendarInput = ({ label, value, onChange, minDate = '', maxDate = '
     const calendarDays = [];
 
     for (let i = startDayIndex - 1; i >= 0; i--) {
-      calendarDays.push({ date: new Date(activeYear, activeMonth - 1, prevMonthLastDate - i), isCurrentMonth: false });
+      calendarDays.push({ date: new Date(activeYear, activeMonth, -i), isCurrentMonth: false });
     }
     for (let day = 1; day <= daysInMonth; day++) {
       calendarDays.push({ date: new Date(activeYear, activeMonth, day), isCurrentMonth: true });
@@ -123,58 +106,47 @@ const CustomCalendarInput = ({ label, value, onChange, minDate = '', maxDate = '
     return calendarDays;
   }, [activeMonth, activeYear]);
 
-  const todayKey = formatDateKey(new Date());
-  const handlePrevMonth = () => activeMonth === 0 ? (setActiveMonth(11), setActiveYear(y => y - 1)) : setActiveMonth(m => m - 1);
-  const handleNextMonth = () => activeMonth === 11 ? (setActiveMonth(0), setActiveYear(y => y + 1)) : setActiveMonth(m => m + 1);
-  const isDisabledDate = (dateKey) => (minDate && new Date(dateKey) < new Date(minDate)) || (maxDate && new Date(dateKey) > new Date(maxDate));
-  const handlePickDate = (dateKey) => { if (!isDisabledDate(dateKey)) { onChange(dateKey); setShowCalendar(false); } };
+  const handlePrevMonth = () => activeMonth === 0 ? (setActiveMonth(11), setActiveYear(v => v - 1)) : setActiveMonth(v => v - 1);
+  const handleNextMonth = () => activeMonth === 11 ? (setActiveMonth(0), setActiveYear(v => v + 1)) : setActiveMonth(v => v + 1);
 
   return (
     <div className="relative">
-      <button type="button" onClick={() => setShowCalendar(true)} className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm text-left">
-        <span className={value ? 'text-gray-700' : 'text-gray-400'}>{value ? formatTanggalIndo(value) : 'Pilih tanggal'}</span>
+      <button type="button" onClick={() => setShowCalendar(true)} className="w-full pl-12 pr-4 py-4 border border-gray-100 rounded-2xl bg-gray-50 font-bold text-gray-700 text-left outline-none focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green transition-all">
+        {value ? formatTanggalIndo(value) : 'Pilih Tanggal'}
       </button>
-      <Calendar size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+      <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-mu-green" />
+      
       {showCalendar && createPortal(
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-md" onClick={() => setShowCalendar(false)} />
-          <div className="relative z-10 bg-white w-full max-w-md rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden animate-scaleIn">
-            <div className="p-6 bg-mu-green text-white flex justify-between items-center relative overflow-hidden">
-              <div className="relative z-10">
-                <h3 className="text-2xl font-black uppercase tracking-tighter leading-none">{label}</h3>
-                <p className="text-[10px] opacity-80 font-bold uppercase tracking-widest mt-2">Pilih tanggal periode</p>
-              </div>
-              <button type="button" onClick={() => setShowCalendar(false)} className="relative z-10 p-2 hover:bg-white/20 rounded-xl transition-all"><X size={24} /></button>
+          <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden">
+            <div className="p-8 bg-mu-green text-white">
+              <h4 className="text-2xl font-black uppercase tracking-tighter">{label}</h4>
             </div>
-            <div className="p-6">
+            <div className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <button type="button" onClick={handlePrevMonth} className="w-11 h-11 rounded-xl bg-gray-50 text-gray-500 hover:bg-mu-green hover:text-white transition-all flex items-center justify-center"><ChevronLeft size={22} /></button>
+                <button type="button" onClick={handlePrevMonth} className="p-2 bg-gray-50 rounded-xl hover:bg-mu-green hover:text-white transition-all"><ChevronLeft /></button>
                 <div className="text-center">
-                  <h4 className="text-xl font-black text-gray-800 uppercase tracking-tighter">{bulanIndonesia[activeMonth]}</h4>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">{activeYear}</p>
+                  <p className="font-black text-gray-800 uppercase">{bulanIndonesia[activeMonth]}</p>
+                  <p className="text-[10px] font-bold text-gray-400">{activeYear}</p>
                 </div>
-                <button type="button" onClick={handleNextMonth} className="w-11 h-11 rounded-xl bg-gray-50 text-gray-500 hover:bg-mu-green hover:text-white transition-all flex items-center justify-center"><ChevronRight size={22} /></button>
+                <button type="button" onClick={handleNextMonth} className="p-2 bg-gray-50 rounded-xl hover:bg-mu-green hover:text-white transition-all"><ChevronRight /></button>
               </div>
-              <div className="grid grid-cols-7 gap-2 mb-2">
-                {hariIndonesia.map(day => <div key={day} className="h-9 flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-gray-400">{day}</div>)}
+              <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                {hariIndonesia.map(h => <div key={h} className="text-[10px] font-black text-gray-300 uppercase">{h}</div>)}
               </div>
-              <div className="grid grid-cols-7 gap-2">
-                {days.map((item, index) => {
-                  const dateKey = formatDateKey(item.date);
-                  const isSelected = value === dateKey;
-                  const isToday = todayKey === dateKey;
-                  const disabled = isDisabledDate(dateKey);
+              <div className="grid grid-cols-7 gap-1">
+                {days.map((d, i) => {
+                  const key = formatDateKey(d.date);
+                  const isSelected = value === key;
+                  const isDisabled = (minDate && key < minDate) || (maxDate && key > maxDate);
                   return (
-                    <button key={index} type="button" disabled={disabled} onClick={() => handlePickDate(dateKey)}
-                      className={`h-11 rounded-xl text-xs font-black transition-all ${disabled ? 'text-gray-200 cursor-not-allowed' : isSelected ? 'bg-mu-green text-white scale-105' : isToday ? 'bg-green-50 text-mu-green border border-mu-green/20' : item.isCurrentMonth ? 'text-gray-700 hover:bg-gray-50' : 'text-gray-200'}`}>
-                      {item.date.getDate()}
+                    <button key={i} type="button" disabled={isDisabled} onClick={() => { onChange(key); setShowCalendar(false); }}
+                      className={`h-10 rounded-xl text-xs font-bold transition-all ${isDisabled ? 'opacity-20 cursor-not-allowed' : isSelected ? 'bg-mu-green text-white' : d.isCurrentMonth ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200'}`}>
+                      {d.date.getDate()}
                     </button>
                   );
                 })}
-              </div>
-              <div className="flex gap-3 mt-8">
-                <button type="button" onClick={() => { onChange(''); setShowCalendar(false); }} className="flex-1 py-4 bg-gray-50 text-gray-400 rounded-2xl font-black uppercase text-[10px] tracking-widest">Kosongkan</button>
-                <button type="button" onClick={() => setShowCalendar(false)} className="flex-[2] py-4 bg-mu-green text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-green-100">Selesai</button>
               </div>
             </div>
           </div>
@@ -188,94 +160,56 @@ const TambahStruktur = () => {
   const [formData, setFormData] = useState({ nama: '', jabatan: '', periode_mulai: '', periode_selesai: '' });
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  
-  // TTD Logic
-  const [ttdMode, setTtdMode] = useState('upload'); // 'upload' | 'canvas'
+  const [ttdMode, setTtdMode] = useState('upload');
   const [fileTtd, setFileTtd] = useState(null);
   const [previewTtdUrl, setPreviewTtdUrl] = useState(null);
   const sigPad = useRef(null);
-
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [time, setTime] = useState(new Date());
-
-  const [alertData, setAlertData] = useState({ show: false, type: 'info', title: '', message: '', confirmText: '', onConfirm: null });
+  const [alertData, setAlertData] = useState({ show: false, type: 'info', title: '', message: '' });
 
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const masjidId = localStorage.getItem('masjid_id');
-
-  const showPopup = (config) => setAlertData({ ...config, show: true });
-  const closePopup = () => {
-    const callback = alertData.onConfirm;
-    setAlertData({ show: false, type: 'info', title: '', message: '', confirmText: '', onConfirm: null });
-    if (callback) setTimeout(callback, 100);
-  };
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const handleFileChange = (e, type) => {
-    const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
-    if (!selectedFile.type.startsWith('image/')) {
-      showPopup({ type: 'warning', title: 'File Tidak Valid', message: 'File harus berupa gambar.' });
-      return;
-    }
-    if (selectedFile.size > 3 * 1024 * 1024) {
-      showPopup({ type: 'warning', title: 'Ukuran Terlalu Besar', message: 'Ukuran file maksimal 3MB.' });
-      return;
-    }
-
-    if (type === 'foto') {
-      setFile(selectedFile);
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-    } else if (type === 'ttd') {
-      setFileTtd(selectedFile);
-      setPreviewTtdUrl(URL.createObjectURL(selectedFile));
-      setTtdMode('upload');
-    }
+  const showPopup = (config) => setAlertData({ ...config, show: true });
+  const closePopup = () => {
+    const cb = alertData.onConfirm;
+    setAlertData({ ...alertData, show: false });
+    if (cb) setTimeout(cb, 100);
   };
 
-  const clearCanvas = () => {
-    sigPad.current?.clear();
-    setFileTtd(null);
-    setPreviewTtdUrl(null);
+  const handleFileChange = (e, type) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 3 * 1024 * 1024) return showPopup({ type: 'warning', title: 'Terlalu Besar', message: 'Maksimal 3MB' });
+
+    const url = URL.createObjectURL(f);
+    if (type === 'foto') { setFile(f); setPreviewUrl(url); }
+    else { setFileTtd(f); setPreviewTtdUrl(url); }
   };
 
   const handleCanvasEnd = () => {
-    if (sigPad.current.isEmpty()) return;
-    
     const canvas = sigPad.current.getCanvas();
     canvas.toBlob((blob) => {
-      const file = new File([blob], `ttd_canvas_${Date.now()}.png`, { type: "image/png" });
-      setFileTtd(file);
-
-      setPreviewTtdUrl(canvas.toDataURL("image/png"));
+      setFileTtd(new File([blob], "ttd.png", { type: "image/png" }));
+      setPreviewTtdUrl(canvas.toDataURL());
     });
-  };
-
-  const validateForm = () => {
-    if (!formData.nama.trim()) { showPopup({ type: 'warning', title: 'Nama Kosong', message: 'Nama wajib diisi.' }); return false; }
-    if (!formData.jabatan.trim()) { showPopup({ type: 'warning', title: 'Jabatan Kosong', message: 'Jabatan wajib diisi.' }); return false; }
-    if (!masjidId) { showPopup({ type: 'warning', title: 'Masjid ID Tidak Ada', message: 'Silakan logout lalu login ulang.' }); return false; }
-    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!formData.nama || !formData.jabatan) return showPopup({ type: 'warning', title: 'Data Kurang', message: 'Nama dan Jabatan wajib diisi' });
 
     setLoading(true);
     const data = new FormData();
-    data.append('nama', formData.nama.trim());
-    data.append('jabatan', formData.jabatan.trim());
+    Object.keys(formData).forEach(key => data.append(key, formData[key]));
     data.append('masjid_id', masjidId);
-    data.append('periode_mulai', formData.periode_mulai);
-    data.append('periode_selesai', formData.periode_selesai);
-
     if (file) data.append('foto', file);
     if (fileTtd) data.append('ttd', fileTtd);
 
@@ -283,187 +217,87 @@ const TambahStruktur = () => {
       await axios.post('http://localhost:3000/takmir/struktur-organisasi', data, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      showPopup({
-        type: 'success',
-        title: 'Data Tersimpan',
-        message: 'Struktur organisasi berhasil ditambahkan.',
-        onConfirm: () => navigate('/admin/struktur-organisasi')
-      });
+      showPopup({ type: 'success', title: 'Berhasil', message: 'Data tersimpan', onConfirm: () => navigate('/admin/struktur-organisasi') });
     } catch (err) {
-      const msg = err.response?.data?.message || 'Gagal menambahkan data.';
-      showPopup({ type: 'error', title: 'Gagal Menyimpan', message: msg });
-    } finally {
-      setLoading(false);
-    }
+      showPopup({ type: 'error', title: 'Gagal', message: err.response?.data?.message || 'Terjadi kesalahan' });
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className="tambah-struktur min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 animate-fadeIn p-8">
+    <div className="min-h-screen bg-gray-50 p-8 animate-fadeIn">
       <AlertPopup alertData={alertData} onClose={closePopup} />
-
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tighter">Tambah <span className="text-mu-green">Struktur</span></h1>
-            <p className="mt-2 text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2">
-              <Calendar size={12} className="text-mu-green" /> {time.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • <span className="text-mu-green">{time.toLocaleTimeString('id-ID')}</span>
-            </p>
+            <h1 className="text-4xl font-black text-gray-800 uppercase">Tambah <span className="text-mu-green">Struktur</span></h1>
+            <p className="text-[10px] font-bold text-gray-400 uppercase mt-2">{time.toLocaleTimeString()}</p>
           </div>
-          <button onClick={() => window.location.reload()} className="flex items-center gap-2 bg-white border border-gray-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-mu-green shadow-sm active:scale-95 transition-all">
-            <RefreshCcw size={14} /> Refresh
-          </button>
         </div>
 
-        <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden p-10 lg:p-16">
-          <form onSubmit={handleSubmit} className="space-y-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-              
-              <div className="space-y-12">
-                <div className="space-y-6">
-                  <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight border-l-4 border-mu-green pl-4">Foto Pengurus</h3>
-                  <label className="block group cursor-pointer">
-                    <div className="border-2 border-dashed border-gray-200 rounded-[2rem] p-10 text-center group-hover:border-mu-green group-hover:bg-mu-green/[0.02] transition-all relative overflow-hidden">
-                      <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'foto')} className="hidden" />
-                      {previewUrl ? (
-                        <div className="relative inline-block">
-                          <img src={previewUrl} alt="Preview" className="w-40 h-40 object-cover rounded-3xl shadow-2xl border-4 border-white" />
-                          <div className="absolute -right-2 -top-2 bg-mu-green text-white p-2 rounded-xl shadow-lg"><Upload size={16}/></div>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto text-gray-300 group-hover:scale-110 transition-transform"><Upload size={32}/></div>
-                          <p className="text-sm font-bold text-gray-500">Klik untuk upload foto pengurus</p>
-                        </div>
-                      )}
-                    </div>
-                  </label>
-                </div>
+        <div className="bg-white rounded-[3rem] p-10 lg:p-16 shadow-sm border border-gray-100">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <div className="space-y-10">
+              {/* Foto Section */}
+              <div className="space-y-4">
+                <h3 className="font-black uppercase border-l-4 border-mu-green pl-4">Foto Pengurus</h3>
+                <label className="block border-2 border-dashed border-gray-200 rounded-[2rem] p-10 text-center cursor-pointer hover:bg-gray-50 transition-all">
+                  <input type="file" className="hidden" onChange={e => handleFileChange(e, 'foto')} />
+                  {previewUrl ? <img src={previewUrl} className="w-40 h-40 object-cover rounded-3xl mx-auto shadow-xl" /> : <Upload className="mx-auto text-gray-300" size={40} />}
+                </label>
+              </div>
 
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight border-l-4 border-mu-green pl-4">Tanda Tangan</h3>
-                    <div className="flex bg-gray-100 p-1 rounded-xl">
-                      <button type="button" onClick={() => setTtdMode('upload')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${ttdMode === 'upload' ? 'bg-white text-mu-green shadow-sm' : 'text-gray-400'}`}>Upload</button>
-                      <button type="button" onClick={() => setTtdMode('canvas')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${ttdMode === 'canvas' ? 'bg-white text-mu-green shadow-sm' : 'text-gray-400'}`}>Canvas</button>
-                    </div>
+              {/* TTD Section */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-black uppercase border-l-4 border-mu-green pl-4">Tanda Tangan</h3>
+                  <div className="flex bg-gray-100 p-1 rounded-xl text-[10px] font-bold uppercase">
+                    <button type="button" onClick={() => setTtdMode('upload')} className={`px-4 py-2 rounded-lg ${ttdMode === 'upload' ? 'bg-white text-mu-green' : 'text-gray-400'}`}>Upload</button>
+                    <button type="button" onClick={() => setTtdMode('canvas')} className={`px-4 py-2 rounded-lg ${ttdMode === 'canvas' ? 'bg-white text-mu-green' : 'text-gray-400'}`}>Canvas</button>
                   </div>
-
-                  <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100">
-                    {ttdMode === 'upload' ? (
-                      <label className="block cursor-pointer">
-                        <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'ttd')} className="hidden" />
-                        <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl h-[200px] flex flex-col items-center justify-center gap-4 hover:border-mu-green transition-all">
-                          {previewTtdUrl ? (
-                              <img src={previewTtdUrl} alt="TTD" className="max-h-[160px] object-contain p-4" />
-                          ) : (
-                            <>
-                              <Upload size={32} className="text-gray-300" />
-                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center px-4">Upload gambar TTD (PNG Transparan disarankan)</p>
-                            </>
-                          )}
-                        </div>
-                      </label>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl overflow-hidden relative">
-                          <SignaturePad 
-                            ref={sigPad} 
-                            onEnd={handleCanvasEnd}
-                            canvasProps={{ className: "w-full h-[200px] cursor-crosshair" }} 
-                          />
-                          <button type="button" onClick={clearCanvas} className="absolute top-4 right-4 p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
-                            <Eraser size={18} />
-                          </button>
-                        </div>
-                        <p className="text-[9px] text-gray-400 text-center italic font-bold uppercase tracking-widest">Silakan coret canvas di atas untuk tanda tangan</p>
-                      </div>
-                    )}
+                </div>
+                <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100 h-[220px] flex items-center justify-center">
+                  {ttdMode === 'upload' ? (
+                    <label className="w-full h-full flex items-center justify-center cursor-pointer">
+                      <input type="file" className="hidden" onChange={e => handleFileChange(e, 'ttd')} />
+                      {previewTtdUrl ? <img src={previewTtdUrl} className="max-h-full object-contain" /> : <p className="text-[10px] font-bold text-gray-400 uppercase">Klik untuk upload TTD</p>}
+                    </label>
+                  ) : (
+                    <div className="relative w-full h-full bg-white rounded-2xl overflow-hidden border border-gray-200">
+                      <SignaturePad ref={sigPad} onEnd={handleCanvasEnd} canvasProps={{ className: "w-full h-full" }} />
+                      <button type="button" onClick={() => sigPad.current.clear()} className="absolute top-2 right-2 p-2 bg-red-50 text-red-500 rounded-lg"><Eraser size={16} /></button>
                     </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-                    <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
-                        Jabatan
-                      </label>
-
-                      <input
-                        type="text"
-                        value={formData.jabatan}
-                        onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
-                        className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 placeholder-gray-400 shadow-sm"
-                        placeholder="Contoh: Ketua DKM, Sekretaris, Bendahara"
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
-                        Periode Mulai
-                      </label>
-
-                      <DateSelect
-                        value={formData.periode_mulai}
-                        onChange={(value) =>
-                          setFormData({
-                            ...formData,
-                            periode_mulai: value
-                          })
-                        }
-                        className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 shadow-sm"
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
-                        Periode Selesai
-                      </label>
-
-                      <DateSelect
-                          value={formData.periode_selesai}
-                          onChange={(value) =>
-                            setFormData({
-                              ...formData,
-                              periode_selesai: value
-                            })
-                          }
-                          className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all duration-300 bg-gray-50 text-gray-700 shadow-sm"
-                        />
-                    </div>
+            <div className="space-y-8">
+              <h3 className="font-black uppercase border-l-4 border-mu-green pl-4">Detail Informasi</h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase">Nama Lengkap</label>
+                  <input type="text" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-mu-green font-bold" placeholder="Masukkan Nama" value={formData.nama} onChange={e => setFormData({...formData, nama: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase">Jabatan Struktural</label>
+                  <input type="text" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-mu-green font-bold" placeholder="Masukkan Jabatan" value={formData.jabatan} onChange={e => setFormData({...formData, jabatan: e.target.value})} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase">Periode Mulai</label>
+                    <CustomCalendarInput label="Mulai" value={formData.periode_mulai} maxDate={formData.periode_selesai} onChange={v => setFormData({...formData, periode_mulai: v})} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase">Periode Selesai</label>
+                    <CustomCalendarInput label="Selesai" value={formData.periode_selesai} minDate={formData.periode_mulai} onChange={v => setFormData({...formData, periode_selesai: v})} />
                   </div>
                 </div>
               </div>
-
-              <div className="space-y-10">
-                <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight border-l-4 border-mu-green pl-4">Detail Pengurus</h3>
-                
-                <div className="grid gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><User size={14} className="text-mu-green"/> Nama Lengkap</label>
-                    <input type="text" value={formData.nama} onChange={e => setFormData({...formData, nama: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green outline-none font-bold text-gray-700" placeholder="Contoh: Haji Ahmad" required />
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><PenTool size={14} className="text-mu-green"/> Jabatan Struktural</label>
-                    <input type="text" value={formData.jabatan} onChange={e => setFormData({...formData, jabatan: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-mu-green/10 focus:border-mu-green outline-none font-bold text-gray-700" placeholder="Contoh: Ketua Takmir" required />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Periode Mulai</label>
-                      <CustomCalendarInput label="Periode Mulai" value={formData.periode_mulai} maxDate={formData.periode_selesai} onChange={date => setFormData({...formData, periode_mulai: date})} />
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Periode Selesai</label>
-                      <CustomCalendarInput label="Periode Selesai" value={formData.periode_selesai} minDate={formData.periode_mulai} onChange={date => setFormData({...formData, periode_selesai: date})} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-8 flex flex-col sm:flex-row gap-4">
-                  <button type="button" onClick={() => navigate('/admin/struktur-organisasi')} className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-gray-200 active:scale-95 transition-all">Batal</button>
-                  <button type="submit" disabled={loading} className="flex-[2] py-4 bg-mu-green text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-green-100 hover:bg-green-700 active:scale-95 transition-all flex items-center justify-center gap-3">
-                    {loading ? <RefreshCcw className="animate-spin" size={16} /> : <Save size={16} />}
-                    {loading ? 'Menyimpan...' : 'Simpan Struktur'}
-                  </button>
-                </div>
+              <div className="pt-10 flex gap-4">
+                <button type="button" onClick={() => navigate('/admin/struktur-organisasi')} className="flex-1 py-4 bg-gray-100 rounded-2xl font-black uppercase text-[10px] text-gray-400">Batal</button>
+                <button type="submit" disabled={loading} className="flex-[2] py-4 bg-mu-green text-white rounded-2xl font-black uppercase text-[10px] shadow-xl shadow-green-100 disabled:opacity-50">
+                  {loading ? 'Menyimpan...' : 'Simpan Struktur'}
+                </button>
               </div>
             </div>
           </form>
