@@ -4,312 +4,618 @@ import { formatRupiah } from "./formatCurrency";
 import { generateQrTtd } from "./scanTtd";
 import logoKop from "../assets/kop-surat.jpeg";
 
+// ================= LOAD IMAGE =================
 const imageUrlToBase64 = async (url) => {
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = url;
+  try {
+    const response = await axios.get(url, {
+      responseType: "blob",
+    });
 
-  await new Promise((resolve, reject) => {
-    img.onload = resolve;
-    img.onerror = reject;
-  });
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-  const canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
 
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.drawImage(img, 0, 0);
-
-  return canvas.toDataURL("image/png");
+      reader.readAsDataURL(response.data);
+    });
+  } catch (error) {
+    console.error("Gagal convert logo:", error);
+    return null;
+  }
 };
 
-const getTtdUrl = (ttd) => {
-  if (!ttd) return null;
-  if (ttd.startsWith("http")) return ttd;
-  return `http://localhost:3000/uploads/ttd/${ttd}`;
+// ================= TERBILANG =================
+const terbilang = (angka) => {
+  const huruf = [
+    "",
+    "Satu",
+    "Dua",
+    "Tiga",
+    "Empat",
+    "Lima",
+    "Enam",
+    "Tujuh",
+    "Delapan",
+    "Sembilan",
+    "Sepuluh",
+    "Sebelas",
+  ];
+
+  let hasil = "";
+
+  if (angka < 12) hasil = " " + huruf[angka];
+  else if (angka < 20)
+    hasil = terbilang(angka - 10) + " Belas";
+  else if (angka < 100)
+    hasil =
+      terbilang(Math.floor(angka / 10)) +
+      " Puluh" +
+      terbilang(angka % 10);
+  else if (angka < 200)
+    hasil = " Seratus" + terbilang(angka - 100);
+  else if (angka < 1000)
+    hasil =
+      terbilang(Math.floor(angka / 100)) +
+      " Ratus" +
+      terbilang(angka % 100);
+  else if (angka < 2000)
+    hasil = " Seribu" + terbilang(angka - 1000);
+  else if (angka < 1000000)
+    hasil =
+      terbilang(Math.floor(angka / 1000)) +
+      " Ribu" +
+      terbilang(angka % 1000);
+  else if (angka < 1000000000)
+    hasil =
+      terbilang(Math.floor(angka / 1000000)) +
+      " Juta" +
+      terbilang(angka % 1000000);
+
+  return hasil;
 };
 
+// ================= BULAN ROMAWI =================
+const getBulanRomawi = (tanggal) => {
+  if (!tanggal) return "I";
+
+  const month = new Date(tanggal).getMonth() + 1;
+
+  const romawi = [
+    "",
+    "I",
+    "II",
+    "III",
+    "IV",
+    "V",
+    "VI",
+    "VII",
+    "VIII",
+    "IX",
+    "X",
+    "XI",
+    "XII",
+  ];
+
+  return romawi[month] || "I";
+};
+
+const formatTanggalIndonesia = (tanggal) => {
+  if (!tanggal) return "-";
+
+  try {
+    // support format:
+    // 2026-05-13
+    // 2026-05-13T00:00:00.000Z
+    // 13-05-2026
+
+    let date;
+
+    if (typeof tanggal === "string") {
+      // kalau format DD-MM-YYYY
+      if (/^\d{2}-\d{2}-\d{4}$/.test(tanggal)) {
+        const [day, month, year] = tanggal.split("-");
+        date = new Date(`${year}-${month}-${day}`);
+      } else {
+        date = new Date(tanggal);
+      }
+    } else {
+      date = new Date(tanggal);
+    }
+
+    if (isNaN(date.getTime())) {
+      return "-";
+    }
+
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch (error) {
+    return "-";
+  }
+};
+
+// ================= GET STRUKTUR =================
 const getStrukturPenandatangan = async () => {
   try {
     const token = localStorage.getItem("token");
     const masjidId = localStorage.getItem("masjid_id");
 
     if (!token || !masjidId) {
-      return {
-        ketua: null,
-        bendahara: null
-      };
+      return { bendahara: null };
     }
 
-    const res = await axios.get("http://localhost:3000/takmir/struktur-organisasi", {
-      params: {
-        masjid_id: masjidId
-      },
-      headers: {
-        Authorization: `Bearer ${token}`
+    const res = await axios.get(
+      "http://localhost:3000/takmir/struktur-organisasi",
+      {
+        params: { masjid_id: masjidId },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
-
-    const struktur = Array.isArray(res.data.data) ? res.data.data : [];
-
-    const ketua = struktur.find((item) =>
-      item.jabatan?.toLowerCase().includes("ketua")
     );
+
+    const struktur = Array.isArray(res.data.data)
+      ? res.data.data
+      : [];
 
     const bendahara = struktur.find((item) =>
-      item.jabatan?.toLowerCase().includes("bendahara")
+      item.jabatan
+        ?.toLowerCase()
+        .includes("bendahara")
     );
 
     return {
-      ketua: ketua || null,
-      bendahara: bendahara || null
+      bendahara: bendahara || null,
     };
   } catch (error) {
-    console.error("Gagal mengambil struktur organisasi:", error);
+    console.error(error);
 
     return {
-      ketua: null,
-      bendahara: null
+      bendahara: null,
     };
   }
 };
 
-const getRekeningMasjid = async () => {
+// ================= GET DETAIL MASJID =================
+const getDetailMasjid = async () => {
   try {
-    const token = localStorage.getItem("token");
     const masjidId = localStorage.getItem("masjid_id");
 
-    if (!token || !masjidId) {
-      return "-";
-    }
+    if (!masjidId) return null;
 
-    const res = await axios.get("http://localhost:3000/takmir/rekening-masjid", {
-      params: {
-        masjid_id: masjidId
-      },
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    const res = await axios.get(
+      `http://localhost:3000/public/masjid/${masjidId}`
+    );
 
-    const rekening = Array.isArray(res.data.data) ? res.data.data : [];
-
-    if (rekening.length === 0) {
-      return "-";
-    }
-
-    return rekening
-      .map((item) => {
-        const namaBank = item.nama_bank || "-";
-        const noRekening = item.no_rekening || "-";
-        const atasNama = item.atas_nama || "-";
-
-        return `${namaBank} ${noRekening} a.n ${atasNama}`;
-      })
-      .join("\n");
+    return res.data.masjid;
   } catch (error) {
-    console.error("Gagal mengambil rekening masjid:", error);
-    return "-";
+    console.error("Gagal get masjid:", error);
+    return null;
   }
 };
 
-export const generateKwitansiPDF = async (data, savedTtd) => {
-  const doc = new jsPDF("p", "mm", "a4");
+// ================= GENERATE PDF =================
+export const generateKwitansiPDF = async (data) => {
+  const doc = new jsPDF("l", "mm", "a5");
 
-  const namaMasjid = localStorage.getItem("namaMasjid") || "MASJID MUHAMMADIYAH";
+  // ================= GET DATA =================
+  const detailMasjid = await getDetailMasjid();
+
+  const namaMasjid =
+    detailMasjid?.nama_masjid ||
+    localStorage.getItem("namaMasjid") ||
+    "MASJID";
+
   const masjidId = localStorage.getItem("masjid_id");
 
-  const { ketua, bendahara } = await getStrukturPenandatangan();
+  const isPemasukan =
+    data.jenis === "PEMASUKAN";
 
-  const rekeningMasjid = await getRekeningMasjid();
+  // ================= NOMOR SURAT =================
+  const stringKode = detailMasjid?.kode_surat
+    ? detailMasjid.kode_surat.toUpperCase()
+    : "PTM-MSJD";
 
-  const qrKetua = await generateQrTtd({
-    role: "ketua",
-    nomorDokumen: data.id,
-    jenisDokumen: "kwitansi",
-    masjidId,
-    ttd: ketua?.ttd
-  });
+  const bulanRomawi = getBulanRomawi(
+    data.tanggal
+  );
+
+  const parsedDate = data.tanggal
+    ? new Date(data.tanggal)
+    : new Date();
+
+  const tahun = isNaN(parsedDate.getTime())
+    ? new Date().getFullYear()
+    : parsedDate.getFullYear();
+
+  const nomorUrut =
+    data.id ||
+    data.keuangan_id ||
+    data.transaksi_id ||
+    1;
+
+  const nomorDokumen = `${nomorUrut}/${stringKode}/${bulanRomawi}/${tahun}`;
+
+  // ================= LOGO =================
+  let logoUrl = null;
+
+  if (
+    detailMasjid?.logo_foto &&
+    detailMasjid.logo_foto !== "default.jpg"
+  ) {
+    logoUrl = detailMasjid.logo_foto.startsWith(
+      "http"
+    )
+      ? detailMasjid.logo_foto
+      : `http://localhost:3000${detailMasjid.logo_foto}`;
+  }
+
+  const dynamicLogo = logoUrl
+    ? await imageUrlToBase64(logoUrl)
+    : null;
+
+  // ================= TTD =================
+  const { bendahara } =
+    await getStrukturPenandatangan();
 
   const qrBendahara = await generateQrTtd({
     role: "bendahara",
-    nomorDokumen: data.id,
+    nomorDokumen,
     jenisDokumen: "kwitansi",
     masjidId,
-    ttd: bendahara?.ttd
+    ttd: bendahara?.ttd,
   });
-  const addPageTemplate = () => {
-    try {
-      doc.addImage(logoKop, "PNG", 0, 0, 210, 297);
-    } catch (error) {
-      console.error("Gagal memuat template kop surat:", error);
-    }
-  };
 
-  addPageTemplate();
+  // ================= STYLE =================
+  const r = 0;
+  const g = 98;
+  const b = 39;
+
+  const boxX = 10;
+  const boxY = 10;
+  const boxW = 190;
+  const boxH = 128;
+
+  const leftW = 60;
+  const rightX = boxX + leftW;
+  const rightW = boxW - leftW;
+
+  // ================= BACKGROUND =================
+  doc.setFillColor(r, g, b);
+  doc.rect(boxX, boxY, leftW, boxH, "F");
+
+  doc.setDrawColor(r, g, b);
+  doc.setLineWidth(0.5);
+  doc.rect(boxX, boxY, boxW, boxH, "S");
+
+  // ================= LOGO =================
+  try {
+    if (dynamicLogo) {
+    doc.addImage(
+      dynamicLogo,
+      undefined,
+      boxX + 15,
+      boxY + 15,
+      26,
+      26
+    );
+    } else {
+    doc.addImage(
+      logoKop,
+      "JPEG",
+      boxX + 15,
+      boxY + 15,
+      26,
+      26
+    );
+    }
+  } catch (e) {
+    console.log("Logo gagal render");
+  }
+
+  // ================= SIDEBAR =================
+  doc.setTextColor(255, 255, 255);
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(0, 98, 39);
-  doc.text(namaMasjid.toUpperCase(), 105, 48, { align: "center" });
+  doc.setFontSize(12);
+
+  const splitNama = doc.splitTextToSize(
+    namaMasjid.toUpperCase(),
+    leftW - 10
+  );
+
+  doc.text(
+    splitNama,
+    boxX + leftW / 2,
+    boxY + 55,
+    {
+      align: "center",
+    }
+  );
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+
+  const quote =
+    '"Dan barang apa saja yang kamu nafkahkan, maka Allah akan menggantinya dan Dia-lah Pemberi rezeki yang sebaik-baiknya" (QS. Saba: 39)';
+
+  const splitQuote = doc.splitTextToSize(
+    quote,
+    leftW - 10
+  );
+
+  doc.text(
+    splitQuote,
+    boxX + leftW / 2,
+    boxY + 85,
+    {
+      align: "center",
+    }
+  );
+
+  // ================= HEADER =================
+  doc.setTextColor(r, g, b);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.setTextColor(0, 98, 39);
-  doc.text("BUKTI TRANSAKSI / KWITANSI", 105, 55, { align: "center" });
 
-  doc.setDrawColor(0, 98, 39);
-  doc.setLineWidth(0.5);
-  doc.line(70, 57, 140, 57);
-
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100);
-  doc.text(`Nomor: ${data.id || "-"}`, 105, 63, { align: "center" });
-
-  doc.setDrawColor(230);
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(20, 75, 170, 100, 5, 5, "FD");
-
-  doc.setFontSize(11);
-  doc.setTextColor(0);
-  doc.setFont("helvetica", "bold");
-
-  const startX = 30;
-  let startY = 90;
-
-  doc.text("Tanggal", startX, startY);
-  doc.setFont("helvetica", "normal");
-  doc.text(`:  ${data.tanggal || "-"}`, startX + 40, startY);
-
-  startY += 12;
-  doc.setFont("helvetica", "bold");
   doc.text(
-    data.jenis === "PEMASUKAN" ? "Terima Dari" : "Diberikan Kepada",
-    startX,
-    startY
+    "KUITANSI",
+    rightX + rightW - 10,
+    boxY + 15,
+    {
+      align: "right",
+    }
   );
-  doc.setFont("helvetica", "normal");
-  doc.text(`:  ${(data.donatur || "-").toUpperCase()}`, startX + 40, startY);
 
-  startY += 12;
-  doc.setFont("helvetica", "bold");
-  doc.text("Kategori", startX, startY);
-  doc.setFont("helvetica", "normal");
-  doc.text(`:  ${data.kategori || "-"}`, startX + 40, startY);
-
-  startY += 12;
-  doc.setFont("helvetica", "bold");
-  doc.text("Keperluan", startX, startY);
-  doc.setFont("helvetica", "normal");
-
-  const splitDeskripsi = doc.splitTextToSize(data.keterangan || "-", 100);
-  doc.text(":", startX + 40, startY);
-  doc.text(splitDeskripsi, startX + 43, startY);
-
-  startY += 25;
-  doc.setFillColor(0, 98, 39);
-  doc.roundedRect(startX, startY - 7, 150, 15, 2, 2, "F");
-
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(255);
-  doc.text("NOMINAL :", startX + 5, startY + 3);
-  doc.text(formatRupiah(Math.abs(data.nominal || 0)), startX + 145, startY + 3, {
-    align: "right"
-  });
-
-  const signY = 190;
-  const ketuaX = 60;
-  const bendaharaX = 150;
+  // ================= INFO =================
+  doc.setTextColor(0, 0, 0);
 
   doc.setFontSize(10);
-  doc.setTextColor(0);
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Tanggal", rightX + 10, boxY + 15);
+
   doc.setFont("helvetica", "normal");
+  doc.text(
+    `: ${formatTanggalIndonesia(data.tanggal)}`,
+    rightX + 35,
+    boxY + 15
+  );
 
-  doc.text(`Yogyakarta, ${data.tanggal || "-"}`, bendaharaX, signY, {
-    align: "center"
-  });
+  doc.setFont("helvetica", "bold");
+  doc.text("Nomor", rightX + 10, boxY + 22);
 
-  doc.text("Ketua,", ketuaX, signY + 12, {
-    align: "center"
-  });
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    `: ${nomorDokumen}`,
+    rightX + 35,
+    boxY + 22
+  );
 
-  doc.text("Bendahara,", bendaharaX, signY + 12, {
-    align: "center"
-  });
+  doc.setDrawColor(200, 200, 200);
 
-  if (qrKetua) {
-    doc.addImage(qrKetua, "PNG", ketuaX - 13, signY + 18, 26, 26);
+  doc.line(
+    rightX + 5,
+    boxY + 28,
+    rightX + rightW - 5,
+    boxY + 28
+  );
 
-    doc.setFontSize(6);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80);
-    doc.text("Scan Verifikasi TTD", ketuaX, signY + 47, {
-      align: "center"
-    });
-  } else {
-    doc.setDrawColor(0);
-    doc.line(ketuaX - 28, signY + 42, ketuaX + 28, signY + 42);
-  }
+  // ================= BODY =================
+const bodyY = boxY + 40;
+
+doc.setFont("helvetica", "bold");
+
+doc.text(
+  isPemasukan
+    ? "Diterima dari"
+    : "Diberikan kepada",
+  rightX + 10,
+  bodyY
+);
+
+doc.setFont("helvetica", "normal");
+
+doc.text(
+  `: ${(data.donatur ||
+    data.penerima ||
+    "-").toUpperCase()}`,
+  rightX + 45,
+  bodyY
+);
+
+// ================= NOMINAL =================
+const nominalAngka = Math.abs(
+  data.nominal || 0
+);
+
+doc.setFont("helvetica", "bold");
+doc.setFontSize(10);
+
+doc.setTextColor(0, 0, 0);
+
+doc.text(
+  "Nominal",
+  rightX + 10,
+  bodyY + 12
+);
+
+doc.setTextColor(r, g, b);
+
+doc.text(
+  `: ${formatRupiah(nominalAngka)}`,
+  rightX + 45,
+  bodyY + 12
+);
+
+// ================= JUMLAH =================
+doc.setTextColor(0, 0, 0);
+
+doc.setFont("helvetica", "bold");
+
+doc.text(
+  "Jumlah",
+  rightX + 10,
+  bodyY + 22
+);
+
+doc.setFont("helvetica", "normal");
+
+const terbilangText =
+  terbilang(nominalAngka).trim() +
+  " Rupiah";
+
+const splitTerbilang =
+  doc.splitTextToSize(
+    `: ${terbilangText}`,
+    rightW - 55
+  );
+
+doc.text(
+  splitTerbilang,
+  rightX + 45,
+  bodyY + 22
+);
+
+// tinggi text jumlah
+const tHeight =
+  splitTerbilang.length * 5;
+
+const currentY =
+  bodyY + 22 + tHeight;
+
+// ================= KETERANGAN =================
+doc.setFont("helvetica", "bold");
+
+doc.text(
+  "Keterangan",
+  rightX + 10,
+  currentY
+);
+
+doc.setFont("helvetica", "normal");
+
+const splitKeterangan =
+  doc.splitTextToSize(
+    `: ${data.keterangan || "-"}`,
+    rightW - 55
+  );
+
+doc.text(
+  splitKeterangan,
+  rightX + 45,
+  currentY
+);
+
+const kHeight =
+  splitKeterangan.length * 5;
+
+// ================= GARIS =================
+const lineY =
+  currentY + kHeight + 10;
+
+doc.setDrawColor(200, 200, 200);
+
+doc.line(
+  rightX + 5,
+  lineY,
+  rightX + rightW - 5,
+  lineY
+);
+
+  // ================= TTD =================
+  doc.setTextColor(0, 0, 0);
+
+  const signY = lineY + 10;
+
+  const bendaharaX =
+    rightX + rightW - 25;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+
+  doc.text(
+    "Bendahara",
+    bendaharaX,
+    signY,
+    {
+      align: "center",
+    }
+  );
 
   if (qrBendahara) {
-    doc.addImage(qrBendahara, "PNG", bendaharaX - 13, signY + 18, 26, 26);
-
-    doc.setFontSize(6);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80);
-    doc.text("Scan Verifikasi TTD", bendaharaX, signY + 47, {
-      align: "center"
-    });
+    doc.addImage(
+      qrBendahara,
+      "PNG",
+      bendaharaX - 12,
+      signY + 3,
+      24,
+      24
+    );
   } else {
-    doc.setDrawColor(0);
-    doc.line(bendaharaX - 28, signY + 42, bendaharaX + 28, signY + 42);
+    doc.line(
+      bendaharaX - 15,
+      signY + 20,
+      bendaharaX + 15,
+      signY + 20
+    );
   }
 
-  doc.setFontSize(10);
-  doc.setTextColor(0);
-  doc.setFont("helvetica", "bold");
+  doc.text(
+    (
+      bendahara?.nama || "Bendahara"
+    ).toUpperCase(),
+    bendaharaX,
+    signY + 30,
+    {
+      align: "center",
+    }
+  );
 
-  doc.text((ketua?.nama || "-").toUpperCase(), ketuaX, signY + 53, {
-    align: "center"
-  });
+  // ================= PENERIMA =================
+  if (!isPemasukan) {
+    const penerimaX = rightX + 40;
 
-  doc.text((bendahara?.nama || "-").toUpperCase(), bendaharaX, signY + 53, {
-    align: "center"
-  });
+    doc.text(
+      "Penerima",
+      penerimaX,
+      signY,
+      {
+        align: "center",
+      }
+    );
 
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
+    doc.line(
+      penerimaX - 15,
+      signY + 20,
+      penerimaX + 15,
+      signY + 20
+    );
 
-  doc.text(namaMasjid, ketuaX, signY + 58, {
-    align: "center"
-  });
+    const namaPenerima = (
+      data.donatur ||
+      data.penerima ||
+      "Penerima"
+    ).toUpperCase();
 
-  doc.text(namaMasjid, bendaharaX, signY + 58, {
-    align: "center"
-  });
+    doc.text(
+      namaPenerima,
+      penerimaX,
+      signY + 30,
+      {
+        align: "center",
+      }
+    );
+  }
 
-  doc.setTextColor(80);
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "bold");
-  doc.text("Rekening Masjid:", 20, 260);
+  const cleanNomorDokumen =
+    nomorDokumen.replace(/\//g, "-");
 
-  doc.setFont("helvetica", "normal");
-  const splitRekening = doc.splitTextToSize(rekeningMasjid, 95);
-  doc.text(splitRekening.slice(0, 4), 20, 265);
-
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "italic");
-  doc.setTextColor(150);
-  doc.text("*Bukti ini sah sebagai dokumen internal masjid.", 190, 270, {
-    align: "right"
-  });
-
-  doc.save(`Kwitansi_${data.id || "Dokumen"}_${data.donatur || "Transaksi"}.pdf`);
+  doc.save(
+    `Kwitansi_${cleanNomorDokumen}.pdf`
+  );
 };
