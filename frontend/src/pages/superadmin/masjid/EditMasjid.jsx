@@ -15,7 +15,8 @@ import {
   CheckCircle2, 
   XCircle, 
   Info,
-  Camera
+  Camera,
+  Hash // Tambah icon Hash
 } from 'lucide-react';
 
 const AlertPopup = ({ alertData, onClose }) => {
@@ -81,7 +82,7 @@ const EditMasjid = ({ user, onLogout }) => {
   const [alertData, setAlertData] = useState({ show: false, type: 'info', title: '', message: '', confirmText: '', onConfirm: null });
 
   const [formData, setFormData] = useState({
-    nama_masjid: '', alamat: '', no_hp: '', deskripsi: '', latitude: '', longitude: ''
+    nama_masjid: '', kode_surat: '', alamat: '', no_hp: '', deskripsi: '', latitude: '', longitude: ''
   });
 
   const [existingLogo, setExistingLogo] = useState(null); 
@@ -118,6 +119,7 @@ const EditMasjid = ({ user, onLogout }) => {
 
       setFormData({
         nama_masjid: res.data.nama_masjid || '',
+        kode_surat: res.data.kode_surat || '', // Load kode surat
         alamat: res.data.alamat || '',
         no_hp: res.data.no_hp || '',
         deskripsi: res.data.deskripsi || '',
@@ -158,9 +160,13 @@ const EditMasjid = ({ user, onLogout }) => {
   };
 
   const validateForm = () => {
-    const { nama_masjid, alamat, no_hp } = formData;
+    const { nama_masjid, kode_surat, alamat, no_hp } = formData;
     if (!nama_masjid.trim()) {
       showPopup({ type: "warning", title: "Nama Masjid Kosong", message: "Nama masjid wajib diisi." });
+      return false;
+    }
+    if (!kode_surat.trim()) {
+      showPopup({ type: "warning", title: "Kode Surat Kosong", message: "Kode Surat masjid wajib diisi." });
       return false;
     }
     if (!alamat.trim()) {
@@ -325,6 +331,24 @@ const EditMasjid = ({ user, onLogout }) => {
                           className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 text-gray-700 shadow-sm font-medium"
                           placeholder="Masukkan nama resmi masjid"
                         />
+                      </div>
+
+                      {/* Input Kode Surat */}
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Kode Surat</label>
+                        <div className="relative">
+                          <Hash size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            value={formData.kode_surat}
+                            onChange={(e) => setFormData({ ...formData, kode_surat: e.target.value.toUpperCase() })}
+                            className="w-full pl-12 pr-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 uppercase"
+                            placeholder="Contoh: PTM-ALHDS"
+                          />
+                        </div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase italic mt-1">
+                          * Digunakan untuk format penomoran kuitansi
+                        </p>
                       </div>
                       
                       <div className="space-y-3">

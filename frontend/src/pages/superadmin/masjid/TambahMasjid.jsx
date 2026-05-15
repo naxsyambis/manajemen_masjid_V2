@@ -14,7 +14,8 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   XCircle, 
-  Info 
+  Info,
+  Hash // Tambah icon Hash untuk kode surat
 } from 'lucide-react';
 
 const AlertPopup = ({ alertData, onClose }) => {
@@ -67,6 +68,7 @@ const TambahMasjid = ({ user, onLogout }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [formData, setFormData] = useState({
     nama_masjid: '',
+    kode_surat: '', // Tambahkan state kode_surat
     alamat: '',
     no_hp: '',
     deskripsi: '',
@@ -104,13 +106,14 @@ const TambahMasjid = ({ user, onLogout }) => {
   };
 
   const validateForm = () => {
-    const { nama_masjid, alamat, no_hp } = formData;
+    const { nama_masjid, kode_surat, alamat, no_hp } = formData;
 
-    if (!nama_masjid.trim() || !alamat.trim() || !no_hp.trim()) {
+    // Tambahkan kode_surat ke validasi
+    if (!nama_masjid.trim() || !kode_surat.trim() || !alamat.trim() || !no_hp.trim()) {
       showPopup({
         type: "warning",
         title: "Data Tidak Lengkap",
-        message: "Mohon isi Nama Masjid, Alamat, dan Nomor HP."
+        message: "Mohon isi Nama Masjid, Kode Surat, Alamat, dan Nomor HP."
       });
       return false;
     }
@@ -271,6 +274,24 @@ const TambahMasjid = ({ user, onLogout }) => {
                         />
                       </div>
                       
+                      {/* Input Kode Surat */}
+                      <div className="space-y-3">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Kode Surat</label>
+                        <div className="relative">
+                          <Hash size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            value={formData.kode_surat}
+                            onChange={(e) => setFormData({ ...formData, kode_surat: e.target.value.toUpperCase() })}
+                            className="w-full pl-12 pr-6 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-mu-green/20 focus:border-mu-green transition-all bg-gray-50 uppercase"
+                            placeholder="Contoh: PTM-ALHDS"
+                          />
+                        </div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase italic mt-1">
+                          * Digunakan untuk format penomoran kuitansi
+                        </p>
+                      </div>
+
                       <div className="space-y-3">
                         <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Alamat Lengkap</label>
                         <textarea

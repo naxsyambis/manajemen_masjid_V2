@@ -256,13 +256,6 @@ const Riwayat = () => {
       setTransaksi(data);
       setFilteredTransaksi(data);
 
-      if (data.length === 0) {
-        showPopup({
-          type: 'info',
-          title: 'Belum Ada Transaksi',
-          message: 'Data transaksi keuangan masih kosong.'
-        });
-      }
     } catch (err) {
       if (handleAuthError(err, showPopup)) return;
 
@@ -323,7 +316,8 @@ const Riwayat = () => {
     setTanggalAkhir('');
   };
 
-  const handleExportLaporan = (startDate, endDate) => {
+  // ----- TERIMA PARAMETER KATEGORI DARI MODAL -----
+  const handleExportLaporan = async (startDate, endDate, selectedKategori) => {
     if (!startDate || !endDate) {
       showPopup({
         type: 'warning',
@@ -342,27 +336,31 @@ const Riwayat = () => {
       return;
     }
 
+    // Filter transaksi untuk validasi apakah datanya kosong atau tidak
     const filtered = transaksi.filter((item) => {
       const tgl = new Date(item.tanggal);
-      return tgl >= new Date(startDate) && tgl <= new Date(endDate);
+      const isDateValid = tgl >= new Date(startDate) && tgl <= new Date(endDate);
+      const isCatValid = selectedKategori ? item.kategori_id === parseInt(selectedKategori) : true;
+      return isDateValid && isCatValid;
     });
 
     if (filtered.length === 0) {
       showPopup({
         type: 'warning',
         title: 'Data Tidak Ada',
-        message: 'Tidak ada transaksi pada periode tersebut.'
+        message: 'Tidak ada transaksi pada periode dan kategori tersebut.'
       });
       return;
     }
 
     try {
-      generateLaporanKeuanganPDF(
+      // Panggil fungsi dengan urutan parameter yang BENAR
+      // Parameter yang diharapkan: generateLaporanKeuanganPDF(transaksi, startDate, endDate, selectedKategori)
+      await generateLaporanKeuanganPDF(
         filtered,
         startDate,
         endDate,
-        localStorage.getItem('namaMasjid') || 'MASJID MUHAMMADIYAH',
-        'TAKMIR MASJID'
+        selectedKategori // Lempar ID kategorinya ke sini
       );
 
       setShowExportModal(false);

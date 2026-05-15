@@ -42,16 +42,24 @@ const formatTanggalIndonesia = (tanggal) => {
   }
 };
 
-const getTransaksiPeriode = async ({ masjidId, startDate, endDate }) => {
+// TERIMA PARAMETER BARU: kategoriId
+const getTransaksiPeriode = async ({ masjidId, startDate, endDate, kategoriId }) => {
   try {
+    const whereClause = {
+      masjid_id: masjidId,
+      tanggal: {
+        [Op.gte]: startDate,
+        [Op.lte]: endDate
+      }
+    };
+
+    // Filter berdasarkan kategori jika ada
+    if (kategoriId) {
+      whereClause.kategori_id = kategoriId;
+    }
+
     const data = await Keuangan.findAll({
-      where: {
-        masjid_id: masjidId,
-        tanggal: {
-          [Op.gte]: startDate,
-          [Op.lte]: endDate
-        }
-      },
+      where: whereClause,
       include: [
         {
           model: KategoriKeuangan,
@@ -230,7 +238,18 @@ const drawPageTemplate = (doc) => {
   }
 };
 
-const drawHeader = ({ doc, namaMasjid, startDate, endDate, isPublic }) => {
+// AMBIL NAMA KATEGORI UNTUK JUDUL PDF
+const getNamaKategori = async (kategoriId) => {
+  if (!kategoriId) return null;
+  try {
+    const kategori = await KategoriKeuangan.findByPk(kategoriId);
+    return kategori ? kategori.nama_kategori : null;
+  } catch (error) {
+    return null;
+  }
+};
+
+const drawHeader = ({ doc, namaMasjid, startDate, endDate, isPublic, namaKategori }) => {
   drawPageTemplate(doc);
 
   doc
@@ -242,21 +261,20 @@ const drawHeader = ({ doc, namaMasjid, startDate, endDate, isPublic }) => {
       align: "center"
     });
 
+  // FORMAT JUDUL BERDASARKAN KATEGORI
+  let judulLaporan = isPublic ? "LAPORAN KEUANGAN PUBLIC" : "LAPORAN REKAPITULASI KEUANGAN";
+  if (namaKategori) {
+    judulLaporan += ` - ${namaKategori.toUpperCase()}`;
+  }
+
   doc
     .font("Helvetica-Bold")
-    .fontSize(17)
+    .fontSize(15)
     .fillColor("#006227")
-    .text(
-      isPublic
-        ? "LAPORAN KEUANGAN PUBLIC"
-        : "LAPORAN REKAPITULASI KEUANGAN",
-      40,
-      158,
-      {
-        width: 515,
-        align: "center"
-      }
-    );
+    .text(judulLaporan, 40, 158, {
+      width: 515,
+      align: "center"
+    });
 
   doc
     .moveTo(155, 184)
@@ -577,7 +595,8 @@ router.get("/laporan-keuangan/test", (req, res) => {
 
 router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
   try {
-    const { masjid_id, nama_masjid, startDate, endDate, mode } = req.query;
+    // TERIMA PARAMETER BARU: kategori_id
+    const { masjid_id, nama_masjid, startDate, endDate, mode, kategori_id } = req.query;
     const isPublic = mode === "public";
 
     if (!masjid_id || !startDate || !endDate) {
@@ -587,11 +606,16 @@ router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
     }
 
     const namaMasjid = nama_masjid && nama_masjid !== "-" ? nama_masjid : "-";
+    
+    // Ambil nama kategori jika kategori difilter
+    const namaKategori = await getNamaKategori(kategori_id);
 
+    // KIRIIM kategori_id ke fungsi getTransaksiPeriode
     const transaksi = await getTransaksiPeriode({
       masjidId: masjid_id,
       startDate,
-      endDate
+      endDate,
+      kategoriId: kategori_id 
     });
 
     const { ketua, bendahara } = await getStrukturPenandatangan(masjid_id);
@@ -625,7 +649,8 @@ router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
       namaMasjid,
       startDate,
       endDate,
-      isPublic
+      isPublic,
+      namaKategori 
     });
 
     drawRingkasan({
@@ -648,11 +673,24 @@ router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
 
           y = 120;
 
+          // REDRAW HEADER FOR NEW PAGE
+          let judulLaporan = "LAPORAN REKAPITULASI KEUANGAN";
+          if (namaKategori) judulLaporan += ` - ${namaKategori.toUpperCase()}`;
+          
           doc
             .font("Helvetica-Bold")
             .fontSize(12)
             .fillColor("#006227")
             .text((namaMasjid || "-").toUpperCase(), 40, 70, {
+              width: 515,
+              align: "center"
+            });
+            
+          doc
+            .font("Helvetica-Bold")
+            .fontSize(10)
+            .fillColor("#006227")
+            .text(judulLaporan, 40, 85, {
               width: 515,
               align: "center"
             });
@@ -668,7 +706,7 @@ router.get("/laporan-keuangan/verifikasi-pdf", async (req, res) => {
           .font("Helvetica")
           .fontSize(9)
           .fillColor("black")
-          .text("Tidak ada transaksi pada periode ini.", 45, y + 10);
+          .text("Tidak ada transaksi pada periode dan kategori ini.", 45, y + 10);
 
         y += 35;
       }
