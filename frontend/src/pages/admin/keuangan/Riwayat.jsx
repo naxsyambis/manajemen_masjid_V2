@@ -60,7 +60,6 @@ const handleAuthError = (err, showPopup) => {
 
     return true;
   }
-
   return false;
 };
 
@@ -317,7 +316,6 @@ const Riwayat = () => {
     setTanggalAkhir('');
   };
 
-  // ----- TERIMA PARAMETER KATEGORI DARI MODAL -----
   const handleExportLaporan = async (startDate, endDate, selectedKategori) => {
     if (!startDate || !endDate) {
       showPopup({
@@ -337,7 +335,6 @@ const Riwayat = () => {
       return;
     }
 
-    // Filter transaksi untuk validasi apakah datanya kosong atau tidak
     const filtered = transaksi.filter((item) => {
       const tgl = new Date(item.tanggal);
       const isDateValid = tgl >= new Date(startDate) && tgl <= new Date(endDate);
@@ -355,13 +352,11 @@ const Riwayat = () => {
     }
 
     try {
-      // Panggil fungsi dengan urutan parameter yang BENAR
-      // Parameter yang diharapkan: generateLaporanKeuanganPDF(transaksi, startDate, endDate, selectedKategori)
       await generateLaporanKeuanganPDF(
         filtered,
         startDate,
         endDate,
-        selectedKategori // Lempar ID kategorinya ke sini
+        selectedKategori 
       );
 
       setShowExportModal(false);
@@ -434,7 +429,8 @@ const Riwayat = () => {
   };
 
   return (
-    <div className="p-4 space-y-10 animate-fadeIn bg-[#fdfdfd]">
+    // PERBAIKAN: Menghapus w-full dan atribut aneh lainnya agar pembungkusnya patuh pada layout sidebar
+    <div className="p-4 space-y-10 animate-fadeIn bg-[#fdfdfd] min-h-screen">
       <AlertPopup alertData={alertData} onClose={closePopup} />
 
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-gray-100 pb-8">
@@ -531,7 +527,8 @@ const Riwayat = () => {
         </div>
       </div>
 
-      <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
+      {/* PERBAIKAN: Menambahkan 'grid grid-cols-1' untuk mengunci lebar kotak agar tidak ditembus oleh tabel panjang */}
+      <div className="bg-white p-6 md:p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50 grid grid-cols-1">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
           <div>
             <h3 className="text-lg font-black text-gray-800 uppercase tracking-tighter">
@@ -555,8 +552,9 @@ const Riwayat = () => {
           )}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-separate border-spacing-0">
+        <div className="overflow-x-auto pb-4 custom-scrollbar">
+          {/* PERBAIKAN: Menggunakan w-full dan whitespace-nowrap tanpa memaksakan ukuran minimal table */}
+          <table className="w-full text-left border-separate border-spacing-0 whitespace-nowrap">
             <thead>
               <tr className="bg-gray-50/50">
                 <th className="px-6 py-6 text-center text-xs font-black text-gray-400 uppercase tracking-widest border-b-2 border-gray-50">
@@ -698,7 +696,7 @@ const Riwayat = () => {
                       <td className="px-6 py-6 border-b border-gray-50 text-center">
                         <div className="flex justify-center items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                           
-                          {}
+                          {/* Tombol Minta TTD via WA */}
                           {!isMasuk && (
                             <button
                               type="button"
