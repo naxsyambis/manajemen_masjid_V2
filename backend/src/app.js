@@ -15,7 +15,6 @@ app.use("/takmir", require("./routes/takmir.routes"));
 app.use("/public", require("./routes/public.routes"));
 
 app.use("/", require("./routes/verifikasiTtdRoutes"));
-
 app.use("/", require("./routes/laporanKeuanganRoutes"));
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

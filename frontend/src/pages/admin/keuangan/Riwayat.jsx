@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   XCircle,
   Info,
-  RefreshCcw
+  RefreshCcw,
+  Share2
 } from 'lucide-react';
 
 import Button from '../../../components/Button';
@@ -402,9 +403,6 @@ const Riwayat = () => {
         item.nama_donatur || (Number(item.jumlah) > 0 ? 'Hamba Allah' : 'Penerima');
 
       const cleanDeskripsi = item.deskripsi || '-';
-
-      // PERBAIKAN: Hapus formatTanggal() pada item.tanggal 
-      // agar PDF generator bisa mem-parsing data mentahnya dengan benar
       await generateKwitansiPDF(
         {
           id: `TX-${item.keuangan_id}`,
@@ -415,7 +413,8 @@ const Riwayat = () => {
           keterangan: cleanDeskripsi,
           jenis: Number(item.jumlah) > 0 ? 'PEMASUKAN' : 'PENGELUARAN'
         },
-        savedTtd
+        savedTtd,
+        item.ttd_penerima
       );
 
       showPopup({
@@ -697,7 +696,30 @@ const Riwayat = () => {
                       </td>
 
                       <td className="px-6 py-6 border-b border-gray-50 text-center">
-                        <div className="flex justify-center items-center gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <div className="flex justify-center items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                          
+                          {}
+                          {!isMasuk && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const linkTtd = `${window.location.origin}/ttd-penerima/${item.keuangan_id}`;
+                                const pesanWa = `Assalamualaikum, mohon ketersediaannya untuk melengkapi Tanda Tangan Kuitansi penerimaan dana Masjid pada link berikut:\n\n${linkTtd}`;
+                                let targetWa = `https://wa.me/?text=${encodeURIComponent(pesanWa)}`;
+                                if (item.no_hp) {
+                                  const formattedPhone = item.no_hp.replace(/^0/, '62');
+                                  targetWa = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(pesanWa)}`;
+                                }
+                                
+                                window.open(targetWa, '_blank');
+                              }}
+                              className="p-3 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                              title="Minta TTD via WA"
+                            >
+                              <Share2 size={20} />
+                            </button>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => handleCetak(item)}

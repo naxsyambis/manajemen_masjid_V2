@@ -17,7 +17,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Info
+  Info,
+  Phone
 } from 'lucide-react';
 import ModalKeuangan from './ModalKeuangan';
 import DateSelect from '../../../components/DateSelect';
@@ -121,6 +122,7 @@ const Keuangan = () => {
     jumlah: '',
     deskripsi: '',
     donatur: '',
+    no_hp: '',
     tanggal: new Date().toISOString().split('T')[0],
     kategori_id: '' 
   });
@@ -358,7 +360,8 @@ const Keuangan = () => {
         jumlah: nominalFinal,
         tanggal: formData.tanggal,
         deskripsi: formData.deskripsi.trim(), 
-        nama_donatur: namaPihak, 
+        nama_donatur: namaPihak,
+        no_hp: formData.jenis_transaksi === 'pengeluaran' ? formData.no_hp.trim() : null,
         kategori_id: parseInt(formData.kategori_id)
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -374,7 +377,8 @@ const Keuangan = () => {
         ...formData,
         jumlah: '',
         deskripsi: '',
-        donatur: ''
+        donatur: '',
+        no_hp: ''
       });
     } catch (err) {
       if (handleAuthError(err, showPopup)) return;
@@ -595,6 +599,28 @@ const Keuangan = () => {
                   : 'Wajib diisi untuk pengeluaran.'}
               </p>
             </div>
+
+            {}
+            {formData.jenis_transaksi === 'pengeluaran' && (
+              <div className="space-y-3 group">
+                <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors">
+                  <Phone size={14} />
+                  No. WhatsApp Penerima
+                </label>
+
+                <input
+                  type="text"
+                  value={formData.no_hp}
+                  className="w-full px-6 py-5 bg-gray-50 rounded-3xl outline-none text-sm font-bold shadow-inner focus:bg-gray-100 transition-all"
+                  placeholder="Contoh: 081234567890"
+                  onChange={(e) => setFormData({ ...formData, no_hp: e.target.value })}
+                />
+
+                <p className="text-[10px] font-bold text-gray-400 ml-2">
+                  Opsional. Digunakan untuk mengirim link tanda tangan kuitansi via WA.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-3 group">
               <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors">

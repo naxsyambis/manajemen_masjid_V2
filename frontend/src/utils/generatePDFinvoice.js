@@ -306,7 +306,8 @@ const drawInfoRow = ({
 // ======================================================
 // GENERATE KWITANSI PDF
 // ======================================================
-export const generateKwitansiPDF = async (data) => {
+// PERBAIKAN: Menambahkan parameter ttdPenerimaBase64
+export const generateKwitansiPDF = async (data, savedTtd, ttdPenerimaBase64) => {
   const doc = new jsPDF("l", "mm", "a5");
 
   // ====================================================
@@ -338,8 +339,7 @@ export const generateKwitansiPDF = async (data) => {
   }
 
   // ====================================================
-  // PERBAIKAN: TANGGAL DINAMIS
-  // Menangani property date yang mungkin berbeda untuk pengeluaran
+  // TANGGAL DINAMIS
   // ====================================================
   const rawTanggal = data.tanggal || data.tanggal_pengeluaran || data.created_at;
 
@@ -520,7 +520,7 @@ export const generateKwitansiPDF = async (data) => {
   // ====================================================
   // BODY UTAMA
   // ====================================================
-  const row1Y = boxY + 33; // Sedikit dinaikkan dari 36 agar lebih proporsional
+  const row1Y = boxY + 33; 
   const rowGap = 8;
 
   drawInfoRow({
@@ -566,9 +566,8 @@ export const generateKwitansiPDF = async (data) => {
   });
 
   // ====================================================
-  // GARIS PEMBATAS CATATAN DAN TTD (DIPERBAIKI DISINI)
+  // GARIS PEMBATAS CATATAN DAN TTD
   // ====================================================
-  // Mengubah posisi dari boxY + 71.5 ke boxY + 63.0 untuk memangkas space kosong berlebih
   const bottomSectionLineY = boxY + 63.0;
 
   doc.setDrawColor(GREY.r, GREY.g, GREY.b);
@@ -576,7 +575,7 @@ export const generateKwitansiPDF = async (data) => {
   doc.line(rightX, bottomSectionLineY, rightEndX, bottomSectionLineY);
 
   // ====================================================
-  // CATATAN & STRIP NOMINAL (KIRI) -> MENGIKUTI POSISI BARU
+  // CATATAN & STRIP NOMINAL (KIRI)
   // ====================================================
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "bold");
@@ -584,7 +583,7 @@ export const generateKwitansiPDF = async (data) => {
   doc.text("Catatan", labelX, bottomSectionLineY + 5.5);
 
   const amountBarX = rightX;
-  const amountBarY = boxY + 93.6; // Tetap di bawah agar sejajar dengan posisi aman nominal
+  const amountBarY = boxY + 93.6; 
   const amountBarW = 58.9;
   const amountBarH = 7.4;
 
@@ -599,11 +598,11 @@ export const generateKwitansiPDF = async (data) => {
   });
 
   // ====================================================
-  // TTD DINAMIS (KANAN BAWAH) -> DISERASI-KAN JARAKNYA
+  // TTD DINAMIS (KANAN BAWAH)
   // ====================================================
   const signCenterX = rightX + 90.5; 
-  const signTitleY = bottomSectionLineY + 6.0; // Teks "Penerima" diletakkan pas di bawah garis baru
-  const nameY = boxY + 100.0; // Menyesuaikan agar nama pas diletakkan di bawah barcode tanpa berhimpitan
+  const signTitleY = bottomSectionLineY + 6.0; 
+  const nameY = boxY + 100.0; 
 
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "bold");
@@ -612,9 +611,7 @@ export const generateKwitansiPDF = async (data) => {
   doc.text("Penerima", signCenterX, signTitleY, { align: "center" });
 
   if (isPemasukan) {
-    // JENIS PEMASUKAN: Penerima -> Scan Barcode -> Nama Bendahara -> Bendahara
     if (qrBendahara) {
-      // Barcode diletakkan pas di bawah judul "Penerima" (signTitleY + 2)
       doc.addImage(qrBendahara, "PNG", signCenterX - 11, signTitleY + 2.5, 21, 21);
     } else {
       doc.setDrawColor(0, 0, 0);
@@ -624,15 +621,24 @@ export const generateKwitansiPDF = async (data) => {
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.2);
-    // Menampilkan Nama Bendahara di posisi nameY yang sudah pas
     doc.text(toTitleCase(namaBendahara), signCenterX, nameY, { align: "center" });
 
     doc.setFont("helvetica", "bold");
-    // Jarak dari Nama ke Tulisan "Bendahara" dirapatkan menjadi +3.8 (tidak kejauhan lagi)
     doc.text("Bendahara", signCenterX, nameY + 3.8, { align: "center" });
 
   } else {
-    // JENIS PENGELUARAN: Penerima -> Space TTD -> Nama Penerima/Donatur
+    // ==================================================
+    // RENDER TTD PENERIMA (PENGELUARAN)
+    // ==================================================
+    if (ttdPenerimaBase64) {
+      try {
+        // Render Tanda Tangan: (gambar, format, X, Y, Width, Height)
+        doc.addImage(ttdPenerimaBase64, "PNG", signCenterX - 15, nameY - 18, 30, 14);
+      } catch (err) {
+        console.error("Gagal menempelkan TTD ke PDF:", err);
+      }
+    }
+
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.3);
     doc.line(signCenterX - 18, nameY - 3, signCenterX + 18, nameY - 3);

@@ -7,6 +7,9 @@ import SuperAdminApp from './SuperAdminApp';
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword'; 
 
+// 1. IMPORT HALAMAN TTD PENERIMA YANG BARU DIBUAT
+import HalamanTtdPenerima from './pages/penerima/HalamanTtdPenerima';
+
 const AppWrapper = () => {
   const [currentApp, setCurrentApp] = useState('public'); 
   const [loading, setLoading] = useState(true);
@@ -67,8 +70,12 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/*" element={<PublicApp />} /> 
+        
         <Route path="/login" element={<Login />} /> 
         <Route path="/forgot-password" element={<ForgotPassword />} /> 
+      
+        <Route path="/ttd-penerima/:id" element={<HalamanTtdPenerima />} />
+        
         <Route path="/admin/*" element={<AdminApp />} /> 
         <Route path="/superadmin/*" element={<SuperAdminApp />} />
       </Routes>

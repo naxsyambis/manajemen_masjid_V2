@@ -9,6 +9,7 @@ exports.create = async (req, res) => {
             tanggal: req.body.tanggal,
             deskripsi: req.body.deskripsi, 
             nama_donatur: req.body.nama_donatur || 'Hamba Allah', 
+            no_hp: req.body.no_hp || null,
             kategori_id: req.body.kategori_id,
             user_id: req.user.user_id,
             masjid_id: req.user.masjid_id
@@ -77,6 +78,7 @@ exports.update = async (req, res) => {
             tanggal: req.body.tanggal || keuangan.tanggal,
             deskripsi: req.body.deskripsi || keuangan.deskripsi,
             nama_donatur: req.body.nama_donatur !== undefined ? req.body.nama_donatur : keuangan.nama_donatur,
+            no_hp: req.body.no_hp !== undefined ? req.body.no_hp : keuangan.no_hp,
             kategori_id: req.body.kategori_id || keuangan.kategori_id
         });
 
@@ -200,5 +202,33 @@ exports.generateReport = async (req, res) => {
     } catch (err) {
         console.error("GENERATE REPORT ERROR:", err);
         return res.status(500).json({ message: err.message });
+    }
+};
+
+exports.simpanTtdPenerima = async (req, res) => {
+    try {
+        const { id } = req.params; // id keuangan
+        const { ttd_penerima } = req.body; // gambar base64
+
+        if (!ttd_penerima) {
+            return res.status(400).json({ message: "Tanda tangan tidak boleh kosong" });
+        }
+
+        const keuangan = await Keuangan.findByPk(id);
+
+        if (!keuangan) {
+            return res.status(404).json({ message: "Data keuangan tidak ditemukan" });
+        }
+
+        keuangan.ttd_penerima = ttd_penerima;
+        await keuangan.save();
+
+        res.status(200).json({ 
+            message: "Tanda tangan penerima berhasil disimpan", 
+            data: keuangan 
+        });
+    } catch (error) {
+        console.error("SIMPAN TTD ERROR:", error);
+        res.status(500).json({ message: "Gagal menyimpan tanda tangan", error: error.message });
     }
 };
