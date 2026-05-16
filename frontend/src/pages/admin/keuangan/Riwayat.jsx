@@ -91,11 +91,11 @@ const AlertPopup = ({ alertData, onClose }) => {
     ? 'bg-red-600 hover:bg-red-700 text-white'
     : isSuccess
       ? 'bg-green-600 hover:bg-green-700 text-white'
-      : isError
-        ? 'bg-red-600 hover:bg-red-700 text-white'
-        : isWarning
-          ? 'bg-mu-yellow hover:bg-yellow-400 text-mu-green'
-          : 'bg-mu-green hover:bg-green-700 text-white';
+    : isError
+      ? 'bg-red-600 hover:bg-red-700 text-white'
+      : isWarning
+        ? 'bg-mu-yellow hover:bg-yellow-400 text-mu-green'
+        : 'bg-mu-green hover:bg-green-700 text-white';
 
   const handleMainButton = () => {
     const callback = alertData.onConfirm;
@@ -403,10 +403,12 @@ const Riwayat = () => {
 
       const cleanDeskripsi = item.deskripsi || '-';
 
+      // PERBAIKAN: Hapus formatTanggal() pada item.tanggal 
+      // agar PDF generator bisa mem-parsing data mentahnya dengan benar
       await generateKwitansiPDF(
         {
           id: `TX-${item.keuangan_id}`,
-          tanggal: formatTanggal(item.tanggal),
+          tanggal: item.tanggal, 
           donatur: donaturName,
           kategori: catName,
           nominal: parseFloat(item.jumlah),

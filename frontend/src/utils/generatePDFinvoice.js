@@ -338,14 +338,20 @@ export const generateKwitansiPDF = async (data) => {
   }
 
   // ====================================================
+  // PERBAIKAN: TANGGAL DINAMIS
+  // Menangani property date yang mungkin berbeda untuk pengeluaran
+  // ====================================================
+  const rawTanggal = data.tanggal || data.tanggal_pengeluaran || data.created_at;
+
+  // ====================================================
   // NOMOR DOKUMEN
   // ====================================================
   const stringKode = detailMasjid?.kode_surat
     ? String(detailMasjid.kode_surat).toUpperCase()
     : "PTM-MSJD";
 
-  const bulanRomawi = getBulanRomawi(data.tanggal);
-  const parsedDate = data.tanggal ? new Date(data.tanggal) : new Date();
+  const bulanRomawi = getBulanRomawi(rawTanggal);
+  const parsedDate = rawTanggal ? new Date(rawTanggal) : new Date();
   const tahun = isNaN(parsedDate.getTime()) ? new Date().getFullYear() : parsedDate.getFullYear();
 
   const nomorUrut = data.id || data.keuangan_id || data.transaksi_id || 1;
@@ -497,7 +503,7 @@ export const generateKwitansiPDF = async (data) => {
   doc.setFont("helvetica", "normal");
   doc.text(":", colonX, boxY + 12);
   doc.text(":", colonX, boxY + 18);
-  doc.text(formatTanggalKwitansi(data.tanggal), valueX, boxY + 12);
+  doc.text(formatTanggalKwitansi(rawTanggal), valueX, boxY + 12);
   doc.text(nomorDokumen, valueX, boxY + 18);
 
   // KUITANSI diletakan sejajar dengan Tanggal & Nomor (Rata Kanan)
@@ -519,7 +525,7 @@ export const generateKwitansiPDF = async (data) => {
 
   drawInfoRow({
     doc,
-    label: isPemasukan ? "Diterima dari" : "Diberikan kepada",
+    label: isPemasukan ? "Diterima dari" : "Dibayarkan kpd",
     value: toTitleCase(pihak),
     labelX,
     colonX,
