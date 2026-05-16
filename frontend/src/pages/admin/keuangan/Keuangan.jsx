@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
+import SignatureCanvas from 'react-signature-canvas';
 import { 
   Wallet,
   ArrowDownCircle,
@@ -18,7 +19,9 @@ import {
   CheckCircle2,
   XCircle,
   Info,
-  Phone
+  Phone,
+  PenTool,
+  Eraser
 } from 'lucide-react';
 import ModalKeuangan from './ModalKeuangan';
 import DateSelect from '../../../components/DateSelect';
@@ -105,7 +108,7 @@ const AlertPopup = ({ alertData, onClose }) => {
           <button
             type="button"
             onClick={onClose}
-            className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${buttonClass}`}
+            className={`mt-8 w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 text-white ${buttonClass}`}
           >
             Mengerti
           </button>
@@ -132,6 +135,10 @@ const Keuangan = () => {
   const [editMode, setEditMode] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const dropdownRef = useRef(null);
+  const sigCanvasRef = useRef({});
+  const token = localStorage.getItem('token');
+
   const [alertData, setAlertData] = useState({
     show: false,
     type: "info",
@@ -139,9 +146,6 @@ const Keuangan = () => {
     message: "",
     onConfirm: null
   });
-
-  const dropdownRef = useRef(null);
-  const token = localStorage.getItem('token');
 
   const showPopup = ({
     type = "info",
@@ -172,6 +176,10 @@ const Keuangan = () => {
     if (callback) {
       setTimeout(callback, 100);
     }
+  };
+
+  const clearCanvas = () => {
+    if (sigCanvasRef.current) sigCanvasRef.current.clear();
   };
 
   const fetchCategories = async () => {
@@ -345,6 +353,11 @@ const Keuangan = () => {
 
     const nominalCheck = Number(formData.jumlah);
 
+    let base64Ttd = null;
+    if (formData.jenis_transaksi === 'pengeluaran' && sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
+      base64Ttd = sigCanvasRef.current.getCanvas().toDataURL('image/png');
+    }
+
     try {
       const nominalFinal =
         formData.jenis_transaksi === 'pengeluaran'
@@ -362,6 +375,7 @@ const Keuangan = () => {
         deskripsi: formData.deskripsi.trim(), 
         nama_donatur: namaPihak,
         no_hp: formData.jenis_transaksi === 'pengeluaran' ? formData.no_hp.trim() : null,
+        ttd_penerima: base64Ttd,
         kategori_id: parseInt(formData.kategori_id)
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -380,6 +394,8 @@ const Keuangan = () => {
         donatur: '',
         no_hp: ''
       });
+      clearCanvas();
+
     } catch (err) {
       if (handleAuthError(err, showPopup)) return;
 
@@ -419,7 +435,7 @@ const Keuangan = () => {
           <div className="flex p-1.5 bg-gray-100 rounded-[2rem] gap-1.5 border border-gray-200/50">
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, jenis_transaksi: 'pemasukan' })}
+              onClick={() => { setFormData({ ...formData, jenis_transaksi: 'pemasukan' }); clearCanvas(); }}
               className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.6rem] font-bold uppercase text-xs transition-all ${
                 formData.jenis_transaksi === 'pemasukan'
                   ? 'bg-white text-mu-green shadow-sm'
@@ -600,7 +616,6 @@ const Keuangan = () => {
               </p>
             </div>
 
-            {}
             {formData.jenis_transaksi === 'pengeluaran' && (
               <div className="space-y-3 group">
                 <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors">
@@ -617,7 +632,7 @@ const Keuangan = () => {
                 />
 
                 <p className="text-[10px] font-bold text-gray-400 ml-2">
-                  Opsional. Digunakan untuk mengirim link tanda tangan kuitansi via WA.
+                  Opsional. Digunakan jika ingin meminta TTD secara jarak jauh (via WA).
                 </p>
               </div>
             )}
@@ -635,7 +650,7 @@ const Keuangan = () => {
                 />
             </div>
 
-            <div className="md:col-span-2 space-y-3 group">
+            <div className={`${formData.jenis_transaksi === 'pengeluaran' ? 'md:col-span-1' : 'md:col-span-2'} space-y-3 group`}>
               <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors">
                 <FileText size={14} />
                 Keterangan Tambahan
@@ -653,6 +668,39 @@ const Keuangan = () => {
                 Jelaskan transaksi secara singkat dan jelas.
               </p>
             </div>
+
+            {formData.jenis_transaksi === 'pengeluaran' && (
+              <div className="md:col-span-2 space-y-3 group mt-4">
+                <label className="flex items-center gap-2 text-[10px] font-black text-gray-800 uppercase tracking-widest ml-2 group-focus-within:text-mu-green transition-colors">
+                  <PenTool size={14} /> Tanda Tangan Penerima (Opsional)
+                </label>
+                
+                <div className="border-2 border-dashed border-gray-300 rounded-3xl overflow-hidden bg-gray-50 relative shadow-inner group-focus-within:border-mu-green transition-colors">
+                  <SignatureCanvas 
+                    ref={sigCanvasRef}
+                    penColor="black"
+                    canvasProps={{ 
+                      className: 'signature-canvas w-full h-48 touch-none cursor-crosshair'
+                    }}
+                  />
+                  <div className="absolute bottom-6 left-8 right-8 border-b-2 border-gray-200 pointer-events-none"></div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-2 gap-3">
+                  <p className="text-[10px] font-bold text-gray-400">
+                    Coret jika penerima ada di tempat. Kosongkan jika ingin dikirim via WhatsApp nanti.
+                  </p>
+                  <button 
+                    type="button" 
+                    onClick={clearCanvas}
+                    className="text-[10px] font-black uppercase text-red-500 hover:text-red-700 flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-lg active:scale-95 transition-all"
+                  >
+                    <Eraser size={12} /> Hapus Coretan
+                  </button>
+                </div>
+              </div>
+            )}
+
           </div>
 
           <div className="pt-6">

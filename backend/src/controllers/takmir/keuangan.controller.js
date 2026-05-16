@@ -10,6 +10,7 @@ exports.create = async (req, res) => {
             deskripsi: req.body.deskripsi, 
             nama_donatur: req.body.nama_donatur || 'Hamba Allah', 
             no_hp: req.body.no_hp || null,
+            ttd_penerima: req.body.ttd_penerima || null, // <-- Menangkap TTD langsung dari form
             kategori_id: req.body.kategori_id,
             user_id: req.user.user_id,
             masjid_id: req.user.masjid_id
@@ -207,8 +208,8 @@ exports.generateReport = async (req, res) => {
 
 exports.simpanTtdPenerima = async (req, res) => {
     try {
-        const { id } = req.params; // id keuangan
-        const { ttd_penerima } = req.body; // gambar base64
+        const { id } = req.params; 
+        const { ttd_penerima } = req.body; 
 
         if (!ttd_penerima) {
             return res.status(400).json({ message: "Tanda tangan tidak boleh kosong" });
